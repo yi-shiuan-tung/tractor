@@ -21,6 +21,8 @@ dependencies {
     implementation "io.dropwizard:dropwizard-assets:1.2.1"
     implementation "javax.activation:activation:1.1.1"
     implementation "javax.xml.bind:jaxb-api:2.2.11"
+    implementation "org.atmosphere:atmosphere-runtime:2.5.13"
+    implementation "org.eclipse.jetty.websocket:websocket-server:9.4.27.v20200227"
 
     testImplementation "junit:junit:4.12"
     testImplementation "org.assertj:assertj-core:3.11.0"

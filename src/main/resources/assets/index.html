@@ -2,4 +2,9 @@
   <body>
     Hello world
   </body>
+  <script>
+    ws = new WebSocket("ws://127.0.0.1:8080/tractor");
+    ws.onmessage = console.log;
+    ws.onerror = console.error;
+  </script>
 </html>
