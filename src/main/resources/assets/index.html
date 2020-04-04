@@ -9,13 +9,12 @@
   <script>
     ws = new WebSocket("ws://127.0.0.1:8080/tractor");
     ws.onmessage = function(event) {
-      message = JSON.parse(event.data).message;
+      message = event.data;
       document.getElementById("message").textContent = message;
     }
     ws.onerror = console.error;
     document.getElementById("button").addEventListener("click", function() {
-      console.log(JSON.stringify({"message": document.getElementById("text").value}));
-      ws.send(JSON.stringify({"message": document.getElementById("text").value}));
+      ws.send(document.getElementById("text").value);
     });
   </script>
 </html>

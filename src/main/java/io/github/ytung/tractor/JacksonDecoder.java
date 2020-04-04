@@ -6,6 +6,8 @@ import org.atmosphere.config.managed.Decoder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.ytung.tractor.api.IncomingMessage;
+
 public class JacksonDecoder implements Decoder<String, IncomingMessage> {
 
     private ObjectMapper mapper = new ObjectMapper();
