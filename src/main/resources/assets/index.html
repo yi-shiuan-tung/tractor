@@ -1,10 +1,21 @@
 <html>
   <body>
-    Hello world
+    Type something to send:
+    <input id="text" type="text" />
+    <button id="button" type="button">Send</button>
+    Message:
+    <span id="message"></span>
   </body>
   <script>
     ws = new WebSocket("ws://127.0.0.1:8080/tractor");
-    ws.onmessage = console.log;
+    ws.onmessage = function(event) {
+      message = JSON.parse(event.data).message;
+      document.getElementById("message").textContent = message;
+    }
     ws.onerror = console.error;
+    document.getElementById("button").addEventListener("click", function() {
+      console.log(JSON.stringify({"message": document.getElementById("text").value}));
+      ws.send(JSON.stringify({"message": document.getElementById("text").value}));
+    });
   </script>
 </html>
