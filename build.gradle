@@ -1,0 +1,33 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:1.18.12"
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    implementation "io.dropwizard:dropwizard-assets:1.2.1"
+    implementation "javax.activation:activation:1.1.1"
+    implementation "javax.xml.bind:jaxb-api:2.2.11"
+
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.assertj:assertj-core:3.11.0"
+}
+
+task run(type: JavaExec) {
+    classpath project.sourceSets.main.runtimeClasspath
+    main "io.github.ytung.tractor.TractorServer"
+}
+
