@@ -19,13 +19,12 @@
   },
   "homepage": "https://github.com/ytung/tractor#readme",
   "devDependencies": {
-    "@types/lodash": "^4.14.149",
-    "ts-loader": "^6.2.2",
-    "typescript": "^3.8.3",
+    "atmosphere.js": "^3.0.0",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "jquery": "^3.4.1",
     "lodash": "^4.17.15"
   }
 }

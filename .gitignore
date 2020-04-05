@@ -9,3 +9,6 @@
 .settings
 /bin/
 /build/
+node_modules/
+bundle.js
+package-lock.json

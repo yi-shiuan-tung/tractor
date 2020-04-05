@@ -6,15 +6,5 @@
     Message:
     <span id="message"></span>
   </body>
-  <script>
-    ws = new WebSocket("ws://127.0.0.1:8080/tractor");
-    ws.onmessage = function(event) {
-      message = event.data;
-      document.getElementById("message").textContent = message;
-    }
-    ws.onerror = console.error;
-    document.getElementById("button").addEventListener("click", function() {
-      ws.send(document.getElementById("text").value);
-    });
-  </script>
+  <script src="bundle.js"></script>
 </html>
