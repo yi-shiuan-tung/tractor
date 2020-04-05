@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JacksonEncoder implements Encoder<Object, String> {
 
+    public static final JacksonEncoder INSTANCE = new JacksonEncoder();
+
     @Inject
     private ObjectMapper mapper = new ObjectMapper();
 

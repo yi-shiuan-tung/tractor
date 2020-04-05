@@ -1,10 +1,23 @@
 <html>
   <body>
-    Type something to send:
-    <input id="text" type="text" />
-    <button id="button" type="button">Send</button>
-    Message:
-    <span id="message"></span>
+    <div>
+      Name:
+      <input id="name" type="text" />
+      <button id="set_name" type="button">Set my name</button>
+    </div>
+    <div>
+      <button id="start_game" type="button">Start game</button>
+      <button id="forfeit" type="button">Forfeit</button>
+    </div>
+    <div>
+      Card ID:
+      <input id="card_id" type="text" />
+      <button id="declare" type="button">Declare card with given ID</button>
+    </div>
+    <div>
+      Messages:
+      <ul id="messages"></ul>
+    </div>
   </body>
   <script src="bundle.js"></script>
 </html>

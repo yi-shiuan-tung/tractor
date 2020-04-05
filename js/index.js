@@ -40,7 +40,7 @@ $(function() {
 
         try {
             let json = JSON.parse(message);
-            document.getElementById("message").textContent = message;
+            document.getElementById("messages").innerHTML += '<li>' + JSON.stringify(json) + '</li>';
         } catch (e) {
             console.log("Invalid json: " + message);
         }
@@ -50,9 +50,17 @@ $(function() {
 
     subSocket = socket.subscribe(request);
 
-    $("#button").on("click", function() {
-        console.log(JSON.stringify({"message": document.getElementById("text").value}));
-        subSocket.push(JSON.stringify({"message": document.getElementById("text").value}));
+    $("#set_name").on("click", function() {
+        subSocket.push(JSON.stringify({"SET_NAME": {"name": document.getElementById("name").value}}));
+    });
+    $("#start_game").on("click", function() {
+        subSocket.push(JSON.stringify({"START_GAME": {}}));
+    });
+    $("#forfeit").on("click", function() {
+        subSocket.push(JSON.stringify({"FORFEIT": {}}));
+    });
+    $("#declare").on("click", function(e) {
+        subSocket.push(JSON.stringify({"DECLARE": {"cardIds": [document.getElementById("card_id").value]}}));
     });
 
 });
