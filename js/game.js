@@ -1,32 +1,67 @@
-import $ from 'jquery';
-import atmosphere from 'atmosphere.js';
+import * as React from "react";
+import { setUpConnection } from "./connection";
 
-export var setUpGame = function(request, subSocket) {
-    let socket = atmosphere;
+export class Game extends React.Component {
 
-    request.onMessage = function(response) {
-        let message = response.responseBody;
-
-        try {
-            let json = JSON.parse(message);
-            document.getElementById("messages").innerHTML += '<li>' + JSON.stringify(json) + '</li>';
-        } catch (e) {
-            console.log("Invalid json: " + message);
+    constructor(props) {
+        super(props);
+        this.state = {
+            myName: '',
         }
-    };
+    }
 
-    subSocket = socket.subscribe(request);
+    componentDidMount() {
+        const { roomCode } = this.props;
+        this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => {
+            let message = response.responseBody;
+            console.log("Received message: " + message);
 
-    $("#set_name").on("click", function() {
-        subSocket.push(JSON.stringify({"SET_NAME": {"name": document.getElementById("name").value}}));
-    });
-    $("#start_game").on("click", function() {
-        subSocket.push(JSON.stringify({"START_GAME": {}}));
-    });
-    $("#forfeit").on("click", function() {
-        subSocket.push(JSON.stringify({"FORFEIT": {}}));
-    });
-    $("#declare").on("click", function(e) {
-        subSocket.push(JSON.stringify({"DECLARE": {"cardIds": [document.getElementById("card_id").value]}}));
-    });
-};
+            let json = JSON.parse(message);
+
+            if (json.CREATE_ROOM || json.JOIN_ROOM) {
+                let roomCode = json.CREATE_ROOM ? json.CREATE_ROOM.roomCode : json.JOIN_ROOM.roomCode;
+                this.props.joinRoom(roomCode);
+                let [roomRequest, roomSubSocket] = setUpConnection(document.location.toString() + "tractor/" + roomCode);
+                setUpGame(roomRequest, roomSubSocket);
+                document.getElementById("room_code_display").innerText = roomCode;
+            } else {
+                console.log("Unhandled message: " + JSON.stringify(json));
+            }
+        });
+    }
+
+    componentWillUnmount() {
+        // TODO close subSocket
+    }
+
+    render() {
+        const { roomCode } = this.props;
+        const { myName } = this.state;
+        return (
+            <div>
+                <div>
+                    <h3>Room Code: {roomCode}</h3>
+                    {"Name:"}
+                    <input type="text" value={myName} onChange={e => this.setState({ myName: e.target.value })} />
+                    <button type="button" onClick={() => {
+                        this.subSocket.push(JSON.stringify({ "SET_NAME": { "name": myName } }));
+                    }}>
+                        {"Set my name"}
+                    </button>
+                </div>
+                <div>
+                    <button type="button" onClick={() => {
+                        this.subSocket.push(JSON.stringify({ "START_GAME": {} }));
+                    }}>
+                        {"Start game"}
+                    </button>
+                    <button type="button" onClick={() => {
+                        this.subSocket.push(JSON.stringify({ "FORFEIT": {} }));
+                    }}>
+                        {"Forfeit"}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+}

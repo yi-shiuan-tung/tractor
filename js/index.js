@@ -1,40 +1,25 @@
-import $ from 'jquery';
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { Lobby } from "./lobby";
+import { Game } from "./game";
 
-export var setUpConnection = function(url) {
+class App extends React.Component {
 
-    let subSocket;
-    let transport = 'websocket';
+    constructor(props) {
+        super(props);
+        this.state = {
+            roomCode: undefined,
+        };
+    }
 
-    let request = {
-        url: url,
-        contentType : "application/json",
-        logLevel : 'debug',
-        transport : 'websocket' ,
-        fallbackTransport: 'long-polling'
-    };
+    render() {
+        const { roomCode } = this.state;
+        if (roomCode !== undefined) {
+            return <Game roomCode={roomCode} />
+        } else {
+            return <Lobby joinRoom={roomCode => this.setState({ roomCode })}/>
+        }
+    }
+}
 
-    request.onOpen = function(response) {
-        transport = response.transport;
-        // Carry the UUID. This is required if you want to call subscribe(request) again.
-        request.uuid = response.request.uuid;
-    };
-
-    request.onClientTimeout = function(r) {
-        subSocket.push(JSON.stringify({ author: author, message: 'is inactive and closed the connection. Will reconnect in ' + request.reconnectInterval }));
-        setTimeout(function (){
-            subSocket = socket.subscribe(request);
-        }, request.reconnectInterval);
-    };
-
-    request.onReopen = function(response) {
-        console.log('Atmosphere re-connected using ' + response.transport);
-    };
-
-    request.onClose = function (response) {
-        // TODO: send close request?
-        console.log("disconnecting");
-    };
-
-    request.onError = console.error;
-    return [request, subSocket];
-};
+ReactDOM.render(<App></App>, document.getElementById('app'));

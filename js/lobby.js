@@ -1,45 +1,62 @@
-import $ from 'jquery';
-import atmosphere from 'atmosphere.js';
-import {setUpConnection} from "./index";
-import {setUpGame} from "./game";
+import * as React from "react";
+import { setUpConnection } from "./connection";
 
-$(function() {
-    let socket = atmosphere;
-    let [request, subSocket] = setUpConnection(document.location.toString() + "tractor");
+export class Lobby extends React.Component {
 
-    request.onMessage = function(response) {
-        let message = response.responseBody;
+    constructor(props) {
+        super(props);
+        this.state = {
+            inputRoomCode: '',
+        }
+    }
 
-        try {
+    componentDidMount() {
+        const { joinRoom } = this.props;
+        this.subSocket = setUpConnection(document.location.toString() + "tractor", response => {
+            let message = response.responseBody;
+            console.log("Received message: " + message);
+
             let json = JSON.parse(message);
-            document.getElementById("messages").innerHTML += '<li>' + JSON.stringify(json) + '</li>';
 
             if (json.CREATE_ROOM || json.JOIN_ROOM) {
                 let roomCode = json.CREATE_ROOM ? json.CREATE_ROOM.roomCode : json.JOIN_ROOM.roomCode;
-                let [roomRequest, roomSubSocket] = setUpConnection(document.location.toString() + "tractor/" + roomCode);
-                setUpGame(roomRequest, roomSubSocket);
-                document.getElementById("room_code_display").innerText = roomCode;
-
-                document.getElementById("game_room").style.display = "block";
-                document.getElementById("lobby").style.display = "none";
+                joinRoom(roomCode);
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
-        } catch (e) {
-            console.log("Invalid json in lobby: " + message + "; " + e.message);
-        }
-    };
+        });
+    }
 
-    subSocket = socket.subscribe(request);
+    componentWillUnmount() {
+        // TODO close subSocket
+    }
 
-    $("#join_room").on("click", function() {
-        let roomCode = document.getElementById("room_code_input").value;
-        subSocket.push(JSON.stringify({"JOIN_ROOM": {"roomCode": roomCode}}));
-    });
-
-    $("#create_room").on("click", function() {
-        subSocket.push(JSON.stringify({"CREATE_ROOM": {}}));
-    });
-
-
-});
+    render() {
+        const { inputRoomCode } = this.state;
+        return (
+            <div>
+                <input
+                    type="text"
+                    value={inputRoomCode}
+                    onChange={e => this.setState({ inputRoomCode: e.target.value })}
+                />
+                <button
+                    type="button"
+                    onClick={() => {
+                        this.subSocket.push(JSON.stringify({ "JOIN_ROOM": { "roomCode": inputRoomCode } }));
+                    }}
+                >
+                    Join existing game
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        this.subSocket.push(JSON.stringify({ "CREATE_ROOM": {} }));
+                    }}
+                >
+                    Create new game
+                </button>
+            </div>
+        );
+    }
+}
