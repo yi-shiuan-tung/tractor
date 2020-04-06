@@ -31,7 +31,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.StartGame;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
 import io.github.ytung.tractor.api.OutgoingMessage.YourDraw;
 
-@Singleton
 @ManagedService(path = "/tractor/{roomCode: [a-zA-Z][a-zA-Z_0-9]*}")
 public class TractorRoom {
 
@@ -54,6 +53,7 @@ public class TractorRoom {
         String playerId = r.getResource().uuid();
         resources.remove(playerId);
         game.removePlayer(playerId);
+        playerNames.remove(playerId);
         if (resources.isEmpty()) {
             TractorLobby.closeRoom(roomCode);
         }

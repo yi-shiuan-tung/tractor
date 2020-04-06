@@ -19,6 +19,9 @@ $(function() {
                 let [roomRequest, roomSubSocket] = setUpConnection(document.location.toString() + "tractor/" + roomCode);
                 setUpGame(roomRequest, roomSubSocket);
                 document.getElementById("room_code_display").innerText = roomCode;
+
+                document.getElementById("game_room").style.display = "block";
+                document.getElementById("lobby").style.display = "none";
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
