@@ -12,6 +12,7 @@ export class Game extends React.Component {
             inputMyName: '',
             playerNames: {}, // { playerId: playerName }
             myHand: [], // Card[]
+            selectedCardIds: {}, // { cardId: boolean }
         }
     }
 
@@ -49,7 +50,7 @@ export class Game extends React.Component {
 
     render() {
         const { roomCode } = this.props;
-        const { inputMyName, playerNames } = this.state;
+        const { inputMyName, playerNames, selectedCardIds } = this.state;
         return (
             <div>
                 <div>
@@ -79,6 +80,15 @@ export class Game extends React.Component {
                     }}>
                         {"Forfeit"}
                     </button>
+                    <button type="button" onClick={() => {
+                        const cardIds = Object.entries(selectedCardIds)
+                            .filter(([_cardId, selected]) => selected)
+                            .map(([cardId, _selected]) => cardId);
+                        this.subSocket.push(JSON.stringify({ "DECLARE": { cardIds } }));
+                        this.setState({ selectedCardIds: {} });
+                    }}>
+                        {"Declare"}
+                    </button>
                 </div>
                 {this.renderGameArea()}
             </div>
@@ -86,25 +96,35 @@ export class Game extends React.Component {
     }
 
     renderGameArea() {
-        const { myHand } = this.state;
         return (
             <div className="game_area">
-                {myHand.map((card, index) => this.renderCard(card, 25 + index * 15, 400))}
+                {this.renderMyHand()}
             </div>
         );
     }
 
-    renderCard(card, x, y) {
-        return (
-            <img
-                style={
-                    {
-                        top: `${y}px`,
-                        left: `${x}px`,
+    renderMyHand() {
+        const { myHand, selectedCardIds } = this.state;
+        return myHand.map((card, index) =>{
+            const x = 25 + index * 15;
+            const y = selectedCardIds[card.id] ? 380 : 400;
+            return (
+                <img
+                    style={
+                        {
+                            top: `${y}px`,
+                            left: `${x}px`,
+                        }
                     }
-                }
-                src={getCardImageSrc(card)}
-            />
-        );
+                    src={getCardImageSrc(card)}
+                    onClick={() => this.setState({
+                        selectedCardIds: {
+                            ...selectedCardIds,
+                            [card.id]: !selectedCardIds[card.id],
+                        }
+                    })}
+                />
+            );
+        });
     }
 }
