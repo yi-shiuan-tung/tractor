@@ -160,7 +160,7 @@ public class Game {
 
     public synchronized Play takeKitty() {
         if (status != GameStatus.DRAW_KITTY)
-            throw new IllegalStateException();
+            return null;
 
         // if this is the first round, then the person who declared the trump suit gets the kitty
         if (roundNumber == 0 && !declaredCards.isEmpty())

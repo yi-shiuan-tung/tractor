@@ -30,11 +30,13 @@ import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
+import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.SetName;
 import io.github.ytung.tractor.api.OutgoingMessage.StartGame;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
 import io.github.ytung.tractor.api.OutgoingMessage.YourDraw;
+import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
 
 @ManagedService(path = "/tractor/{roomCode: [a-zA-Z][a-zA-Z_0-9]*}")
 public class TractorRoom {
@@ -110,19 +112,19 @@ public class TractorRoom {
                     Play draw = game.draw();
                     if (draw == null)
                         break;
-                    process(draw);
+                    broadcaster.broadcast(JacksonEncoder.INSTANCE.encode(new Draw(
+                        draw.getPlayerId(),
+                        draw.getCards().get(0).getId())));
+                    resources.get(draw.getPlayerId()).write(JacksonEncoder.INSTANCE.encode(new YourDraw(draw.getCards().get(0))));
                     Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
-                process(game.takeKitty());
-            }
-
-            private void process(Play play) {
-                broadcaster.broadcast(JacksonEncoder.INSTANCE.encode(new Draw(
-                    play.getPlayerId(),
-                    Lists.transform(play.getCards(), Card::getId))));
-                resources.get(play.getPlayerId()).write(JacksonEncoder.INSTANCE.encode(new YourDraw(
-                    play.getPlayerId(),
-                    play.getCards())));
+                Play kitty = game.takeKitty();
+                if (kitty == null)
+                    return;
+                broadcaster.broadcast(JacksonEncoder.INSTANCE.encode(new Kitty(
+                    kitty.getPlayerId(),
+                    Lists.transform(kitty.getCards(), Card::getId))));
+                resources.get(kitty.getPlayerId()).write(JacksonEncoder.INSTANCE.encode(new YourKitty(kitty.getCards())));
             }
         };
 

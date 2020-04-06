@@ -1,5 +1,7 @@
 import * as React from "react";
+import { getCardImageSrc } from "./assets";
 import { setUpConnection } from "./connection";
+import "./game.css";
 
 export class Game extends React.Component {
 
@@ -9,13 +11,14 @@ export class Game extends React.Component {
             myId: undefined,
             inputMyName: '',
             playerNames: {}, // { playerId: playerName }
+            myHand: [], // Card[]
         }
     }
 
     componentDidMount() {
         const { roomCode } = this.props;
         this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => {
-            const { playerNames } = this.state;
+            const { playerNames, myHand } = this.state;
 
             let message = response.responseBody;
             console.log("Received message: " + message);
@@ -31,6 +34,9 @@ export class Game extends React.Component {
                     ...playerNames,
                     [playerId]: name,
                 }})
+            } else if (json.YOUR_DRAW) {
+                const { card } = json.YOUR_DRAW;
+                this.setState({ myHand: [...myHand, card] });
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
@@ -74,7 +80,31 @@ export class Game extends React.Component {
                         {"Forfeit"}
                     </button>
                 </div>
+                {this.renderGameArea()}
             </div>
+        );
+    }
+
+    renderGameArea() {
+        const { myHand } = this.state;
+        return (
+            <div className="game_area">
+                {myHand.map((card, index) => this.renderCard(card, 25 + index * 15, 400))}
+            </div>
+        );
+    }
+
+    renderCard(card, x, y) {
+        return (
+            <img
+                style={
+                    {
+                        top: `${y}px`,
+                        left: `${x}px`,
+                    }
+                }
+                src={getCardImageSrc(card)}
+            />
         );
     }
 }

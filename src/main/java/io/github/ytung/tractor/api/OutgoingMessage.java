@@ -78,13 +78,25 @@ public interface OutgoingMessage {
     public static class Draw implements OutgoingMessage {
 
         private final String playerId;
-        private final List<Integer> cardIds;
+        private final int cardId;
     }
 
     @Data
     public static class YourDraw implements OutgoingMessage {
 
+        private final Card card;
+    }
+
+    @Data
+    public static class Kitty implements OutgoingMessage {
+
         private final String playerId;
+        private final List<Integer> cardIds;
+    }
+
+    @Data
+    public static class YourKitty implements OutgoingMessage {
+
         private final List<Card> cards;
     }
 

@@ -30,9 +30,11 @@
   "dependencies": {
     "@babel/preset-env": "^7.9.0",
     "@babel/preset-react": "^7.9.4",
+    "css-loader": "^3.4.2",
     "jquery": "^3.4.1",
     "lodash": "^4.17.15",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "style-loader": "^1.1.3"
   }
 }
