@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
+import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
+import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.SetName;
@@ -19,6 +21,8 @@ import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.WRAPPER_OBJECT)
 @JsonSubTypes({
+    @JsonSubTypes.Type(value = CreateRoom.class, name = "CREATE_ROOM"),
+    @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = Welcome.class, name = "WELCOME"),
     @JsonSubTypes.Type(value = Goodbye.class, name = "GOODBYE"),
     @JsonSubTypes.Type(value = SetName.class, name = "SET_NAME"),
@@ -30,6 +34,19 @@ import lombok.Data;
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
 })
 public interface OutgoingMessage {
+
+    @Data
+    public static class CreateRoom implements OutgoingMessage {
+
+        private final String roomCode;
+    }
+
+    @Data
+    public static class JoinRoom implements OutgoingMessage {
+
+        private final String roomCode;
+    }
+
 
     @Data
     public static class Welcome implements OutgoingMessage {
@@ -48,6 +65,7 @@ public interface OutgoingMessage {
 
         private final String playerId;
         private final String name;
+        private final String[] playerNames;
     }
 
     @Data

@@ -5,11 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.atmosphere.config.service.DeliverTo;
-import org.atmosphere.config.service.Disconnect;
-import org.atmosphere.config.service.ManagedService;
-import org.atmosphere.config.service.Message;
-import org.atmosphere.config.service.Ready;
+import org.atmosphere.config.service.*;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.Broadcaster;
@@ -35,12 +31,16 @@ import io.github.ytung.tractor.api.OutgoingMessage.StartGame;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
 import io.github.ytung.tractor.api.OutgoingMessage.YourDraw;
 
-@ManagedService(path = "/tractor")
+@Singleton
+@ManagedService(path = "/tractor/{roomCode: [a-zA-Z][a-zA-Z_0-9]*}")
 public class TractorRoom {
 
     private final Map<String, AtmosphereResource> resources = new ConcurrentHashMap<>();
     private final Map<String, String> playerNames = new ConcurrentHashMap<>();
     private final Game game = new Game();
+
+    @PathParam("roomCode")
+    private String roomCode;
 
     @Ready(encoders = {JacksonEncoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.RESOURCE)
@@ -54,6 +54,9 @@ public class TractorRoom {
         String playerId = r.getResource().uuid();
         resources.remove(playerId);
         game.removePlayer(playerId);
+        if (resources.isEmpty()) {
+            TractorLobby.closeRoom(roomCode);
+        }
         r.broadcaster().broadcast(JacksonEncoder.INSTANCE.encode(new Goodbye(playerId)));
     }
 
@@ -64,7 +67,7 @@ public class TractorRoom {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
             game.addPlayer(r.uuid());
-            return new SetName(r.uuid(), name);
+            return new SetName(r.uuid(), name, playerNames.values().toArray(new String[0]));
         }
 
         if (message instanceof StartGameRequest) {

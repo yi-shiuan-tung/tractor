@@ -33,5 +33,6 @@ public class TractorServer extends Application<Configuration> {
 
         ServletRegistration.Dynamic servletHolder = environment.servlets().addServlet("Tractor", servlet);
         servletHolder.addMapping("/tractor");
+        servletHolder.addMapping("/tractor/*");
     }
 }
