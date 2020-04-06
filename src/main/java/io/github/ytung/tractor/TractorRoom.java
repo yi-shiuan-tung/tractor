@@ -5,7 +5,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.atmosphere.config.service.*;
+import org.atmosphere.config.service.DeliverTo;
+import org.atmosphere.config.service.Disconnect;
+import org.atmosphere.config.service.ManagedService;
+import org.atmosphere.config.service.Message;
+import org.atmosphere.config.service.PathParam;
+import org.atmosphere.config.service.Ready;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.Broadcaster;
@@ -42,10 +47,12 @@ public class TractorRoom {
     private String roomCode;
 
     @Ready(encoders = {JacksonEncoder.class})
-    @DeliverTo(DeliverTo.DELIVER_TO.RESOURCE)
+    @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public OutgoingMessage onReady(AtmosphereResource r) {
         resources.put(r.uuid(), r);
-        return new Welcome(r.uuid());
+        playerNames.put(r.uuid(), "Unknown");
+        game.addPlayer(r.uuid());
+        return new Welcome(r.uuid(), playerNames);
     }
 
     @Disconnect
@@ -66,8 +73,7 @@ public class TractorRoom {
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
-            game.addPlayer(r.uuid());
-            return new SetName(r.uuid(), name, playerNames.values().toArray(new String[0]));
+            return new SetName(r.uuid(), name);
         }
 
         if (message instanceof StartGameRequest) {

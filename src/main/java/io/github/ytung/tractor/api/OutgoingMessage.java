@@ -1,6 +1,7 @@
 package io.github.ytung.tractor.api;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -10,8 +11,8 @@ import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
-import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
+import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.SetName;
 import io.github.ytung.tractor.api.OutgoingMessage.StartGame;
@@ -52,6 +53,8 @@ public interface OutgoingMessage {
     public static class Welcome implements OutgoingMessage {
 
         private final String playerId;
+        // TODO need to send entire room state on WELCOME
+        private final Map<String, String> playerNames;
     }
 
     @Data
@@ -65,7 +68,6 @@ public interface OutgoingMessage {
 
         private final String playerId;
         private final String name;
-        private final String[] playerNames;
     }
 
     @Data

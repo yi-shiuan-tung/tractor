@@ -1,5 +1,14 @@
 package io.github.ytung.tractor;
 
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.atmosphere.config.service.DeliverTo;
+import org.atmosphere.config.service.ManagedService;
+import org.atmosphere.config.service.Message;
+import org.atmosphere.cpr.AtmosphereResource;
+
 import io.github.ytung.tractor.api.IncomingMessage;
 import io.github.ytung.tractor.api.IncomingMessage.CreateRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.JoinRoomRequest;
@@ -7,28 +16,12 @@ import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 
-import org.atmosphere.config.service.DeliverTo;
-import org.atmosphere.config.service.ManagedService;
-import org.atmosphere.config.service.Message;
-import org.atmosphere.config.service.Ready;
-import org.atmosphere.cpr.AtmosphereResource;
-
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-
 @ManagedService(path = "/tractor")
 public class TractorLobby {
 
     private static final Map<String, String> roomCodes = new ConcurrentHashMap<>();
     private final Random random = new Random();
     private final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    @Ready(encoders = {JacksonEncoder.class})
-    @DeliverTo(DeliverTo.DELIVER_TO.ALL)
-    public OutgoingMessage onReady(final AtmosphereResource r) {
-        return new OutgoingMessage.Welcome(r.uuid());
-    }
 
     @Message(encoders = {JacksonEncoder.class}, decoders = {JacksonDecoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.RESOURCE)
