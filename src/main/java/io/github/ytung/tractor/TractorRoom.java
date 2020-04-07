@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.atmosphere.config.service.DeliverTo;
 import org.atmosphere.config.service.Disconnect;
@@ -15,7 +16,6 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.Broadcaster;
 
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 
 import io.github.ytung.tractor.api.Card;
@@ -37,6 +37,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.StartGame;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
 import io.github.ytung.tractor.api.OutgoingMessage.YourDraw;
 import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
+import io.github.ytung.tractor.api.Play;
 
 @ManagedService(path = "/tractor/{roomCode: [a-zA-Z][a-zA-Z_0-9]*}")
 public class TractorRoom {
@@ -87,8 +88,9 @@ public class TractorRoom {
         if (message instanceof DeclareRequest) {
             List<Integer> cardIds = ((DeclareRequest) message).getCardIds();
             Play play = game.declare(r.uuid(), cardIds);
+            Map<Integer, Card> cardsById = game.getCardsById();
             if (play != null)
-                return new Declare(play.getPlayerId(), play.getCards());
+                return new Declare(play.getPlayerId(), play.getCardIds().stream().map(cardsById::get).collect(Collectors.toList()));
         }
 
         if (message instanceof MakeKittyRequest) {
@@ -109,14 +111,15 @@ public class TractorRoom {
         Thread dealingThread = new Thread() {
             @Override
             public void run() {
+                Map<Integer, Card> cardsById = game.getCardsById();
                 while (true) {
                     Play draw = game.draw();
                     if (draw == null)
                         break;
                     broadcaster.broadcast(JacksonEncoder.INSTANCE.encode(new Draw(
                         draw.getPlayerId(),
-                        draw.getCards().get(0).getId())));
-                    resources.get(draw.getPlayerId()).write(JacksonEncoder.INSTANCE.encode(new YourDraw(draw.getCards().get(0))));
+                        draw.getCardIds().get(0))));
+                    resources.get(draw.getPlayerId()).write(JacksonEncoder.INSTANCE.encode(new YourDraw(cardsById.get(draw.getCardIds().get(0)))));
                     Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
                 Play kitty = game.takeKitty();
@@ -124,8 +127,9 @@ public class TractorRoom {
                     return;
                 broadcaster.broadcast(JacksonEncoder.INSTANCE.encode(new Kitty(
                     kitty.getPlayerId(),
-                    Lists.transform(kitty.getCards(), Card::getId))));
-                resources.get(kitty.getPlayerId()).write(JacksonEncoder.INSTANCE.encode(new YourKitty(kitty.getCards())));
+                    kitty.getCardIds())));
+                resources.get(kitty.getPlayerId()).write(JacksonEncoder.INSTANCE
+                    .encode(new YourKitty(kitty.getCardIds().stream().map(cardsById::get).collect(Collectors.toList()))));
             }
         };
 
