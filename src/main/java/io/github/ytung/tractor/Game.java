@@ -117,14 +117,14 @@ public class Game {
         return new Play(playerId, Collections.singletonList(card));
     }
 
-    public synchronized boolean declare(String playerId, List<Integer> cardIds) {
+    public synchronized Play declare(String playerId, List<Integer> cardIds) {
         Play play = new Play(playerId, cardIds.stream()
             .map(cardsById::get)
             .collect(Collectors.toList()));
         if (!canDeclare(play))
-            return false;
+            return null;
         declaredCards.add(play);
-        return true;
+        return play;
     }
 
     private boolean canDeclare(Play play) {

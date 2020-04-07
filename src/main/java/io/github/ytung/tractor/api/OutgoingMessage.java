@@ -104,7 +104,7 @@ public interface OutgoingMessage {
     public static class Declare implements OutgoingMessage {
 
         private final String playerId;
-        private final List<Integer> cardIds;
+        private final List<Card> cards;
     }
 
     @Data

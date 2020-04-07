@@ -3,6 +3,12 @@ import { getCardImageSrc } from "./assets";
 import { setUpConnection } from "./connection";
 import "./game.css";
 
+const WIDTH = 800;
+const HEIGHT = 600;
+
+const CARD_WIDTH = 71;
+const CARD_HEIGHT = 96;
+
 export class Game extends React.Component {
 
     constructor(props) {
@@ -11,8 +17,11 @@ export class Game extends React.Component {
             myId: undefined,
             inputMyName: '',
             playerNames: {}, // { playerId: playerName }
+            gameStatus: 'START_ROUND',
             myHand: [], // Card[]
             selectedCardIds: {}, // { cardId: boolean }
+            declaringPlayerId: undefined,
+            declaredCards: [],
         }
     }
 
@@ -38,6 +47,9 @@ export class Game extends React.Component {
             } else if (json.YOUR_DRAW) {
                 const { card } = json.YOUR_DRAW;
                 this.setState({ myHand: [...myHand, card] });
+            } else if (json.DECLARE) {
+                const { playerId, cards } = json.DECLARE;
+                this.setState({ declaringPlayerId: playerId, declaredCards: cards });
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
@@ -45,7 +57,7 @@ export class Game extends React.Component {
     }
 
     componentWillUnmount() {
-        // TODO close subSocket
+        this.subSocket.disconnect();
     }
 
     render() {
@@ -97,34 +109,63 @@ export class Game extends React.Component {
 
     renderGameArea() {
         return (
-            <div className="game_area">
+            <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
                 {this.renderMyHand()}
+                {this.renderDeclaredCards()}
             </div>
         );
     }
 
     renderMyHand() {
-        const { myHand, selectedCardIds } = this.state;
-        return myHand.map((card, index) =>{
-            const x = 25 + index * 15;
-            const y = selectedCardIds[card.id] ? 380 : 400;
-            return (
-                <img
-                    style={
-                        {
-                            top: `${y}px`,
-                            left: `${x}px`,
+        const { gameStatus, myHand, selectedCardIds, declaredCards } = this.state;
+        return myHand
+
+            // If not playing tricks, declared cards should be shown in front, not in hand
+            .filter(card => gameStatus === 'PLAY' || declaredCards.every(declaredCard => card.id !== declaredCard.id))
+
+            .map((card, index) => {
+                const x = 25 + index * 15;
+                const y = selectedCardIds[card.id] ? 380 : 400;
+                return (
+                    <img
+                        key={card.id}
+                        style={
+                            {
+                                top: `${y}px`,
+                                left: `${x}px`,
+                            }
                         }
-                    }
-                    src={getCardImageSrc(card)}
-                    onClick={() => this.setState({
-                        selectedCardIds: {
-                            ...selectedCardIds,
-                            [card.id]: !selectedCardIds[card.id],
+                        src={getCardImageSrc(card)}
+                        onClick={() => this.setState({
+                            selectedCardIds: {
+                                ...selectedCardIds,
+                                [card.id]: !selectedCardIds[card.id],
+                            }
+                        })}
+                    />
+                );
+            });
+    }
+
+    renderDeclaredCards() {
+        const { declaredCards } = this.state;
+        const startX = WIDTH / 2 - (71 + 25 * (declaredCards.length - 1)) / 2;
+        return declaredCards
+            .map((card, index) => {
+                const x = startX + 25 * index;
+                const y = 250;
+                return (
+                    <img
+                        key={card.id}
+                        style={
+                            {
+                                top: `${y}px`,
+                                left: `${x}px`,
+                            }
                         }
-                    })}
-                />
-            );
-        });
+                        src={getCardImageSrc(card)}
+                    />
+                );
+            });
     }
 }

@@ -1,8 +1,6 @@
 
 .game_area {
     position: static;
-    width: 800;
-    height: 600px;
     border: 1px solid black;
 }
 

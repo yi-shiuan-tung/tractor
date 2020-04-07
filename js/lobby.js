@@ -28,7 +28,7 @@ export class Lobby extends React.Component {
     }
 
     componentWillUnmount() {
-        // TODO close subSocket
+        this.subSocket.disconnect();
     }
 
     render() {

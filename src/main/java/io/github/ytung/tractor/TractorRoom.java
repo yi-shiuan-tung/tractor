@@ -86,8 +86,9 @@ public class TractorRoom {
 
         if (message instanceof DeclareRequest) {
             List<Integer> cardIds = ((DeclareRequest) message).getCardIds();
-            if (game.declare(r.uuid(), cardIds))
-                return new Declare(r.uuid(), cardIds);
+            Play play = game.declare(r.uuid(), cardIds);
+            if (play != null)
+                return new Declare(play.getPlayerId(), play.getCards());
         }
 
         if (message instanceof MakeKittyRequest) {
