@@ -48,8 +48,6 @@ public class Game {
     private List<Integer> kitty;
     private List<Trick> pastTricks;
     private Trick currentTrick;
-    private List<Integer> pointCards;
-    private Set<String> roundWinners;
 
     enum GameStatus {
         START_ROUND, DRAW, DRAW_KITTY, MAKE_KITTY, PLAY;
@@ -100,8 +98,6 @@ public class Game {
         kitty = new ArrayList<>();
         pastTricks = new ArrayList<>();
         currentTrick = null;
-        pointCards = new ArrayList<>();
-        roundWinners = new HashSet<>();
 
         for (String playerId : playerIds)
             playerHands.put(playerId, new ArrayList<>());
@@ -217,7 +213,11 @@ public class Game {
 
             // check for end of round
             if (playerHands.values().stream().allMatch(List::isEmpty)) {
-                int roundScore = totalCardScore(pointCards);
+                int roundScore = 0;
+                for (Trick trick : pastTricks)
+                    if (!isDeclaringTeam.get(winningPlayerId(trick)))
+                        for (Play trickPlay : trick.getPlays())
+                            roundScore += totalCardScore(trickPlay.getCardIds());
                 if (!isDeclaringTeam.get(winningPlayerId)) {
                     int bonus = 1 << pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
                     roundScore += bonus * totalCardScore(kitty);
@@ -297,16 +297,15 @@ public class Game {
             // declarer goes to next person on the winning team
             declarerPlayerIndex = (declarerPlayerIndex + 1) % playerIds.size();
         } while (isDeclaringTeam.get(playerIds.get(declarerPlayerIndex)) != doDeclarersWin);
-        for (String pid : playerIds)
-            if (isDeclaringTeam.get(pid) == doDeclarersWin) {
-                roundWinners.add(pid);
-                int newScore = playerRankScores.get(pid).ordinal() + scoreIncrease;
+        for (String playerId : playerIds)
+            if (isDeclaringTeam.get(playerId) == doDeclarersWin) {
+                int newScore = playerRankScores.get(playerId).ordinal() + scoreIncrease;
                 if (newScore > Card.Value.values().length)
-                    playerRankScores.put(pid, Card.Value.BIG_JOKER);
+                    playerRankScores.put(playerId, Card.Value.BIG_JOKER);
                 else
-                    playerRankScores.put(pid, Card.Value.values()[newScore]);
+                    playerRankScores.put(playerId, Card.Value.values()[newScore]);
                 if (newScore > Card.Value.ACE.ordinal())
-                    winningPlayerIds.add(pid);
+                    winningPlayerIds.add(playerId);
             }
         status = GameStatus.START_ROUND;
     }
