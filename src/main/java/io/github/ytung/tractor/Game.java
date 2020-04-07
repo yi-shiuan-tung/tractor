@@ -18,6 +18,7 @@ import com.google.common.collect.Multiset;
 import io.github.ytung.tractor.Cards.Grouping;
 import io.github.ytung.tractor.api.Card;
 import io.github.ytung.tractor.api.Card.Suit;
+import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.Play;
 import io.github.ytung.tractor.api.Trick;
 import lombok.Data;
@@ -48,10 +49,6 @@ public class Game {
     private List<Integer> kitty;
     private List<Trick> pastTricks;
     private Trick currentTrick;
-
-    enum GameStatus {
-        START_ROUND, DRAW, DRAW_KITTY, MAKE_KITTY, PLAY;
-    }
 
     public synchronized void addPlayer(String playerId) {
         if (status != GameStatus.START_ROUND)
@@ -84,7 +81,7 @@ public class Game {
 
     public synchronized void startRound() {
         if (status != GameStatus.START_ROUND)
-            return;
+            throw new IllegalStateException();
 
         status = GameStatus.DRAW;
         currentPlayerIndex = declarerPlayerIndex;
@@ -119,12 +116,11 @@ public class Game {
         return new Play(playerId, Collections.singletonList(cardId));
     }
 
-    public synchronized Play declare(String playerId, List<Integer> cardIds) {
+    public synchronized void declare(String playerId, List<Integer> cardIds) {
         Play play = new Play(playerId, cardIds);
         if (!canDeclare(play))
-            return null;
+            throw new IllegalStateException();
         declaredCards.add(play);
-        return play;
     }
 
     private boolean canDeclare(Play play) {

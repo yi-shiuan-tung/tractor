@@ -12,7 +12,7 @@ export class Lobby extends React.Component {
 
     componentDidMount() {
         const { joinRoom } = this.props;
-        this.subSocket = setUpConnection(document.location.toString() + "tractor", response => {
+        this.subSocket = setUpConnection(document.location.toString() + "tractor", undefined, response => {
             let message = response.responseBody;
             console.log("Received message: " + message);
 

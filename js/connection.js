@@ -1,6 +1,6 @@
 import atmosphere from 'atmosphere.js';
 
-export var setUpConnection = function(url, onMessage) {
+export var setUpConnection = function(url, onOpen, onMessage) {
 
     let subSocket;
 
@@ -12,10 +12,7 @@ export var setUpConnection = function(url, onMessage) {
         fallbackTransport: 'long-polling'
     };
 
-    request.onOpen = function(response) {
-        // Carry the UUID. This is required if you want to call subscribe(request) again.
-        request.uuid = response.request.uuid;
-    };
+    request.onOpen = onOpen;
 
     request.onClientTimeout = function(r) {
         subSocket.push(JSON.stringify({ author: author, message: 'is inactive and closed the connection. Will reconnect in ' + request.reconnectInterval }));

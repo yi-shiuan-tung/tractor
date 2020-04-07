@@ -14,21 +14,29 @@ export class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            myId: undefined,
+            // local state
             inputMyName: '',
             playerNames: {}, // { playerId: playerName }
-            gameStatus: 'START_ROUND',
-            myHand: [], // Card[]
             selectedCardIds: {}, // { cardId: boolean }
-            declaringPlayerId: undefined,
-            declaredCards: [],
+
+            // game state
+            status: 'START_ROUND', // GameStatus
+            currentPlayerIndex: undefined, // integer
+            isDeclaringTeam: undefined, // { playerId: boolean }
+            deck: undefined, // cardId[]
+            cardsById: undefined, // { cardId: Card }
+            playerHands: undefined, // { playerId: cardId[] }
+            declaredCards: undefined, // Play[]
+            kitty: undefined, // Card[]
+            pastTricks: undefined, // Trick[]
+            currentTrick: undefined, // Trick
         }
     }
 
     componentDidMount() {
         const { roomCode } = this.props;
-        this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => {
-            const { playerNames, myHand } = this.state;
+        this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => this.myId = response.request.uuid, response => {
+            const { cardsById } = this.state;
 
             let message = response.responseBody;
             console.log("Received message: " + message);
@@ -36,20 +44,22 @@ export class Game extends React.Component {
             let json = JSON.parse(message);
 
             if (json.WELCOME) {
-                const { playerId, playerNames } = json.WELCOME;
-                this.setState({ myId: playerId, playerNames });
-            } else if (json.SET_NAME) {
-                const { playerId, name } = json.SET_NAME;
-                this.setState({ playerNames: {
-                    ...playerNames,
-                    [playerId]: name,
-                }})
-            } else if (json.YOUR_DRAW) {
-                const { card } = json.YOUR_DRAW;
-                this.setState({ myHand: [...myHand, card] });
+                const { playerNames } = json.WELCOME;
+                this.setState({ playerNames });
+            } else if (json.UPDATE_PLAYERS) {
+                const { playerNames } = json.UPDATE_PLAYERS;
+                this.setState({ playerNames });
+            } else if (json.START_ROUND) {
+                this.setState({ ...json.START_ROUND });
+            } else if (json.CARD_INFO) {
+                this.setState({ cardsById: {
+                    ...cardsById,
+                    ...json.CARD_INFO.cardsById,
+                }});
+            } else if (json.DRAW) {
+                this.setState({ ...json.DRAW });
             } else if (json.DECLARE) {
-                const { playerId, cards } = json.DECLARE;
-                this.setState({ declaringPlayerId: playerId, declaredCards: cards });
+                this.setState({ ...json.DECLARE });
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
@@ -83,7 +93,7 @@ export class Game extends React.Component {
                 </div>
                 <div>
                     <button type="button" onClick={() => {
-                        this.subSocket.push(JSON.stringify({ "START_GAME": {} }));
+                        this.subSocket.push(JSON.stringify({ "START_ROUND": {} }));
                     }}>
                         {"Start game"}
                     </button>
@@ -108,6 +118,10 @@ export class Game extends React.Component {
     }
 
     renderGameArea() {
+        const { status } = this.state;
+        if (status === 'START_ROUND') {
+            return;
+        }
         return (
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
                 {this.renderMyHand()}
@@ -117,29 +131,32 @@ export class Game extends React.Component {
     }
 
     renderMyHand() {
-        const { gameStatus, myHand, selectedCardIds, declaredCards } = this.state;
-        return myHand
+        const { selectedCardIds, status, cardsById, playerHands, declaredCards } = this.state;
+        return playerHands[this.myId]
 
             // If not playing tricks, declared cards should be shown in front, not in hand
-            .filter(card => gameStatus === 'PLAY' || declaredCards.every(declaredCard => card.id !== declaredCard.id))
+            .filter(
+                cardId => status === 'PLAY'
+                    || declaredCards.length === 0
+                    || declaredCards[declaredCards.length - 1].cardIds.every(declaredCardId => cardId !== declaredCardId))
 
-            .map((card, index) => {
+            .map((cardId, index) => {
                 const x = 25 + index * 15;
-                const y = selectedCardIds[card.id] ? 380 : 400;
+                const y = selectedCardIds[cardId] ? 380 : 400;
                 return (
                     <img
-                        key={card.id}
+                        key={cardId}
                         style={
                             {
                                 top: `${y}px`,
                                 left: `${x}px`,
                             }
                         }
-                        src={getCardImageSrc(card)}
+                        src={getCardImageSrc(cardsById[cardId])}
                         onClick={() => this.setState({
                             selectedCardIds: {
                                 ...selectedCardIds,
-                                [card.id]: !selectedCardIds[card.id],
+                                [cardId]: !selectedCardIds[cardId],
                             }
                         })}
                     />
@@ -148,22 +165,26 @@ export class Game extends React.Component {
     }
 
     renderDeclaredCards() {
-        const { declaredCards } = this.state;
-        const startX = WIDTH / 2 - (71 + 25 * (declaredCards.length - 1)) / 2;
-        return declaredCards
-            .map((card, index) => {
+        const { cardsById, declaredCards } = this.state;
+        if (declaredCards.length === 0) {
+            return;
+        }
+        const cardIds = declaredCards[declaredCards.length - 1].cardIds;
+        const startX = WIDTH / 2 - (71 + 25 * (cardIds.length - 1)) / 2;
+        return cardIds
+            .map((cardId, index) => {
                 const x = startX + 25 * index;
                 const y = 250;
                 return (
                     <img
-                        key={card.id}
+                        key={cardId}
                         style={
                             {
                                 top: `${y}px`,
                                 left: `${x}px`,
                             }
                         }
-                        src={getCardImageSrc(card)}
+                        src={getCardImageSrc(cardsById[cardId])}
                     />
                 );
             });
