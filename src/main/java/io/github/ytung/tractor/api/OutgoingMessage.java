@@ -65,6 +65,7 @@ public interface OutgoingMessage {
     @Data
     public static class UpdatePlayers implements OutgoingMessage {
 
+        private final List<String> playerIds;
         private final Map<String, String> playerNames;
     }
 

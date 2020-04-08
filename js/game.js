@@ -20,6 +20,7 @@ export class Game extends React.Component {
             selectedCardIds: {}, // { cardId: boolean }
 
             // game state
+            playerIds: [], // PlayerId[]
             status: 'START_ROUND', // GameStatus
             currentPlayerIndex: undefined, // integer
             isDeclaringTeam: undefined, // { playerId: boolean }
@@ -47,8 +48,8 @@ export class Game extends React.Component {
                 const { playerNames } = json.WELCOME;
                 this.setState({ playerNames });
             } else if (json.UPDATE_PLAYERS) {
-                const { playerNames } = json.UPDATE_PLAYERS;
-                this.setState({ playerNames });
+                const { playerIds, playerNames } = json.UPDATE_PLAYERS;
+                this.setState({ playerIds, playerNames });
             } else if (json.START_ROUND) {
                 this.setState({ ...json.START_ROUND });
             } else if (json.CARD_INFO) {
@@ -72,7 +73,7 @@ export class Game extends React.Component {
 
     render() {
         const { roomCode } = this.props;
-        const { inputMyName, playerNames, selectedCardIds } = this.state;
+        const { inputMyName, playerIds, playerNames, selectedCardIds } = this.state;
         return (
             <div>
                 <div>
@@ -88,7 +89,7 @@ export class Game extends React.Component {
                 <div>
                     Players:
                     <ul>
-                        {Object.entries(playerNames).map(([id, name]) => <li key={id}>{name}</li>)}
+                        {playerIds.map(playerId => <li key={playerId}>{playerNames[playerId]}{playerId === this.myId ? " (me)" : ""}</li>)}
                     </ul>
                 </div>
                 <div>

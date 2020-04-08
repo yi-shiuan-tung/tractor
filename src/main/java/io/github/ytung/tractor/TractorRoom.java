@@ -57,7 +57,7 @@ public class TractorRoom {
         resources.put(r.uuid(), r);
         playerNames.put(r.uuid(), "Unknown");
         game.addPlayer(r.uuid());
-        return new UpdatePlayers(playerNames);
+        return new UpdatePlayers(game.getPlayerIds(), playerNames);
     }
 
     @Disconnect
@@ -78,7 +78,7 @@ public class TractorRoom {
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
-            return new UpdatePlayers(playerNames);
+            return new UpdatePlayers(game.getPlayerIds(), playerNames);
         }
 
         if (message instanceof StartRoundRequest) {
