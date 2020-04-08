@@ -15,3 +15,29 @@
 .hidden {
     display: none;
 }
+
+.action_button {
+    position: absolute;
+    top: 750px;
+    left: 50%;
+    width: 150px;
+    margin-left: -75px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    color: white;
+    font-size: 24px;
+    font-family: sans-serif;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: green;
+}
+
+.action_button:hover {
+    width: 154px;
+    margin-left: -77px;
+    height: 40px;
+    line-height: 40px;
+    top: 748px;
+    font-size: 25px;
+}

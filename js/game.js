@@ -152,6 +152,7 @@ export class Game extends React.Component {
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
                 {this.renderPlayerHands()}
                 {this.renderDeclaredCards()}
+                {this.renderActionButton()}
             </div>
         );
     }
@@ -187,6 +188,41 @@ export class Game extends React.Component {
             canSelect: false,
         });
         return this.renderPlayerArea(latestDeclaredCards.playerId, 0.3, cardImgs);
+    }
+
+    renderActionButton() {
+        const { selectedCardIds, status } = this.state;
+        if (Object.values(selectedCardIds).every(selected => !selected)) {
+            return;
+        }
+        if (status === 'DRAW') {
+            return <div
+                className="action_button"
+                onClick={() => {
+                    const cardIds = Object.entries(selectedCardIds)
+                        .filter(([_cardId, selected]) => selected)
+                        .map(([cardId, _selected]) => cardId);
+                    this.subSocket.push(JSON.stringify({ "DECLARE": { cardIds } }));
+                    this.setState({ selectedCardIds: {} });
+                }}
+            >
+                {"Declare"}
+            </div>
+        }
+        if (status === 'PLAY') {
+            return <div
+                className="action_button"
+                onClick={() => {
+                    const cardIds = Object.entries(selectedCardIds)
+                        .filter(([_cardId, selected]) => selected)
+                        .map(([cardId, _selected]) => cardId);
+                    this.subSocket.push(JSON.stringify({ "PLAY": { cardIds } }));
+                    this.setState({ selectedCardIds: {} });
+                }}
+            >
+                {"Play"}
+            </div>
+        }
     }
 
     /*
