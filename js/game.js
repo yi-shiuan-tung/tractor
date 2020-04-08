@@ -18,11 +18,12 @@ export class Game extends React.Component {
             inputMyName: '',
             playerNames: {}, // { playerId: playerName }
             selectedCardIds: {}, // { cardId: boolean }
-            notification: undefined,
+            notifications: {},
             showKittyButton: false,
 
             // game state
             playerIds: [], // PlayerId[]
+            kittySize: 8, // integer
             status: 'START_ROUND', // GameStatus
             currentPlayerIndex: undefined, // integer
             isDeclaringTeam: undefined, // { playerId: boolean }
@@ -66,20 +67,20 @@ export class Game extends React.Component {
             } else if (json.TAKE_KITTY) {
                 this.setState({ ...json.TAKE_KITTY });
                 const playerId = playerIds[json.TAKE_KITTY.currentPlayerIndex];
-                this.setState({notification:
-                        this.state.playerNames[playerId] + " is selecting cards for the kitty"});
+                this.setNotification(this.state.playerNames[playerId] + " is selecting cards for the kitty");
             } else if (json.YOUR_KITTY) {
                 this.setState({ ...json.YOUR_KITTY});
-                this.setState({notification: "Select 8 cards to put in the kitty", showKittyButton: true});
+                this.setNotification("Select 8 cards to put in the kitty");
+                this.setState({showKittyButton: true});
             } else if (json.MAKE_KITTY) {
                 this.setState({ ...json.MAKE_KITTY});
-                this.setState({notification: "", showKittyButton:false});
+                this.setState({showKittyButton:false});
             } else if (json.PLAY) {
                 this.setState({ ...json.PLAY });
             } else if (json.FINISH_TRICK) {
                 this.setState({ ...json.FINISH_TRICK });
             } else if (json.INVALID_ACTION) {
-                this.setState({notification: json.INVALID_ACTION.message});
+                this.setNotification(json.INVALID_ACTION.message);
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
@@ -88,6 +89,28 @@ export class Game extends React.Component {
 
     componentWillUnmount() {
         this.subSocket.disconnect();
+    }
+
+    setNotification(message) {
+        const id = new Date().getTime();
+        this.setState({
+            notifications: {
+                ...this.state.notifications,
+                [id]: message,
+            }
+        });
+        // After a second, remove this notification (and all notifications before it just in case)
+        setTimeout(() => {
+            const { notifications } = this.state;
+            this.setState({
+                notifications: Object.keys(notifications)
+                    .filter(otherId => otherId > id)
+                    .reduce((obj, key) => {
+                        obj[key] = notifications[key];
+                        return obj;
+                    }, {})
+            });
+        }, 1000);
     }
 
     render() {
@@ -110,9 +133,6 @@ export class Game extends React.Component {
                     <ul>
                         {playerIds.map(playerId => <li key={playerId}>{playerNames[playerId]}{playerId === this.myId ? " (me)" : ""}</li>)}
                     </ul>
-                </div>
-                <div>
-                    {this.state.notification}
                 </div>
                 <div>
                     <button type="button" onClick={() => {
@@ -156,12 +176,18 @@ export class Game extends React.Component {
         }
         return (
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
+                {this.renderNotifications()}
                 {this.renderPlayerHands()}
                 {this.renderDeclaredCards()}
                 {this.renderCurrentTrick()}
                 {this.renderActionButton()}
             </div>
         );
+    }
+
+    renderNotifications() {
+        const { notifications } = this.state;
+        return Object.entries(notifications).map(([id, message]) => <div key={id} className="notification">{message}</div>);
     }
 
     renderPlayerHands() {
@@ -213,7 +239,7 @@ export class Game extends React.Component {
     }
 
     renderActionButton() {
-        const { selectedCardIds, playerIds, currentPlayerIndex, status } = this.state;
+        const { selectedCardIds, playerIds, kittySize, currentPlayerIndex, status } = this.state;
         if (playerIds[currentPlayerIndex] !== this.myId) {
             return;
         }
@@ -229,6 +255,20 @@ export class Game extends React.Component {
                 }}
             >
                 {"Declare"}
+            </div>
+        }
+        if (status === 'MAKE_KITTY') {
+            return <div
+                className="action_button"
+                onClick={() => {
+                    const cardIds = Object.entries(selectedCardIds)
+                        .filter(([_cardId, selected]) => selected)
+                        .map(([cardId, _selected]) => cardId);
+                    this.subSocket.push(JSON.stringify({ "MAKE_KITTY": { cardIds } }));
+                    this.setState({ selectedCardIds: {} });
+                }}
+            >
+                {"Make kitty"}
             </div>
         }
         if (status === 'PLAY') {
