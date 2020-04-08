@@ -11,4 +11,5 @@
 /build/
 node_modules/
 bundle.js
+src/main/resources/assets/*.ttf
 package-lock.json

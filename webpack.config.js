@@ -25,6 +25,12 @@ module.exports = [{
             'css-loader'
           ],
       },
+      {
+        test: /\.ttf$/,
+        use: [
+          'file-loader',
+        ],
+      },
     ]
   },
 }];

@@ -1,5 +1,10 @@
+@font-face {
+    font-family: 'Game';
+    src: url('./font.ttf');
+}
 
 .game_area {
+    font-family: 'Game';
     position: relative;
     border: 1px solid black;
 }
@@ -15,7 +20,6 @@
     text-align: center;
     color: white;
     font-size: 16px;
-    font-family: sans-serif;
     border: 1px solid black;
     border-radius: 8px;
     background-color: orange;
@@ -45,7 +49,6 @@
     text-align: center;
     color: white;
     font-size: 24px;
-    font-family: sans-serif;
     border: 1px solid black;
     border-radius: 10px;
     background-color: green;
