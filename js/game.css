@@ -1,9 +1,13 @@
 
 .game_area {
-    position: static;
+    position: relative;
     border: 1px solid black;
 }
 
 .game_area img {
+    position: absolute;
+}
+
+.game_area .player_container {
     position: absolute;
 }

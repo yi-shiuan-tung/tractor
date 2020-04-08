@@ -1,10 +1,10 @@
 import * as React from "react";
-import { getCardImageSrc } from "./assets";
+import { getCardImageSrc, getFaceDownCardImageSrc } from "./assets";
 import { setUpConnection } from "./connection";
 import "./game.css";
 
-const WIDTH = 800;
-const HEIGHT = 600;
+const WIDTH = 1200;
+const HEIGHT = 800;
 
 const CARD_WIDTH = 71;
 const CARD_HEIGHT = 96;
@@ -125,44 +125,77 @@ export class Game extends React.Component {
         }
         return (
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
-                {this.renderMyHand()}
+                {this.renderPlayerHands()}
                 {this.renderDeclaredCards()}
             </div>
         );
     }
 
-    renderMyHand() {
-        const { selectedCardIds, status, cardsById, playerHands, declaredCards } = this.state;
-        return playerHands[this.myId]
+    renderPlayerHands() {
+        const { selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards } = this.state;
+        const myIndex = playerIds.indexOf(this.myId);
+        return playerIds.map((playerId, index) => {
+            const hand = playerHands[playerId];
+            const interCardDistance = playerId === this.myId ? 15 : 8;
+            const totalWidth = CARD_WIDTH + interCardDistance * (hand.length - 1);
 
-            // If not playing tricks, declared cards should be shown in front, not in hand
-            .filter(
-                cardId => status === 'PLAY'
-                    || declaredCards.length === 0
-                    || declaredCards[declaredCards.length - 1].cardIds.every(declaredCardId => cardId !== declaredCardId))
+            const cardImgs = playerHands[playerId]
 
-            .map((cardId, index) => {
-                const x = 25 + index * 15;
-                const y = selectedCardIds[cardId] ? 380 : 400;
-                return (
-                    <img
-                        key={cardId}
-                        style={
-                            {
-                                top: `${y}px`,
-                                left: `${x}px`,
-                            }
-                        }
-                        src={getCardImageSrc(cardsById[cardId])}
-                        onClick={() => this.setState({
+                // If not playing tricks, declared cards should be shown in front, not in hand
+                .filter(
+                    cardId => status === 'PLAY'
+                        || declaredCards.length === 0
+                        || declaredCards[declaredCards.length - 1].cardIds.every(declaredCardId => cardId !== declaredCardId))
+
+                .map((cardId, index) => {
+                    const x = -totalWidth / 2 + interCardDistance * index;
+                    const y = selectedCardIds[cardId] ? -20 : 0;
+                    let src = getFaceDownCardImageSrc();
+                    let onClick = undefined;
+                    if (playerId === this.myId) {
+                        src = getCardImageSrc(cardsById[cardId]);
+                        onClick = () => this.setState({
                             selectedCardIds: {
                                 ...selectedCardIds,
                                 [cardId]: !selectedCardIds[cardId],
                             }
-                        })}
-                    />
-                );
-            });
+                        });
+                    }
+                    return (
+                        <img
+                            key={cardId}
+                            style={
+                                {
+                                    top: `${y}px`,
+                                    left: `${x}px`,
+                                }
+                            }
+                            src={src}
+                            onClick={onClick}
+                        />
+                    );
+                });
+
+            const centerPoint = {
+                x: WIDTH * (.5 + Math.sin((index - myIndex) * 2 * Math.PI / playerIds.length) * .3),
+                y: HEIGHT * (.5 + Math.cos((index - myIndex) * 2 * Math.PI / playerIds.length) * .3),
+            };
+            const angle = (myIndex - index) * 360. / playerIds.length;
+            return (
+                <div
+                    key={playerId}
+                    className="player_container"
+                    style={
+                        {
+                            top: centerPoint.y,
+                            left: centerPoint.x,
+                            transform: `rotate(${angle}deg)`,
+                        }
+                    }>
+                    {cardImgs}
+                </div>
+            )
+        });
     }
 
     renderDeclaredCards() {
