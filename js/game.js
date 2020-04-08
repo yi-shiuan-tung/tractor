@@ -157,83 +157,83 @@ export class Game extends React.Component {
     }
 
     renderPlayerHands() {
-        const { selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards } = this.state;
-        const myIndex = playerIds.indexOf(this.myId);
-        return playerIds.map((playerId, index) => {
-            const hand = playerHands[playerId];
-            const interCardDistance = playerId === this.myId ? 15 : 8;
-            const totalWidth = CARD_WIDTH + interCardDistance * (hand.length - 1);
-
-            const cardImgs = playerHands[playerId]
-
+        const { status, playerIds, playerHands, declaredCards } = this.state;
+        return playerIds.map(playerId => {
+            const nonDeclaredCards = playerHands[playerId]
                 // If not playing tricks, declared cards should be shown in front, not in hand
-                .filter(
-                    cardId => status === 'PLAY'
-                        || declaredCards.length === 0
-                        || declaredCards[declaredCards.length - 1].cardIds.every(declaredCardId => cardId !== declaredCardId))
+                .filter(cardId => status === 'PLAY'
+                    || declaredCards.length === 0
+                    || declaredCards[declaredCards.length - 1].cardIds.every(declaredCardId => cardId !== declaredCardId));
 
-                .map((cardId, index) => {
-                    const x = -totalWidth / 2 + interCardDistance * index;
-                    const y = selectedCardIds[cardId] ? -20 : 0;
-                    let src = getFaceDownCardImageSrc();
-                    let onClick = undefined;
-                    if (playerId === this.myId) {
-                        src = getCardImageSrc(cardsById[cardId]);
-                        onClick = () => this.setState({
-                            selectedCardIds: {
-                                ...selectedCardIds,
-                                [cardId]: !selectedCardIds[cardId],
-                            }
-                        });
-                    }
-                    return (
-                        <img
-                            key={cardId}
-                            style={
-                                {
-                                    top: `${y}px`,
-                                    left: `${x}px`,
-                                }
-                            }
-                            src={src}
-                            onClick={onClick}
-                        />
-                    );
-                });
+            const cardImgs = this.renderCards(nonDeclaredCards, {
+                interCardDistance: playerId === this.myId ? 15 : 9,
+                faceUp: playerId === this.myId,
+                canSelect: playerId === this.myId,
+            });
 
-            const centerPoint = {
-                x: WIDTH * (.5 + Math.sin((index - myIndex) * 2 * Math.PI / playerIds.length) * .3),
-                y: HEIGHT * (.5 + Math.cos((index - myIndex) * 2 * Math.PI / playerIds.length) * .3),
-            };
-            const angle = (myIndex - index) * 360. / playerIds.length;
-            return (
-                <div
-                    key={playerId}
-                    className="player_container"
-                    style={
-                        {
-                            top: centerPoint.y,
-                            left: centerPoint.x,
-                            transform: `rotate(${angle}deg)`,
-                        }
-                    }>
-                    {cardImgs}
-                </div>
-            )
+            return this.renderPlayerArea(playerId, 0.6, cardImgs);
         });
     }
 
     renderDeclaredCards() {
-        const { cardsById, declaredCards } = this.state;
+        const { declaredCards } = this.state;
         if (declaredCards.length === 0) {
             return;
         }
-        const cardIds = declaredCards[declaredCards.length - 1].cardIds;
-        const startX = WIDTH / 2 - (71 + 25 * (cardIds.length - 1)) / 2;
-        return cardIds
+        const latestDeclaredCards = declaredCards[declaredCards.length - 1];
+        const cardImgs = this.renderCards(latestDeclaredCards.cardIds, {
+            interCardDistance: 15,
+            faceUp: true,
+            canSelect: false,
+        });
+        return this.renderPlayerArea(latestDeclaredCards.playerId, 0.3, cardImgs);
+    }
+
+    /*
+     * Renders the given children in front of the given player (under the correct orientation).
+     * The distance is a number from 0 (in the middle) to 1 (very close to the player)
+     */
+    renderPlayerArea(playerId, distance, children) {
+        const { playerIds } = this.state;
+        const playerIndex = playerIds.indexOf(playerId);
+        const myIndex = playerIds.indexOf(this.myId);
+        const centerPoint = {
+            x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
+            y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
+        };
+        const angle = (myIndex - playerIndex) * 360. / playerIds.length;
+        return (
+            <div
+                key={playerId}
+                className="player_container"
+                style={
+                    {
+                        top: centerPoint.y,
+                        left: centerPoint.x,
+                        transform: `rotate(${angle}deg)`,
+                    }
+                }>
+                {children}
+            </div>
+        );
+    }
+
+    renderCards(cardIds, args) {
+        const { interCardDistance, faceUp, canSelect } = args;
+        const { selectedCardIds, cardsById } = this.state;
+
+        const totalWidth = CARD_WIDTH + interCardDistance * (cardIds.length - 1);
+        const cardImgs = cardIds
             .map((cardId, index) => {
-                const x = startX + 25 * index;
-                const y = 250;
+                const x = -totalWidth / 2 + interCardDistance * index;
+                const y = selectedCardIds[cardId] ? -20 : 0;
+                const src = faceUp ? getCardImageSrc(cardsById[cardId]) : getFaceDownCardImageSrc();
+                const onClick = canSelect ? () => this.setState({
+                    selectedCardIds: {
+                        ...selectedCardIds,
+                        [cardId]: !selectedCardIds[cardId],
+                    }
+                }) : undefined;
                 return (
                     <img
                         key={cardId}
@@ -243,9 +243,11 @@ export class Game extends React.Component {
                                 left: `${x}px`,
                             }
                         }
-                        src={getCardImageSrc(cardsById[cardId])}
+                        src={src}
+                        onClick={onClick}
                     />
                 );
             });
+        return <div>{cardImgs}</div>
     }
 }
