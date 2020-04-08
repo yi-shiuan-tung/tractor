@@ -37,10 +37,10 @@ import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
-import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
+import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
 import io.github.ytung.tractor.api.Play;
@@ -165,8 +165,13 @@ public class TractorRoom {
                 Play kitty = game.takeKitty();
                 if (kitty == null)
                     return;
-                sendSync(broadcaster, new Kitty(kitty.getPlayerId(), kitty.getCardIds()));
                 sendSync(resources.get(kitty.getPlayerId()), new CardInfo(Maps.toMap(kitty.getCardIds(), cardsById::get)));
+                sendSync(broadcaster, new TakeKitty(
+                    game.getDeclarerPlayerIndex(),
+                    game.getStatus(),
+                    game.getCurrentPlayerIndex(),
+                    game.getDeck(),
+                    game.getPlayerHands()));
                 sendSync(resources.get(kitty.getPlayerId()), new YourKitty(game.getPlayerHands()));
             }
         };

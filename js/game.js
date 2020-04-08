@@ -39,7 +39,7 @@ export class Game extends React.Component {
     componentDidMount() {
         const { roomCode } = this.props;
         this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => this.myId = response.request.uuid, response => {
-            const { cardsById } = this.state;
+            const { playerIds, cardsById } = this.state;
 
             let message = response.responseBody;
             console.log("Received message: " + message);
@@ -63,8 +63,9 @@ export class Game extends React.Component {
                 this.setState({ ...json.DRAW });
             } else if (json.DECLARE) {
                 this.setState({ ...json.DECLARE });
-            } else if (json.KITTY) {
-                const playerId = json.KITTY.playerId;
+            } else if (json.TAKE_KITTY) {
+                this.setState({ ...json.TAKE_KITTY });
+                const playerId = playerIds[json.TAKE_KITTY.currentPlayerIndex];
                 this.setState({notification:
                         this.state.playerNames[playerId] + " is selecting cards for the kitty"});
             } else if (json.YOUR_KITTY) {
@@ -212,8 +213,8 @@ export class Game extends React.Component {
     }
 
     renderActionButton() {
-        const { selectedCardIds, status } = this.state;
-        if (Object.values(selectedCardIds).every(selected => !selected)) {
+        const { selectedCardIds, playerIds, currentPlayerIndex, status } = this.state;
+        if (playerIds[currentPlayerIndex] !== this.myId) {
             return;
         }
         if (status === 'DRAW') {
