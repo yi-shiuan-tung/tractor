@@ -163,6 +163,7 @@ public class TractorRoom {
                         game.getPlayerHands()));
                     Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
+                Uninterruptibles.sleepUninterruptibly(2500, TimeUnit.MILLISECONDS);
                 Play kitty = game.takeKitty();
                 if (kitty == null)
                     return;

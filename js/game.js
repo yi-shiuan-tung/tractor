@@ -99,7 +99,7 @@ export class Game extends React.Component {
                 [id]: message,
             }
         });
-        // After a second, remove this notification (and all notifications before it just in case)
+        // After a brief period, remove this notification (and all notifications before it just in case)
         setTimeout(() => {
             const { notifications } = this.state;
             this.setState({
@@ -110,7 +110,7 @@ export class Game extends React.Component {
                         return obj;
                     }, {})
             });
-        }, 1000);
+        }, 2000);
     }
 
     render() {
@@ -239,10 +239,7 @@ export class Game extends React.Component {
     }
 
     renderActionButton() {
-        const { selectedCardIds, playerIds, kittySize, currentPlayerIndex, status } = this.state;
-        if (playerIds[currentPlayerIndex] !== this.myId) {
-            return;
-        }
+        const { selectedCardIds, playerIds, currentPlayerIndex, status } = this.state;
         if (status === 'DRAW') {
             return <div
                 className="action_button"
@@ -256,6 +253,9 @@ export class Game extends React.Component {
             >
                 {"Declare"}
             </div>
+        }
+        if (playerIds[currentPlayerIndex] !== this.myId) {
+            return;
         }
         if (status === 'MAKE_KITTY') {
             return <div

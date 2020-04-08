@@ -196,6 +196,7 @@ public class Game {
      * The specified player makes the given play. Returns whether the current trick is finished.
      */
     public synchronized boolean play(String playerId, List<Integer> cardIds) throws InvalidPlayException {
+        sortCards(cardIds);
         Play play = new Play(playerId, cardIds);
         verifyCanPlay(play);
 
@@ -275,7 +276,7 @@ public class Game {
         } else {
             Play startingPlay = currentTrick.getPlays().get(0);
             if (play.getCardIds().size() != startingPlay.getCardIds().size())
-                throw new InvalidPlayException("You must play the same number of cards as the starting player.");
+                throw new InvalidPlayException("You must play the same number of cards.");
 
             Grouping startingGrouping = getGrouping(startingPlay.getCardIds());
             List<Integer> sameSuitCards = playerHands.get(play.getPlayerId()).stream()
@@ -288,13 +289,15 @@ public class Game {
             }
 
             for (Component handComponent : getProfile(sameSuitCards)) {
-                boolean isCapturedByStartingPlay = getProfile(startingPlay.getCardIds()).stream().anyMatch(
-                    component -> component.getShape().getWidth() >= handComponent.getShape().getWidth()
-                            && component.getShape().getHeight() >= handComponent.getShape().getHeight());
-                boolean isBetterThanCurrentPlay = getProfile(play.getCardIds()).stream().anyMatch(
-                    component -> component.getShape().getWidth() < handComponent.getShape().getWidth()
-                            && component.getShape().getHeight() < handComponent.getShape().getHeight());
-                // player must follow suit; if there's a card in hand better than what's played, the play is invalid
+                Shape handShape = handComponent.getShape();
+                boolean isCapturedByStartingPlay = getProfile(startingPlay.getCardIds()).stream()
+                    .map(Component::getShape)
+                    .anyMatch(shape -> shape.getWidth() >= handShape.getWidth() && shape.getHeight() >= handShape.getHeight());
+                boolean isBetterThanCurrentPlay = getProfile(play.getCardIds()).stream()
+                    .map(Component::getShape)
+                    .anyMatch(shape -> shape.getWidth() <= handShape.getWidth()
+                            && shape.getHeight() <= handShape.getHeight()
+                            && shape.getWidth() + shape.getHeight() < handShape.getWidth() + handShape.getHeight());
                 if (isCapturedByStartingPlay && isBetterThanCurrentPlay && !getProfile(play.getCardIds()).contains(handComponent))
                     throw new InvalidPlayException("You must play pairs before singles, etc.");
             }
@@ -376,9 +379,12 @@ public class Game {
             return new ArrayList<>();
 
         Card trump = getCurrentTrump();
-        List<Card> cards = cardIds.stream().map(cardsById::get).collect(Collectors.toList());
+        List<Card> cards = cardIds.stream()
+                .map(cardsById::get)
+                // Ensure we only compare value and suit when checking for equality
+                .map(card -> new Card(0, card.getValue(), card.getSuit()))
+                .collect(Collectors.toList());
         List<Component> profile = cards.stream()
-            .map(card -> new Card(0, card.getValue(), card.getSuit()))
             .distinct()
             .map(card -> {
                 return new Component(
