@@ -18,6 +18,8 @@ export class Game extends React.Component {
             inputMyName: '',
             playerNames: {}, // { playerId: playerName }
             selectedCardIds: {}, // { cardId: boolean }
+            notification: undefined,
+            showKittyButton: false,
 
             // game state
             playerIds: [], // PlayerId[]
@@ -61,6 +63,18 @@ export class Game extends React.Component {
                 this.setState({ ...json.DRAW });
             } else if (json.DECLARE) {
                 this.setState({ ...json.DECLARE });
+            } else if (json.KITTY) {
+                const playerId = json.KITTY.playerId;
+                this.setState({notification:
+                        this.state.playerNames[playerId] + " is selecting cards for the kitty"});
+            } else if (json.YOUR_KITTY) {
+                this.setState({ ...json.YOUR_KITTY});
+                this.setState({notification: "Select 8 cards to put in the kitty", showKittyButton: true});
+            } else if (json.INVALID_KITTY) {
+                this.setState({notification: json.INVALID_KITTY.message});
+            } else if (json.MAKE_KITTY) {
+                this.setState({ ...json.MAKE_KITTY});
+                this.setState({notification: "", showKittyButton:false});
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
@@ -93,6 +107,9 @@ export class Game extends React.Component {
                     </ul>
                 </div>
                 <div>
+                    {this.state.notification}
+                </div>
+                <div>
                     <button type="button" onClick={() => {
                         this.subSocket.push(JSON.stringify({ "START_ROUND": {} }));
                     }}>
@@ -111,6 +128,14 @@ export class Game extends React.Component {
                         this.setState({ selectedCardIds: {} });
                     }}>
                         {"Declare"}
+                    </button>
+                    <button type="button" className={this.state.showKittyButton? '':'hidden'} onClick={() => {
+                        const cardIds = Object.entries(selectedCardIds)
+                            .filter(([_cardId, selected]) => selected)
+                            .map(([cardId, _selected]) => cardId);
+                        this.subSocket.push(JSON.stringify({ "MAKE_KITTY": { cardIds } }));
+                    }}>
+                        {"Make Kitty"}
                     </button>
                 </div>
                 {this.renderGameArea()}

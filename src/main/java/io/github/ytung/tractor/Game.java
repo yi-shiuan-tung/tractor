@@ -176,20 +176,20 @@ public class Game {
         return new Play(playerId, cardIds);
     }
 
-    public synchronized boolean makeKitty(String playerId, List<Integer> cardIds) {
+    public synchronized void makeKitty(String playerId, List<Integer> cardIds) throws InvalidKittyException {
         Play play = new Play(playerId, cardIds);
         if (status != GameStatus.MAKE_KITTY)
-            return false;
+            throw new InvalidKittyException("You cannot make kitty now");
         if (play.getPlayerId() != playerIds.get(currentPlayerIndex))
-            return false;
+            throw new InvalidKittyException("You cannot make kitty");
         if (play.getCardIds().size() != kittySize)
-            return false;
+            throw new InvalidKittyException("The kitty has to have " + kittySize + " cards");
         if (!isPlayable(play))
-            return false;
+            throw new InvalidKittyException("Unknown error");
         status = GameStatus.PLAY;
         kitty = play.getCardIds();
+        playerHands.get(playerId).removeAll(cardIds);
         currentTrick = new Trick(play.getPlayerId());
-        return true;
     }
 
     /**

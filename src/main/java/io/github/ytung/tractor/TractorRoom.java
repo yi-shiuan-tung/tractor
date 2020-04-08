@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.atmosphere.config.service.DeliverTo;
 import org.atmosphere.config.service.Disconnect;
@@ -34,6 +33,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
+import io.github.ytung.tractor.api.OutgoingMessage.InvalidKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
@@ -108,8 +108,12 @@ public class TractorRoom {
 
         if (message instanceof MakeKittyRequest) {
             List<Integer> cardIds = ((MakeKittyRequest) message).getCardIds();
-            if (game.makeKitty(r.uuid(), cardIds))
-                return new MakeKitty(r.uuid(), cardIds);
+            try {
+                game.makeKitty(r.uuid(), cardIds);
+                return new MakeKitty(game.getPlayerHands());
+            } catch (InvalidKittyException e) {
+                sendSync(resources.get(r.uuid()), new InvalidKitty(e.getMessage()));
+            }
         }
 
         if (message instanceof ForfeitRequest) {
@@ -141,8 +145,8 @@ public class TractorRoom {
                 if (kitty == null)
                     return;
                 sendSync(broadcaster, new Kitty(kitty.getPlayerId(), kitty.getCardIds()));
-                sendSync(resources.get(kitty.getPlayerId()),
-                    new YourKitty(kitty.getCardIds().stream().map(cardsById::get).collect(Collectors.toList())));
+                sendSync(resources.get(kitty.getPlayerId()), new CardInfo(Maps.toMap(kitty.getCardIds(), cardsById::get)));
+                sendSync(resources.get(kitty.getPlayerId()), new YourKitty(game.getPlayerHands()));
             }
         };
 

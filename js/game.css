@@ -11,3 +11,7 @@
 .game_area .player_container {
     position: absolute;
 }
+
+.hidden {
+    display: none;
+}

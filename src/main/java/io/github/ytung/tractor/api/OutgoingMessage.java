@@ -14,11 +14,14 @@ import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
+import io.github.ytung.tractor.api.OutgoingMessage.InvalidKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
+import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
+import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
 import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.WRAPPER_OBJECT)
@@ -32,7 +35,10 @@ import lombok.Data;
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
+    @JsonSubTypes.Type(value = Kitty.class, name = "KITTY"),
+    @JsonSubTypes.Type(value = YourKitty.class, name = "YOUR_KITTY"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
+    @JsonSubTypes.Type(value = InvalidKitty.class, name = "INVALID_KITTY"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
 })
 public interface OutgoingMessage {
@@ -109,7 +115,7 @@ public interface OutgoingMessage {
     @Data
     public static class YourKitty implements OutgoingMessage {
 
-        private final List<Card> cards;
+        private final Map<String, List<Integer>> playerHands;
     }
 
     @Data
@@ -122,8 +128,13 @@ public interface OutgoingMessage {
     @Data
     public static class MakeKitty implements OutgoingMessage {
 
-        private final String playerId;
-        private final List<Integer> cardIds;
+        private final Map<String, List<Integer>> playerHands;
+    }
+
+    @Data
+    public static class InvalidKitty implements OutgoingMessage {
+
+        private final String message;
     }
 
     @Data
