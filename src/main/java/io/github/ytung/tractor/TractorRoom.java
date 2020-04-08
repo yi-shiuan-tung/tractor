@@ -103,7 +103,7 @@ public class TractorRoom {
             game.declare(r.uuid(), cardIds);
             Map<Integer, Card> cardsById = game.getCardsById();
             sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-            return new Declare(game.getDeclaredCards());
+            return new Declare(game.getPlayerHands(), game.getDeclaredCards());
         }
 
         if (message instanceof MakeKittyRequest) {

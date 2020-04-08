@@ -2,6 +2,7 @@ package io.github.ytung.tractor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -110,6 +111,7 @@ public class Game {
         String playerId = playerIds.get(currentPlayerIndex);
         int cardId = deck.poll();
         playerHands.get(playerId).add(cardId);
+        sortCards(playerHands.get(playerId));
         currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
         if (deck.size() <= kittySize)
             status = GameStatus.DRAW_KITTY;
@@ -121,6 +123,7 @@ public class Game {
         if (!canDeclare(play))
             throw new IllegalStateException();
         declaredCards.add(play);
+        playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
     }
 
     private boolean canDeclare(Play play) {
@@ -168,6 +171,7 @@ public class Game {
         String playerId = playerIds.get(currentPlayerIndex);
         List<Integer> cardIds = new ArrayList<>(deck);
         playerHands.get(playerIds.get(currentPlayerIndex)).addAll(cardIds);
+        sortCards(playerHands.get(playerIds.get(currentPlayerIndex)));
         deck.clear();
         return new Play(playerId, cardIds);
     }
@@ -313,6 +317,15 @@ public class Game {
             declaredCards.isEmpty()
                     ? Card.Suit.JOKER
                     : cardsById.get(declaredCards.get(declaredCards.size() - 1).getCardIds().get(0)).getSuit());
+    }
+
+    private void sortCards(List<Integer> hand) {
+        Card trump = getCurrentTrump();
+        Collections.sort(hand, Comparator.comparing(cardId -> {
+            Card card = cardsById.get(cardId);
+            Grouping grouping = Cards.grouping(card, trump);
+            return grouping.ordinal() * 1000 + Cards.rank(card, trump) * 10 + card.getSuit().ordinal();
+        }));
     }
 
     private int totalCardScore(List<Integer> cardIds) {

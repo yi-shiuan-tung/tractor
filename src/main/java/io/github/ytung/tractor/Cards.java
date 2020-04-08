@@ -7,14 +7,14 @@ import io.github.ytung.tractor.api.Card.Suit;
 public class Cards {
 
     public enum Grouping {
-        SPADE, HEART, DIAMOND, CLUB, TRUMP
+        CLUB, DIAMOND, HEART, SPADE, TRUMP
     }
 
     /**
      * Get the suit of a card, or TRUMP if the card is a trump in this round.
      */
     public static Grouping grouping(Card card, Card trump) {
-        if (trump != null && card.getValue() == trump.getValue() || card.getSuit() == Suit.JOKER)
+        if (trump != null && card.getValue() == trump.getValue() || card.getSuit() == Suit.JOKER || card.getSuit() == trump.getSuit())
             return Grouping.TRUMP;
         else
             return Grouping.valueOf(card.getSuit().name());

@@ -114,6 +114,7 @@ public interface OutgoingMessage {
     @Data
     public static class Declare implements OutgoingMessage {
 
+        private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
     }
 
