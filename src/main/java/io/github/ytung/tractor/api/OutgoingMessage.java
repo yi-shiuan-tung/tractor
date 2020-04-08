@@ -12,12 +12,14 @@ import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
@@ -39,6 +41,8 @@ import lombok.Data;
     @JsonSubTypes.Type(value = YourKitty.class, name = "YOUR_KITTY"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
     @JsonSubTypes.Type(value = InvalidKitty.class, name = "INVALID_KITTY"),
+    @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
+    @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
 })
 public interface OutgoingMessage {
@@ -128,13 +132,37 @@ public interface OutgoingMessage {
     @Data
     public static class MakeKitty implements OutgoingMessage {
 
+        private final GameStatus status;
+        private final List<Integer> kitty;
         private final Map<String, List<Integer>> playerHands;
+        private final Trick currentTrick;
     }
 
     @Data
     public static class InvalidKitty implements OutgoingMessage {
 
         private final String message;
+    }
+
+    @Data
+    public static class PlayMessage implements OutgoingMessage {
+
+        private final int currentPlayerIndex;
+        private final Map<String, List<Integer>> playerHands;
+        private final Trick currentTrick;
+    }
+
+    @Data
+    public static class FinishTrick implements OutgoingMessage {
+
+        private final int roundNumber;
+        private final int declarerPlayerIndex;
+        private final Map<String, Card.Value> playerRankScores;
+
+        private final GameStatus status;
+        private final int currentPlayerIndex;
+        private final List<Trick> pastTricks;
+        private final Trick currentTrick;
     }
 
     @Data

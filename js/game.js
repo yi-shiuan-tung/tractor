@@ -75,6 +75,10 @@ export class Game extends React.Component {
             } else if (json.MAKE_KITTY) {
                 this.setState({ ...json.MAKE_KITTY});
                 this.setState({notification: "", showKittyButton:false});
+            } else if (json.PLAY) {
+                this.setState({ ...json.PLAY });
+            } else if (json.FINISH_TRICK) {
+                this.setState({ ...json.FINISH_TRICK });
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }
@@ -134,6 +138,7 @@ export class Game extends React.Component {
                             .filter(([_cardId, selected]) => selected)
                             .map(([cardId, _selected]) => cardId);
                         this.subSocket.push(JSON.stringify({ "MAKE_KITTY": { cardIds } }));
+                        this.setState({ selectedCardIds: {} });
                     }}>
                         {"Make Kitty"}
                     </button>
@@ -152,6 +157,7 @@ export class Game extends React.Component {
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
                 {this.renderPlayerHands()}
                 {this.renderDeclaredCards()}
+                {this.renderCurrentTrick()}
                 {this.renderActionButton()}
             </div>
         );
@@ -177,8 +183,8 @@ export class Game extends React.Component {
     }
 
     renderDeclaredCards() {
-        const { declaredCards } = this.state;
-        if (declaredCards.length === 0) {
+        const { status, declaredCards } = this.state;
+        if (status === 'PLAY' || declaredCards.length === 0) {
             return;
         }
         const latestDeclaredCards = declaredCards[declaredCards.length - 1];
@@ -188,6 +194,21 @@ export class Game extends React.Component {
             canSelect: false,
         });
         return this.renderPlayerArea(latestDeclaredCards.playerId, 0.3, cardImgs);
+    }
+
+    renderCurrentTrick() {
+        const { currentTrick } = this.state;
+        if (!currentTrick) {
+            return;
+        }
+        return currentTrick.plays.map(({playerId, cardIds}) => {
+            const cardImgs = this.renderCards(cardIds, {
+                interCardDistance: 15,
+                faceUp: true,
+                canSelect: false,
+            });
+            return this.renderPlayerArea(playerId, 0.2, cardImgs);
+        });
     }
 
     renderActionButton() {

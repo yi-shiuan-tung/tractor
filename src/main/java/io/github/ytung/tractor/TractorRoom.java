@@ -1,3 +1,4 @@
+
 package io.github.ytung.tractor;
 
 import java.util.HashMap;
@@ -25,17 +26,20 @@ import io.github.ytung.tractor.api.IncomingMessage;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
+import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
@@ -75,6 +79,8 @@ public class TractorRoom {
     @Message(encoders = {JacksonEncoder.class}, decoders = {JacksonDecoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public OutgoingMessage onMessage(AtmosphereResource r, IncomingMessage message) throws Exception {
+        System.out.println(message);
+
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
@@ -110,10 +116,18 @@ public class TractorRoom {
             List<Integer> cardIds = ((MakeKittyRequest) message).getCardIds();
             try {
                 game.makeKitty(r.uuid(), cardIds);
-                return new MakeKitty(game.getPlayerHands());
+                return new MakeKitty(game.getStatus(), game.getKitty(), game.getPlayerHands(), game.getCurrentTrick());
             } catch (InvalidKittyException e) {
                 sendSync(resources.get(r.uuid()), new InvalidKitty(e.getMessage()));
             }
+        }
+
+        if (message instanceof PlayRequest) {
+            List<Integer> cardIds = ((PlayRequest) message).getCardIds();
+            boolean isTrickFinished = game.play(r.uuid(), cardIds);
+            sendSync(r.getBroadcaster(), new PlayMessage(game.getCurrentPlayerIndex(), game.getPlayerHands(), game.getCurrentTrick()));
+            if (isTrickFinished)
+                scheduleFinishTrick(r.getBroadcaster());
         }
 
         if (message instanceof ForfeitRequest) {
@@ -152,6 +166,26 @@ public class TractorRoom {
 
         dealingThread.setDaemon(true);
         dealingThread.start();
+    }
+
+    private void scheduleFinishTrick(Broadcaster broadcaster) {
+        Thread finishTrickThread = new Thread() {
+            @Override
+            public void run() {
+                Uninterruptibles.sleepUninterruptibly(1500, TimeUnit.MILLISECONDS);
+                sendSync(broadcaster, new FinishTrick(
+                    game.getRoundNumber(),
+                    game.getDeclarerPlayerIndex(),
+                    game.getPlayerRankScores(),
+                    game.getStatus(),
+                    game.getCurrentPlayerIndex(),
+                    game.getPastTricks(),
+                    game.getCurrentTrick()));
+            }
+        };
+
+        finishTrickThread.setDaemon(true);
+        finishTrickThread.start();
     }
 
     private void sendSync(AtmosphereResource resource, OutgoingMessage message) {

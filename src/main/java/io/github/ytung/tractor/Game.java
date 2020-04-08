@@ -193,41 +193,51 @@ public class Game {
     }
 
     /**
-     * The specified player makes the given play. Returns whether the play was valid (and the game
-     * should continue).
+     * The specified player makes the given play. Returns whether the current trick is finished.
      */
-    public synchronized boolean play(Play play) throws InvalidDoesItFlyException {
+    public synchronized boolean play(String playerId, List<Integer> cardIds) throws InvalidDoesItFlyException {
+        Play play = new Play(playerId, cardIds);
         if (!canPlay(play))
-            return false;
+            throw new IllegalStateException();
 
+        playerHands.get(playerId).removeAll(cardIds);
         currentTrick.getPlays().add(play);
-        if (currentTrick.getPlays().size() != playerIds.size()) {
-            currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
+
+        if (currentTrick.getPlays().size() == playerIds.size()) {
+            currentPlayerIndex = -1;
+            return true;
         } else {
-            // finish trick
-            String winningPlayerId = winningPlayerId(currentTrick);
-
-            pastTricks.add(currentTrick);
-            currentPlayerIndex = playerIds.indexOf(winningPlayerId);
-            currentTrick = new Trick(winningPlayerId);
-
-            // check for end of round
-            if (playerHands.values().stream().allMatch(List::isEmpty)) {
-                int roundScore = 0;
-                for (Trick trick : pastTricks)
-                    if (!isDeclaringTeam.get(winningPlayerId(trick)))
-                        for (Play trickPlay : trick.getPlays())
-                            roundScore += totalCardScore(trickPlay.getCardIds());
-                if (!isDeclaringTeam.get(winningPlayerId)) {
-                    int bonus = 1 << pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
-                    roundScore += bonus * totalCardScore(kitty);
-                }
-                boolean doDeclarersWin = roundScore < 80;
-                int scoreIncrease = doDeclarersWin ? (115 - roundScore) / 40 : (roundScore - 120) / 40;
-                roundEnd(doDeclarersWin, scoreIncrease);
-            }
+            currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
+            return false;
         }
-        return true;
+    }
+
+    public synchronized void finishTrick() {
+        if (currentTrick.getPlays().size() != playerIds.size())
+            throw new IllegalStateException();
+
+        // finish trick
+        String winningPlayerId = winningPlayerId(currentTrick);
+
+        pastTricks.add(currentTrick);
+        currentPlayerIndex = playerIds.indexOf(winningPlayerId);
+        currentTrick = new Trick(winningPlayerId);
+
+        // check for end of round
+        if (playerHands.values().stream().allMatch(List::isEmpty)) {
+            int roundScore = 0;
+            for (Trick trick : pastTricks)
+                if (!isDeclaringTeam.get(winningPlayerId(trick)))
+                    for (Play trickPlay : trick.getPlays())
+                        roundScore += totalCardScore(trickPlay.getCardIds());
+            if (!isDeclaringTeam.get(winningPlayerId)) {
+                int bonus = 1 << pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
+                roundScore += bonus * totalCardScore(kitty);
+            }
+            boolean doDeclarersWin = roundScore < 80;
+            int scoreIncrease = doDeclarersWin ? (115 - roundScore) / 40 : (roundScore - 120) / 40;
+            roundEnd(doDeclarersWin, scoreIncrease);
+        }
     }
 
     private boolean canPlay(Play play) throws InvalidDoesItFlyException {
