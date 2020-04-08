@@ -19,7 +19,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
-import io.github.ytung.tractor.api.OutgoingMessage.YourDraw;
 import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.WRAPPER_OBJECT)
@@ -32,7 +31,6 @@ import lombok.Data;
     @JsonSubTypes.Type(value = StartRound.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
-    @JsonSubTypes.Type(value = YourDraw.class, name = "YOUR_DRAW"),
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
