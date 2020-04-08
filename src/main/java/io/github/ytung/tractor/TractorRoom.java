@@ -119,6 +119,7 @@ public class TractorRoom {
                 return new MakeKitty(game.getStatus(), game.getKitty(), game.getPlayerHands(), game.getCurrentTrick());
             } catch (InvalidKittyException e) {
                 sendSync(resources.get(r.uuid()), new InvalidAction(e.getMessage()));
+                return null;
             }
         }
 
@@ -133,8 +134,8 @@ public class TractorRoom {
                     scheduleFinishTrick(r.getBroadcaster());
             } catch (InvalidPlayException e) {
                 sendSync(r, new InvalidAction(e.getMessage()));
-                return null;
             }
+            return null;
         }
 
         if (message instanceof ForfeitRequest) {

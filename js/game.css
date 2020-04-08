@@ -17,6 +17,7 @@
 }
 
 .action_button {
+    cursor: pointer;
     position: absolute;
     top: 750px;
     left: 50%;
