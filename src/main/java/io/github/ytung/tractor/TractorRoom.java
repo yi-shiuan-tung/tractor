@@ -36,7 +36,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
-import io.github.ytung.tractor.api.OutgoingMessage.InvalidKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
@@ -118,16 +118,23 @@ public class TractorRoom {
                 game.makeKitty(r.uuid(), cardIds);
                 return new MakeKitty(game.getStatus(), game.getKitty(), game.getPlayerHands(), game.getCurrentTrick());
             } catch (InvalidKittyException e) {
-                sendSync(resources.get(r.uuid()), new InvalidKitty(e.getMessage()));
+                sendSync(resources.get(r.uuid()), new InvalidAction(e.getMessage()));
             }
         }
 
         if (message instanceof PlayRequest) {
             List<Integer> cardIds = ((PlayRequest) message).getCardIds();
-            boolean isTrickFinished = game.play(r.uuid(), cardIds);
-            sendSync(r.getBroadcaster(), new PlayMessage(game.getCurrentPlayerIndex(), game.getPlayerHands(), game.getCurrentTrick()));
-            if (isTrickFinished)
-                scheduleFinishTrick(r.getBroadcaster());
+            try {
+                boolean isTrickFinished = game.play(r.uuid(), cardIds);
+                Map<Integer, Card> cardsById = game.getCardsById();
+                sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
+                sendSync(r.getBroadcaster(), new PlayMessage(game.getCurrentPlayerIndex(), game.getPlayerHands(), game.getCurrentTrick()));
+                if (isTrickFinished)
+                    scheduleFinishTrick(r.getBroadcaster());
+            } catch (InvalidPlayException e) {
+                sendSync(r, new InvalidAction(e.getMessage()));
+                return null;
+            }
         }
 
         if (message instanceof ForfeitRequest) {
@@ -173,6 +180,7 @@ public class TractorRoom {
             @Override
             public void run() {
                 Uninterruptibles.sleepUninterruptibly(1500, TimeUnit.MILLISECONDS);
+                game.finishTrick();
                 sendSync(broadcaster, new FinishTrick(
                     game.getRoundNumber(),
                     game.getDeclarerPlayerIndex(),

@@ -15,7 +15,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
-import io.github.ytung.tractor.api.OutgoingMessage.InvalidKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Kitty;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
@@ -40,10 +40,10 @@ import lombok.Data;
     @JsonSubTypes.Type(value = Kitty.class, name = "KITTY"),
     @JsonSubTypes.Type(value = YourKitty.class, name = "YOUR_KITTY"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
-    @JsonSubTypes.Type(value = InvalidKitty.class, name = "INVALID_KITTY"),
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
+    @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
 })
 public interface OutgoingMessage {
 
@@ -139,12 +139,6 @@ public interface OutgoingMessage {
     }
 
     @Data
-    public static class InvalidKitty implements OutgoingMessage {
-
-        private final String message;
-    }
-
-    @Data
     public static class PlayMessage implements OutgoingMessage {
 
         private final int currentPlayerIndex;
@@ -169,5 +163,11 @@ public interface OutgoingMessage {
     public static class Forfeit implements OutgoingMessage {
 
         private final String playerId;
+    }
+
+    @Data
+    public static class InvalidAction implements OutgoingMessage {
+
+        private final String message;
     }
 }

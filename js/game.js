@@ -70,8 +70,6 @@ export class Game extends React.Component {
             } else if (json.YOUR_KITTY) {
                 this.setState({ ...json.YOUR_KITTY});
                 this.setState({notification: "Select 8 cards to put in the kitty", showKittyButton: true});
-            } else if (json.INVALID_KITTY) {
-                this.setState({notification: json.INVALID_KITTY.message});
             } else if (json.MAKE_KITTY) {
                 this.setState({ ...json.MAKE_KITTY});
                 this.setState({notification: "", showKittyButton:false});
@@ -79,6 +77,8 @@ export class Game extends React.Component {
                 this.setState({ ...json.PLAY });
             } else if (json.FINISH_TRICK) {
                 this.setState({ ...json.FINISH_TRICK });
+            } else if (json.INVALID_ACTION) {
+                this.setState({notification: json.INVALID_ACTION.message});
             } else {
                 console.log("Unhandled message: " + JSON.stringify(json));
             }

@@ -195,10 +195,9 @@ public class Game {
     /**
      * The specified player makes the given play. Returns whether the current trick is finished.
      */
-    public synchronized boolean play(String playerId, List<Integer> cardIds) throws InvalidDoesItFlyException {
+    public synchronized boolean play(String playerId, List<Integer> cardIds) throws InvalidPlayException {
         Play play = new Play(playerId, cardIds);
-        if (!canPlay(play))
-            throw new IllegalStateException();
+        verifyCanPlay(play);
 
         playerHands.get(playerId).removeAll(cardIds);
         currentTrick.getPlays().add(play);
@@ -240,22 +239,24 @@ public class Game {
         }
     }
 
-    private boolean canPlay(Play play) throws InvalidDoesItFlyException {
+    private void verifyCanPlay(Play play) throws InvalidPlayException {
         if (status != GameStatus.PLAY)
-            return false;
+            throw new InvalidPlayException("You cannot make a play now.");
         if (play.getPlayerId() != playerIds.get(currentPlayerIndex))
-            return false;
+            throw new InvalidPlayException("It is not your turn.");
+        if (play.getCardIds().isEmpty())
+            throw new InvalidPlayException("You must play at least one card.");
         if (!isPlayable(play))
-            return false;
+            throw new InvalidPlayException("You do not have that card.");
 
         Card trump = getCurrentTrump();
         if (currentTrick.getPlays().isEmpty()) {
             // first play of trick
             List<Component> profile = getProfile(play.getCardIds());
             if (profile.isEmpty())
-                return false;
+                throw new InvalidPlayException("You must play cards in only one suit.");
             if (profile.size() == 1)
-                return true;
+                return;
 
             // check to see if this is a does-it-fly play, and if so, whether it is valid
             for (Component component : profile)
@@ -268,18 +269,24 @@ public class Game {
                             if (otherComponent.getShape().getWidth() >= component.getShape().getWidth()
                                     && otherComponent.getShape().getHeight() >= component.getShape().getHeight()
                                     && otherComponent.getMinRank() > component.getMinRank()) {
-                                throw new InvalidDoesItFlyException();
+                                throw new InvalidPlayException("That play does not fly.");
                             }
                     }
-            return true;
         } else {
             Play startingPlay = currentTrick.getPlays().get(0);
             if (play.getCardIds().size() != startingPlay.getCardIds().size())
-                return false;
+                throw new InvalidPlayException("You must play the same number of cards as the starting player.");
 
+            Grouping startingGrouping = getGrouping(startingPlay.getCardIds());
             List<Integer> sameSuitCards = playerHands.get(play.getPlayerId()).stream()
-                .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == getGrouping(startingPlay.getCardIds()))
+                .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == startingGrouping)
                 .collect(Collectors.toList());
+
+            if (!sameSuitCards.isEmpty()) {
+                if (play.getCardIds().stream().anyMatch(cardId -> Cards.grouping(cardsById.get(cardId), trump) != startingGrouping))
+                    throw new InvalidPlayException("You must follow suit.");
+            }
+
             for (Component handComponent : getProfile(sameSuitCards)) {
                 boolean isCapturedByStartingPlay = getProfile(startingPlay.getCardIds()).stream().anyMatch(
                     component -> component.getShape().getWidth() >= handComponent.getShape().getWidth()
@@ -289,11 +296,9 @@ public class Game {
                             && component.getShape().getHeight() < handComponent.getShape().getHeight());
                 // player must follow suit; if there's a card in hand better than what's played, the play is invalid
                 if (isCapturedByStartingPlay && isBetterThanCurrentPlay && !getProfile(play.getCardIds()).contains(handComponent))
-                    return false;
+                    throw new InvalidPlayException("You must play pairs before singles, etc.");
             }
         }
-
-        return true;
     }
 
     public synchronized void forfeitRound(String playerId) {
@@ -373,14 +378,11 @@ public class Game {
         Card trump = getCurrentTrump();
         List<Card> cards = cardIds.stream().map(cardsById::get).collect(Collectors.toList());
         List<Component> profile = cards.stream()
+            .map(card -> new Card(0, card.getValue(), card.getSuit()))
             .distinct()
             .map(card -> {
-                int width = 0;
-                for (Card otherCard : cards)
-                    if (card.getValue() == otherCard.getValue() && card.getSuit() == otherCard.getSuit())
-                        width++;
                 return new Component(
-                    new Shape(width, 1),
+                    new Shape(Collections.frequency(cards, card), 1),
                     Cards.rank(card, trump),
                     Cards.rank(card, trump));
             })
