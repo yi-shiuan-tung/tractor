@@ -21,6 +21,7 @@ export class Game extends React.Component {
             selectedCardIds: {}, // { cardId: boolean }
             notifications: {},
             showKittyButton: false,
+            showPreviousTrick: false,
 
             // game state
             playerIds: [], // PlayerId[]
@@ -179,6 +180,7 @@ export class Game extends React.Component {
                 {this.renderDeclaredCards()}
                 {this.renderCurrentTrick()}
                 {this.renderActionButton()}
+                {this.renderLastTrickButton()}
             </div>
         );
     }
@@ -350,9 +352,25 @@ export class Game extends React.Component {
     }
 
     renderCurrentTrick() {
-        const { playerIds, currentTrick } = this.state;
+        const { showPreviousTrick, playerIds, pastTricks, currentTrick } = this.state;
         if (!currentTrick) {
             return;
+        }
+        if (showPreviousTrick && pastTricks.length > 0) {
+            return <div>
+                {pastTricks[pastTricks.length - 1].plays.map(({ playerId, cardIds }) => <PlayerArea
+                    playerIds={playerIds}
+                    playerId={playerId}
+                    myId={this.myId}
+                    distance={0.2}
+                >
+                    {this.renderCards(cardIds, {
+                        interCardDistance: 15,
+                        faceUp: true,
+                        canSelect: false,
+                    })}
+                </PlayerArea>)}
+            </div>
         }
         return <div>
             {currentTrick.plays.map(({ playerId, cardIds }) => <PlayerArea
@@ -415,6 +433,18 @@ export class Game extends React.Component {
                 {"Play"}
             </div>
         }
+    }
+
+    renderLastTrickButton() {
+        const { pastTricks } = this.state;
+        if (pastTricks === undefined || pastTricks.length === 0) {
+            return;
+        }
+        return <div
+            className="last_trick_button"
+            onMouseDown={() => this.setState({ showPreviousTrick: true })}
+            onMouseUp={() => this.setState({ showPreviousTrick: false })}
+        />
     }
 
     renderCards(cardIds, args) {

@@ -167,6 +167,24 @@ i {
     top: 748px;
 }
 
+.game_area .last_trick_button {
+    cursor: pointer;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 64px;
+    height: 80px;
+    background-image: url("./last_trick.png");
+    background-size: cover;
+}
+
+.game_area .last_trick_button:active {
+    bottom: 22px;
+    right: 22px;
+    width: 60px;
+    height: 76px;
+}
+
 .action_button {
     cursor: pointer;
     height: 36px;

@@ -26,7 +26,7 @@ module.exports = [{
           ],
       },
       {
-        test: /\.ttf$/,
+        test: /\.(png|ttf)$/,
         use: [
           'file-loader',
         ],
