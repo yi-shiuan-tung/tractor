@@ -83,6 +83,8 @@ public interface OutgoingMessage {
     @Data
     public static class StartRound implements OutgoingMessage {
 
+        private final int roundNumber;
+        private final int declarerPlayerIndex;
         private final GameStatus status;
         private final int currentPlayerIndex;
         private final Map<String, Boolean> isDeclaringTeam;
@@ -93,6 +95,7 @@ public interface OutgoingMessage {
         private final List<Integer> kitty;
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
+        private final Card currentTrump;
     }
 
     @Data
@@ -132,6 +135,7 @@ public interface OutgoingMessage {
 
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
+        private final Card currentTrump;
     }
 
     @Data

@@ -328,7 +328,7 @@ public class Game {
         status = GameStatus.START_ROUND;
     }
 
-    private Card getCurrentTrump() {
+    public Card getCurrentTrump() {
         return new Card(
             0,
             playerRankScores.get(playerIds.get(declarerPlayerIndex)),

@@ -1,5 +1,5 @@
 
-const VALUES = {
+export const VALUES = {
     'ACE': '1',
     'TWO': '2',
     'THREE': '3',

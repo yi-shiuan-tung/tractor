@@ -71,6 +71,17 @@ i {
     color: yellow;
 }
 
+.game_area .round_info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 16px;
+    color: white;
+    border: 1px solid black;
+    border-radius: 16px;
+    background-color: tan;
+}
+
 .game_area .player_name {
     font-size: 16px;
     padding: 5px;

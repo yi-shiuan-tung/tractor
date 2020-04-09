@@ -1,5 +1,5 @@
 import * as React from "react";
-import { getCardImageSrc, getFaceDownCardImageSrc } from "./assets";
+import { VALUES, getCardImageSrc, getFaceDownCardImageSrc } from "./assets";
 import { setUpConnection } from "./connection";
 import "./game.css";
 import { PlayerArea } from "./playerArea";
@@ -25,6 +25,8 @@ export class Game extends React.Component {
             // game state
             playerIds: [], // PlayerId[]
             kittySize: 8, // integer
+            roundNumber: undefined, // integer
+            declarerPlayerIndex: undefined, // integer
             playerRankScores: {}, // { playerId: cardValue }
             status: 'START_ROUND', // GameStatus
             currentPlayerIndex: undefined, // integer
@@ -36,6 +38,7 @@ export class Game extends React.Component {
             kitty: undefined, // Card[]
             pastTricks: undefined, // Trick[]
             currentTrick: undefined, // Trick
+            currentTrump: undefined, // Card
         }
     }
 
@@ -167,12 +170,30 @@ export class Game extends React.Component {
     renderGameArea() {
         return (
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
+                {this.renderRoundInfo()}
                 {this.renderPlayerNames()}
                 {this.renderNotifications()}
                 {this.renderPlayerHands()}
                 {this.renderDeclaredCards()}
                 {this.renderCurrentTrick()}
                 {this.renderActionButton()}
+            </div>
+        );
+    }
+
+    renderRoundInfo() {
+        const { playerNames, playerIds, roundNumber, declarerPlayerIndex, status, currentTrump } = this.state;
+        if (status === 'START_ROUND') {
+            return;
+        }
+        const declarer = playerIds[declarerPlayerIndex] === this.myId
+            ? <span className="me">{"You"}</span> : playerNames[playerIds[declarerPlayerIndex]];
+        const trumpSuit = currentTrump.suit === 'JOKER' ? 'NO TRUMP' : currentTrump.suit + 'S';
+        return (
+            <div className="round_info">
+                <div>Round {roundNumber + 1}</div>
+                <div>Declarer: {declarer}</div>
+                <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
             </div>
         );
     }
