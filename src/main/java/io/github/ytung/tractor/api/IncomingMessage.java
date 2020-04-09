@@ -12,6 +12,7 @@ import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.JoinRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
+import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import lombok.Data;
@@ -22,6 +23,7 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = CreateRoomRequest.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoomRequest.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = SetNameRequest.class, name = "SET_NAME"),
+    @JsonSubTypes.Type(value = PlayerOrderRequest.class, name = "PLAYER_ORDER"),
     @JsonSubTypes.Type(value = StartRoundRequest.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = DeclareRequest.class, name = "DECLARE"),
     @JsonSubTypes.Type(value = MakeKittyRequest.class, name = "MAKE_KITTY"),
@@ -48,6 +50,13 @@ public interface IncomingMessage {
     public static class SetNameRequest implements IncomingMessage {
 
         private String name;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class PlayerOrderRequest implements IncomingMessage {
+
+        private List<String> playerIds;
     }
 
     @Data

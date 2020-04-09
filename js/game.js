@@ -194,6 +194,18 @@ export class Game extends React.Component {
                             key={playerId}
                             className={playerId === this.myId ? "me" : ""}
                         >
+                            <i className={(playerId !== this.myId || playerIds.indexOf(this.myId) === 0) ? "hidden" : "arrow up"}
+                                onClick={() => {
+                                    const index = playerIds.indexOf(this.myId);
+                                    [playerIds[index], playerIds[index-1]] = [playerIds[index-1], playerIds[index]];
+                                    this.subSocket.push(JSON.stringify({"PLAYER_ORDER": { playerIds}}))
+                                }}/>
+                            <i className={(playerId !== this.myId || playerIds.indexOf(this.myId) === playerIds.length - 1) ? "hidden" : "arrow down"}
+                                onClick={() => {
+                                    const index = playerIds.indexOf(this.myId);
+                                    [playerIds[index], playerIds[index+1]] = [playerIds[index+1], playerIds[index]];
+                                    this.subSocket.push(JSON.stringify({"PLAYER_ORDER": { playerIds}}))
+                                }}/>
                             {`${playerNames[playerId]} (${playerRankScores[playerId]})`}
                         </li>)}
                     </ul>

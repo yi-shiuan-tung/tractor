@@ -27,6 +27,7 @@ import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
+import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
@@ -86,6 +87,13 @@ public class TractorRoom {
             playerNames.put(r.uuid(), name);
             return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
         }
+
+        if (message instanceof PlayerOrderRequest) {
+            List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
+            game.setPlayerIds(playerIds);
+            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
+        }
+
 
         if (message instanceof StartRoundRequest) {
             game.startRound();
