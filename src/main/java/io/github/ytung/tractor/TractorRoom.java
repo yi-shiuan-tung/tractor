@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Uninterruptibles;
 
 import io.github.ytung.tractor.api.Card;
+import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.IncomingMessage;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
@@ -89,14 +90,16 @@ public class TractorRoom {
         }
 
         if (message instanceof PlayerOrderRequest) {
-            List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
-            List<String> currentPlayerIds = game.getPlayerIds();
-            String currentPlayerId = currentPlayerIds.get(game.getCurrentPlayerIndex());
-            String declarerPlayerId = currentPlayerIds.get(game.getDeclarerPlayerIndex());
-            game.setPlayerIds(playerIds);
-            game.setCurrentPlayerIndex(playerIds.indexOf(currentPlayerId));
-            game.setDeclarerPlayerIndex(playerIds.indexOf(declarerPlayerId));
-            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
+            if (game.getStatus() == GameStatus.START_ROUND) {
+                List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
+                List<String> currentPlayerIds = game.getPlayerIds();
+                String currentPlayerId = currentPlayerIds.get(game.getCurrentPlayerIndex());
+                String declarerPlayerId = currentPlayerIds.get(game.getDeclarerPlayerIndex());
+                game.setPlayerIds(playerIds);
+                game.setCurrentPlayerIndex(playerIds.indexOf(currentPlayerId));
+                game.setDeclarerPlayerIndex(playerIds.indexOf(declarerPlayerId));
+                return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
+            }
         }
 
 
