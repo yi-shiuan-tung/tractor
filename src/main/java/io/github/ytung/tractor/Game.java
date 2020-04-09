@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 
 import io.github.ytung.tractor.Cards.Grouping;
@@ -50,6 +51,7 @@ public class Game {
     private List<Integer> kitty;
     private List<Trick> pastTricks;
     private Trick currentTrick;
+    private Map<String, Integer> currentRoundScores = new HashMap<>();
 
     public synchronized void addPlayer(String playerId) {
         if (status != GameStatus.START_ROUND)
@@ -96,6 +98,7 @@ public class Game {
         kitty = new ArrayList<>();
         pastTricks = new ArrayList<>();
         currentTrick = null;
+        currentRoundScores = new HashMap<>(Maps.toMap(playerIds, playerId -> 0));
 
         for (String playerId : playerIds)
             playerHands.put(playerId, new ArrayList<>());
@@ -124,6 +127,10 @@ public class Game {
             throw new IllegalStateException();
         declaredCards.add(play);
         playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
+
+        // if this is the first round, then the person who declares is the declarer
+        if (roundNumber == 0)
+            declarerPlayerIndex = playerIds.indexOf(declaredCards.get(declaredCards.size() - 1).getPlayerId());
     }
 
     private boolean canDeclare(Play play) {
@@ -161,10 +168,6 @@ public class Game {
     public synchronized Play takeKitty() {
         if (status != GameStatus.DRAW_KITTY)
             return null;
-
-        // if this is the first round, then the person who declared the trump suit gets the kitty
-        if (roundNumber == 0 && !declaredCards.isEmpty())
-            declarerPlayerIndex = playerIds.indexOf(declaredCards.get(declaredCards.size() - 1).getPlayerId());
 
         status = GameStatus.MAKE_KITTY;
         currentPlayerIndex = declarerPlayerIndex;
@@ -218,6 +221,8 @@ public class Game {
 
         // finish trick
         String winningPlayerId = winningPlayerId(currentTrick);
+        for (Play play : currentTrick.getPlays())
+            currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + totalCardScore(play.getCardIds()));
 
         pastTricks.add(currentTrick);
         currentPlayerIndex = playerIds.indexOf(winningPlayerId);
@@ -225,15 +230,14 @@ public class Game {
 
         // check for end of round
         if (playerHands.values().stream().allMatch(List::isEmpty)) {
-            int roundScore = 0;
-            for (Trick trick : pastTricks)
-                if (!isDeclaringTeam.get(winningPlayerId(trick)))
-                    for (Play trickPlay : trick.getPlays())
-                        roundScore += totalCardScore(trickPlay.getCardIds());
             if (!isDeclaringTeam.get(winningPlayerId)) {
                 int bonus = 1 << pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
-                roundScore += bonus * totalCardScore(kitty);
+                currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + bonus * totalCardScore(kitty));
             }
+            int roundScore = 0;
+            for (String playerId : playerIds)
+                if (!isDeclaringTeam.get(playerId))
+                    roundScore += currentRoundScores.get(playerId);
             boolean doDeclarersWin = roundScore < 80;
             int scoreIncrease = doDeclarersWin ? (115 - roundScore) / 40 : (roundScore - 120) / 40;
             roundEnd(doDeclarersWin, scoreIncrease);

@@ -95,6 +95,7 @@ public interface OutgoingMessage {
         private final List<Integer> kitty;
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
+        private final Map<String, Integer> currentRoundScores;
         private final Card currentTrump;
     }
 
@@ -116,8 +117,6 @@ public interface OutgoingMessage {
     @Data
     public static class TakeKitty implements OutgoingMessage {
 
-        private final int declarerPlayerIndex;
-
         private final GameStatus status;
         private final int currentPlayerIndex;
         private final Queue<Integer> deck;
@@ -132,6 +131,8 @@ public interface OutgoingMessage {
 
     @Data
     public static class Declare implements OutgoingMessage {
+
+        private final int declarerPlayerIndex;
 
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
@@ -166,6 +167,7 @@ public interface OutgoingMessage {
         private final int currentPlayerIndex;
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
+        private final Map<String, Integer> currentRoundScores;
     }
 
     @Data

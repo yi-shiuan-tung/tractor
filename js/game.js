@@ -38,6 +38,7 @@ export class Game extends React.Component {
             kitty: undefined, // Card[]
             pastTricks: undefined, // Trick[]
             currentTrick: undefined, // Trick
+            currentRoundScores: undefined, // { playerId: integer }
             currentTrump: undefined, // Card
         }
     }
@@ -183,18 +184,34 @@ export class Game extends React.Component {
     }
 
     renderRoundInfo() {
-        const { playerNames, playerIds, roundNumber, declarerPlayerIndex, status, currentTrump } = this.state;
+        const {
+            playerNames,
+            playerIds,
+            roundNumber,
+            declarerPlayerIndex,
+            status,
+            isDeclaringTeam,
+            currentRoundScores,
+            currentTrump,
+        } = this.state;
         if (status === 'START_ROUND') {
             return;
         }
         const declarer = playerIds[declarerPlayerIndex] === this.myId
             ? <span className="me">{"You"}</span> : playerNames[playerIds[declarerPlayerIndex]];
         const trumpSuit = currentTrump.suit === 'JOKER' ? 'NO TRUMP' : currentTrump.suit + 'S';
+        let opponentsPoints = 0;
+        playerIds.forEach(playerId => {
+            if (!isDeclaringTeam[playerId]) {
+                opponentsPoints += currentRoundScores[playerId];
+            }
+        });
         return (
             <div className="round_info">
                 <div>Round {roundNumber + 1}</div>
                 <div>Declarer: {declarer}</div>
                 <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
+                <div>Opponent's points: {opponentsPoints}</div>
             </div>
         );
     }
@@ -206,10 +223,11 @@ export class Game extends React.Component {
                 <div>Player scores:</div>
                 <ul>
                     {playerIds.map(playerId => {
+                        const name = playerId === this.myId ? <span className="me">{"You"}</span> : playerNames[playerId];
                         return <li
                             key={playerId}
                         >
-                            {`${playerNames[playerId]}: ${VALUES[playerRankScores[playerId]]}`}
+                            {name}{`: ${VALUES[playerRankScores[playerId]]}`}
                         </li>;
                     })}
                 </ul>
@@ -240,7 +258,7 @@ export class Game extends React.Component {
                                     [playerIds[index], playerIds[index+1]] = [playerIds[index+1], playerIds[index]];
                                     this.subSocket.push(JSON.stringify({"PLAYER_ORDER": { playerIds}}))
                                 }}/>
-                            {`${playerNames[playerId]} (${playerRankScores[playerId]})`}
+                            {`${playerNames[playerId]} (${VALUES[playerRankScores[playerId]]})`}
                         </li>)}
                     </ul>
                     <div
@@ -353,7 +371,7 @@ export class Game extends React.Component {
 
     renderActionButton() {
         const { selectedCardIds, playerIds, currentPlayerIndex, status } = this.state;
-        if (status === 'DRAW') {
+        if (status === 'DRAW' || status === 'DRAW_KITTY') {
             return <div
                 className="action_button game_action_button"
                 onClick={() => {

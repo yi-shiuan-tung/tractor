@@ -115,6 +115,7 @@ public class TractorRoom {
                 game.getKitty(),
                 game.getPastTricks(),
                 game.getCurrentTrick(),
+                game.getCurrentRoundScores(),
                 game.getCurrentTrump()));
             startDealing(r.getBroadcaster());
             return null;
@@ -125,7 +126,7 @@ public class TractorRoom {
             game.declare(r.uuid(), cardIds);
             Map<Integer, Card> cardsById = game.getCardsById();
             sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-            return new Declare(game.getPlayerHands(), game.getDeclaredCards(), game.getCurrentTrump());
+            return new Declare(game.getDeclarerPlayerIndex(), game.getPlayerHands(), game.getDeclaredCards(), game.getCurrentTrump());
         }
 
         if (message instanceof MakeKittyRequest) {
@@ -185,7 +186,6 @@ public class TractorRoom {
                     return;
                 sendSync(resources.get(kitty.getPlayerId()), new CardInfo(Maps.toMap(kitty.getCardIds(), cardsById::get)));
                 sendSync(broadcaster, new TakeKitty(
-                    game.getDeclarerPlayerIndex(),
                     game.getStatus(),
                     game.getCurrentPlayerIndex(),
                     game.getDeck(),
@@ -211,7 +211,8 @@ public class TractorRoom {
                     game.getStatus(),
                     game.getCurrentPlayerIndex(),
                     game.getPastTricks(),
-                    game.getCurrentTrick()));
+                    game.getCurrentTrick(),
+                    game.getCurrentRoundScores()));
             }
         };
 
