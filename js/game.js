@@ -130,12 +130,6 @@ export class Game extends React.Component {
                     </button>
                 </div>
                 <div>
-                    Players:
-                    <ul>
-                        {playerIds.map(playerId => <li key={playerId}>{playerNames[playerId]}{playerId === this.myId ? " (me)" : ""}</li>)}
-                    </ul>
-                </div>
-                <div>
                     <button type="button" onClick={() => {
                         this.subSocket.push(JSON.stringify({ "START_ROUND": {} }));
                     }}>
