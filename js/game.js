@@ -24,6 +24,7 @@ export class Game extends React.Component {
             // game state
             playerIds: [], // PlayerId[]
             kittySize: 8, // integer
+            playerRankScores: {}, // { playerId: cardValue }
             status: 'START_ROUND', // GameStatus
             currentPlayerIndex: undefined, // integer
             isDeclaringTeam: undefined, // { playerId: boolean }
@@ -51,8 +52,7 @@ export class Game extends React.Component {
                 const { playerNames } = json.WELCOME;
                 this.setState({ playerNames });
             } else if (json.UPDATE_PLAYERS) {
-                const { playerIds, playerNames } = json.UPDATE_PLAYERS;
-                this.setState({ playerIds, playerNames });
+                this.setState({ ...json.UPDATE_PLAYERS });
             } else if (json.START_ROUND) {
                 this.setState({ ...json.START_ROUND });
             } else if (json.CARD_INFO) {
@@ -170,12 +170,9 @@ export class Game extends React.Component {
     }
 
     renderGameArea() {
-        const { status } = this.state;
-        if (status === 'START_ROUND') {
-            return;
-        }
         return (
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
+                {this.renderPlayerNames()}
                 {this.renderNotifications()}
                 {this.renderPlayerHands()}
                 {this.renderDeclaredCards()}
@@ -185,6 +182,25 @@ export class Game extends React.Component {
         );
     }
 
+    renderPlayerNames() {
+        const { playerNames, playerIds, playerRankScores, status } = this.state;
+        if (status === 'START_ROUND') {
+            return (
+                <div className="player_list">
+                    <div className="title">Tractor</div>
+                    <ul>
+                        {playerIds.map(playerId => <li
+                            key={playerId}
+                            className={playerId === this.myId ? "me" : ""}
+                        >
+                            {`${playerNames[playerId]} (${playerRankScores[playerId]})`}
+                        </li>)}
+                    </ul>
+                </div>
+            );
+        }
+    }
+
     renderNotifications() {
         const { notifications } = this.state;
         return Object.entries(notifications).map(([id, message]) => <div key={id} className="notification">{message}</div>);
@@ -192,6 +208,9 @@ export class Game extends React.Component {
 
     renderPlayerHands() {
         const { status, playerIds, playerHands, declaredCards } = this.state;
+        if (status === 'START_ROUND') {
+            return;
+        }
         return playerIds.map(playerId => {
             const nonDeclaredCards = playerHands[playerId]
                 // If not playing tricks, declared cards should be shown in front, not in hand
@@ -211,7 +230,7 @@ export class Game extends React.Component {
 
     renderDeclaredCards() {
         const { status, declaredCards } = this.state;
-        if (status === 'PLAY' || declaredCards.length === 0) {
+        if (status === 'START_ROUND' || status === 'PLAY' || declaredCards.length === 0) {
             return;
         }
         const latestDeclaredCards = declaredCards[declaredCards.length - 1];

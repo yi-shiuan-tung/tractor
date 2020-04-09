@@ -76,6 +76,7 @@ public interface OutgoingMessage {
     public static class UpdatePlayers implements OutgoingMessage {
 
         private final List<String> playerIds;
+        private final Map<String, Card.Value> playerRankScores;
         private final Map<String, String> playerNames;
     }
 
