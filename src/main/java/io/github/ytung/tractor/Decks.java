@@ -20,22 +20,22 @@ public class Decks {
     public static final int SIZE = 54;
 
     public static Map<Integer, Card> getCardsById(int numDecks) {
-        int cardId = 101;
-        Map<Integer, Card> cards = new HashMap<>();
+        List<Card> cards = new ArrayList<>();
         for (int i = 0; i < numDecks; i++) {
             for (Suit suit : ImmutableList.of(Suit.CLUB, Suit.DIAMOND, Suit.HEART, Suit.SPADE))
                 for (Value value : ImmutableList.of(Value.TWO, Value.THREE, Value.FOUR, Value.FIVE, Value.SIX, Value.SEVEN, Value.EIGHT,
                     Value.NINE, Value.TEN, Value.JACK, Value.QUEEN, Value.KING, Value.ACE)) {
-                    cards.put(cardId, new Card(cardId, value, suit));
-                    cardId++;
+                    cards.add(new Card(value, suit));
                 }
-
-            cards.put(cardId, new Card(cardId, Value.SMALL_JOKER, Suit.JOKER));
-            cardId++;
-
-            cards.put(cardId, new Card(cardId, Value.BIG_JOKER, Suit.JOKER));
+            cards.add(new Card(Value.SMALL_JOKER, Suit.JOKER));
+            cards.add(new Card(Value.BIG_JOKER, Suit.JOKER));
         }
-        return cards;
+        Collections.shuffle(cards);
+        int cardId = 101;
+        Map<Integer, Card> cardsById = new HashMap<>();
+        for (Card card : cards)
+            cardsById.put(cardId++, card);
+        return cardsById;
     }
 
     public static Queue<Integer> shuffle(Map<Integer, Card> cardsById) {

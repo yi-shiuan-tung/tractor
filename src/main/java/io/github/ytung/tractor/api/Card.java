@@ -14,8 +14,6 @@ public class Card {
         SPADE, HEART, DIAMOND, CLUB, JOKER
     };
 
-    private final int id;
-
     private final Value value;
 
     private final Suit suit;
