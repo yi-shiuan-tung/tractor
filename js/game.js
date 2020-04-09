@@ -215,7 +215,10 @@ export class Game extends React.Component {
     }
 
     renderGameInfo() {
-        const { playerNames, playerIds, playerRankScores } = this.state;
+        const { playerNames, playerIds, playerRankScores, status } = this.state;
+        if (status === 'START_ROUND') {
+            return;
+        }
         return (
             <div className="game_info">
                 <div>Player scores:</div>
