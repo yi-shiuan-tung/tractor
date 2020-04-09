@@ -2,12 +2,13 @@ import * as React from "react";
 import { getCardImageSrc, getFaceDownCardImageSrc } from "./assets";
 import { setUpConnection } from "./connection";
 import "./game.css";
+import { PlayerArea } from "./playerArea";
 
-const WIDTH = 1200;
-const HEIGHT = 800;
+export const WIDTH = 1200;
+export const HEIGHT = 800;
 
-const CARD_WIDTH = 71;
-const CARD_HEIGHT = 96;
+export const CARD_WIDTH = 71;
+export const CARD_HEIGHT = 96;
 
 export class Game extends React.Component {
 
@@ -204,6 +205,20 @@ export class Game extends React.Component {
                     </div>
                 </div>
             );
+        } else {
+            return <div>
+                {playerIds
+                    .filter(playerId => playerId !== this.myId)
+                    .map(playerId => <PlayerArea
+                        playerIds={playerIds}
+                        playerId={playerId}
+                        myId={this.myId}
+                        distance={0.9}
+                        isText={true}
+                    >
+                        <div>{playerNames[playerId]}</div>
+                    </PlayerArea>)}
+            </div>;
         }
     }
 
@@ -224,13 +239,20 @@ export class Game extends React.Component {
                     || declaredCards.length === 0
                     || declaredCards[declaredCards.length - 1].cardIds.every(declaredCardId => cardId !== declaredCardId));
 
-            const cardImgs = this.renderCards(nonDeclaredCards, {
-                interCardDistance: playerId === this.myId ? 15 : 9,
-                faceUp: playerId === this.myId,
-                canSelect: playerId === this.myId,
-            });
-
-            return this.renderPlayerArea(playerId, 0.6, cardImgs);
+            return (
+                <PlayerArea
+                    playerIds={playerIds}
+                    playerId={playerId}
+                    myId={this.myId}
+                    distance={0.6}
+                >
+                    {this.renderCards(nonDeclaredCards, {
+                        interCardDistance: playerId === this.myId ? 15 : 9,
+                        faceUp: playerId === this.myId,
+                        canSelect: playerId === this.myId,
+                    })}
+                </PlayerArea>
+            );
         });
     }
 
@@ -240,12 +262,20 @@ export class Game extends React.Component {
             return;
         }
         const latestDeclaredCards = declaredCards[declaredCards.length - 1];
-        const cardImgs = this.renderCards(latestDeclaredCards.cardIds, {
-            interCardDistance: 15,
-            faceUp: true,
-            canSelect: false,
-        });
-        return this.renderPlayerArea(latestDeclaredCards.playerId, 0.3, cardImgs);
+        return <div>
+            <PlayerArea
+                playerIds={playerIds}
+                playerId={playerId}
+                myId={this.myId}
+                distance={0.3}
+            >
+                {this.renderCards(latestDeclaredCards.cardIds, {
+                    interCardDistance: 15,
+                    faceUp: true,
+                    canSelect: false,
+                })}
+            </PlayerArea>
+        </div>;
     }
 
     renderCurrentTrick() {
@@ -253,14 +283,20 @@ export class Game extends React.Component {
         if (!currentTrick) {
             return;
         }
-        return currentTrick.plays.map(({playerId, cardIds}) => {
-            const cardImgs = this.renderCards(cardIds, {
-                interCardDistance: 15,
-                faceUp: true,
-                canSelect: false,
-            });
-            return this.renderPlayerArea(playerId, 0.2, cardImgs);
-        });
+        return <div>
+            {currentTrick.plays.map(({ playerId, cardIds }) => <PlayerArea
+                playerIds={playerIds}
+                playerId={playerId}
+                myId={this.myId}
+                distance={0.2}
+            >
+                {this.renderCards(cardIds, {
+                    interCardDistance: 15,
+                    faceUp: true,
+                    canSelect: false,
+                })}
+            </PlayerArea>)}
+        </div>;
     }
 
     renderActionButton() {
@@ -310,35 +346,6 @@ export class Game extends React.Component {
                 {"Play"}
             </div>
         }
-    }
-
-    /*
-     * Renders the given children in front of the given player (under the correct orientation).
-     * The distance is a number from 0 (in the middle) to 1 (very close to the player)
-     */
-    renderPlayerArea(playerId, distance, children) {
-        const { playerIds } = this.state;
-        const playerIndex = playerIds.indexOf(playerId);
-        const myIndex = playerIds.indexOf(this.myId);
-        const centerPoint = {
-            x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
-            y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
-        };
-        const angle = (myIndex - playerIndex) * 360. / playerIds.length;
-        return (
-            <div
-                key={playerId}
-                className="player_container"
-                style={
-                    {
-                        top: centerPoint.y,
-                        left: centerPoint.x,
-                        transform: `rotate(${angle}deg)`,
-                    }
-                }>
-                {children}
-            </div>
-        );
     }
 
     renderCards(cardIds, args) {
