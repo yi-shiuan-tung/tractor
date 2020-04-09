@@ -152,7 +152,7 @@ public class Game {
 
         Play lastDeclaredPlay = declaredCards.get(declaredCards.size() - 1);
         Suit lastDeclaredSuit = cardsById.get(lastDeclaredPlay.getCardIds().get(0)).getSuit();
-        if (lastDeclaredPlay.getPlayerId() == play.getPlayerId()) {
+        if (lastDeclaredPlay.getPlayerId().equals(play.getPlayerId())) {
             // same player is only allowed to strengthen the declared suit
             if (card.getSuit() != lastDeclaredSuit)
                 throw new InvalidDeclareException("You can only strengthen your declare.");
@@ -253,7 +253,7 @@ public class Game {
     private void verifyCanPlay(Play play) throws InvalidPlayException {
         if (status != GameStatus.PLAY)
             throw new InvalidPlayException("You cannot make a play now.");
-        if (play.getPlayerId() != playerIds.get(currentPlayerIndex))
+        if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
             throw new InvalidPlayException("It is not your turn.");
         if (play.getCardIds().isEmpty())
             throw new InvalidPlayException("You must play at least one card.");
@@ -272,7 +272,7 @@ public class Game {
             // check to see if this is a does-it-fly play, and if so, whether it is valid
             for (Component component : profile)
                 for (String otherPlayerId : playerIds)
-                    if (otherPlayerId != play.getPlayerId()) {
+                    if (!otherPlayerId.equals(play.getPlayerId())) {
                         List<Integer> sameSuitCardIds = playerHands.get(otherPlayerId).stream()
                             .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == getGrouping(play.getCardIds()))
                             .collect(Collectors.toList());
