@@ -19,10 +19,11 @@ export class PlayerArea extends React.Component {
         let angle = (myIndex - playerIndex) * 360. / playerIds.length;
         if (isText) {
             // ensure text is always facing the player by possibly rotating 180 degrees
-            if (angle > 90) {
+            if (angle < 0) {
+                angle += 360;
+            }
+            if (angle > 90 || angle < 270) {
                 angle -= 180;
-            } else if (angle <= -90) {
-                angle += 180;
             }
         }
         let transform = `rotate(${angle}deg)`;

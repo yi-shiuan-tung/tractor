@@ -184,7 +184,7 @@ export class Game extends React.Component {
     }
 
     renderPlayerNames() {
-        const { playerNames, playerIds, playerRankScores, status } = this.state;
+        const { playerNames, playerIds, playerRankScores, status, currentPlayerIndex } = this.state;
         if (status === 'START_ROUND') {
             return (
                 <div className="player_list">
@@ -209,15 +209,21 @@ export class Game extends React.Component {
             return <div>
                 {playerIds
                     .filter(playerId => playerId !== this.myId)
-                    .map(playerId => <PlayerArea
-                        playerIds={playerIds}
-                        playerId={playerId}
-                        myId={this.myId}
-                        distance={0.9}
-                        isText={true}
-                    >
-                        <div>{playerNames[playerId]}</div>
-                    </PlayerArea>)}
+                    .map(playerId => {
+                        let className = "player_name";
+                        if (status !== 'DRAW' && playerId === playerIds[currentPlayerIndex]) {
+                            className += " current";
+                        }
+                        return <PlayerArea
+                            playerIds={playerIds}
+                            playerId={playerId}
+                            myId={this.myId}
+                            distance={0.91}
+                            isText={true}
+                        >
+                            <div className={className}>{playerNames[playerId]}</div>
+                        </PlayerArea>;
+                    })}
             </div>;
         }
     }
@@ -257,7 +263,7 @@ export class Game extends React.Component {
     }
 
     renderDeclaredCards() {
-        const { status, declaredCards } = this.state;
+        const { playerIds, status, declaredCards } = this.state;
         if (status === 'START_ROUND' || status === 'PLAY' || declaredCards.length === 0) {
             return;
         }
@@ -265,7 +271,7 @@ export class Game extends React.Component {
         return <div>
             <PlayerArea
                 playerIds={playerIds}
-                playerId={playerId}
+                playerId={latestDeclaredCards.playerId}
                 myId={this.myId}
                 distance={0.3}
             >
@@ -279,7 +285,7 @@ export class Game extends React.Component {
     }
 
     renderCurrentTrick() {
-        const { currentTrick } = this.state;
+        const { playerIds, currentTrick } = this.state;
         if (!currentTrick) {
             return;
         }

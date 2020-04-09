@@ -39,8 +39,19 @@ ul {
     margin-bottom: 14px;
 }
 
-.game_area .player_list .me {
+.game_area .me {
     color: yellow;
+}
+
+.game_area .player_name {
+    font-size: 16px;
+    padding: 5px;
+}
+
+.game_area .current {
+    color: darkblue;
+    border: 1px solid black;
+    border-radius: 8px;
 }
 
 .game_area .start_action_button {
@@ -71,6 +82,7 @@ ul {
     border: 1px solid black;
     border-radius: 8px;
     background-color: orange;
+    z-index: 9999;
 }
 
 .game_area img {
