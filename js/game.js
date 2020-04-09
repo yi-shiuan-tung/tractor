@@ -196,6 +196,12 @@ export class Game extends React.Component {
                             {`${playerNames[playerId]} (${playerRankScores[playerId]})`}
                         </li>)}
                     </ul>
+                    <div
+                        className="action_button start_action_button"
+                        onClick={() => this.subSocket.push(JSON.stringify({ "START_ROUND": {} }))}
+                    >
+                        {"Start game"}
+                    </div>
                 </div>
             );
         }
@@ -261,7 +267,7 @@ export class Game extends React.Component {
         const { selectedCardIds, playerIds, currentPlayerIndex, status } = this.state;
         if (status === 'DRAW') {
             return <div
-                className="action_button"
+                className="action_button game_action_button"
                 onClick={() => {
                     const cardIds = Object.entries(selectedCardIds)
                         .filter(([_cardId, selected]) => selected)
@@ -278,7 +284,7 @@ export class Game extends React.Component {
         }
         if (status === 'MAKE_KITTY') {
             return <div
-                className="action_button"
+                className="action_button game_action_button"
                 onClick={() => {
                     const cardIds = Object.entries(selectedCardIds)
                         .filter(([_cardId, selected]) => selected)
@@ -292,7 +298,7 @@ export class Game extends React.Component {
         }
         if (status === 'PLAY') {
             return <div
-                className="action_button"
+                className="action_button game_action_button"
                 onClick={() => {
                     const cardIds = Object.entries(selectedCardIds)
                         .filter(([_cardId, selected]) => selected)
