@@ -59,7 +59,7 @@ public class TractorRoom {
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public OutgoingMessage onReady(AtmosphereResource r) {
         resources.put(r.uuid(), r);
-        playerNames.put(r.uuid(), "Unknown");
+        playerNames.put(r.uuid(), Names.generateRandomName());
         game.addPlayer(r.uuid());
         return new UpdatePlayers(game.getPlayerIds(), playerNames);
     }
