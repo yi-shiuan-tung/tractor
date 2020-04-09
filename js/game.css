@@ -10,6 +10,7 @@ ul {
 }
 
 i {
+    position: absolute;
     border: solid black;
     border-width: 0 3px 3px 0;
     display: inline-block;
@@ -26,15 +27,15 @@ i {
     -webkit-transform: rotate(-135deg);
     z-index: 1;
     margin-bottom: 8px;
-    margin-right: -14px;
+    margin-left: -15px;
 }
 
 .down {
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
     z-index: 2;
-    margin-top:8px;
-    margin-right:10px;
+    margin-top: 8px;
+    margin-left: -15px;
 }
 
 .game_area {
