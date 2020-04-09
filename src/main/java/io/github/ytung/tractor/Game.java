@@ -121,10 +121,9 @@ public class Game {
         return new Play(playerId, Collections.singletonList(cardId));
     }
 
-    public synchronized void declare(String playerId, List<Integer> cardIds) {
+    public synchronized void declare(String playerId, List<Integer> cardIds) throws InvalidDeclareException {
         Play play = new Play(playerId, cardIds);
-        if (!canDeclare(play))
-            throw new IllegalStateException();
+        verifyCanDeclare(play);
         declaredCards.add(play);
         playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
 
@@ -133,35 +132,42 @@ public class Game {
             declarerPlayerIndex = playerIds.indexOf(declaredCards.get(declaredCards.size() - 1).getPlayerId());
     }
 
-    private boolean canDeclare(Play play) {
-        if (status != GameStatus.DRAW)
-            return false;
+    private void verifyCanDeclare(Play play) throws InvalidDeclareException {
+        if (status != GameStatus.DRAW && status != GameStatus.DRAW_KITTY)
+            throw new InvalidDeclareException("You can no longer declare.");
+        if (play.getCardIds().isEmpty())
+            throw new InvalidDeclareException("You must declare at least one card.");
         if (!isPlayable(play))
-            return false;
+            throw new InvalidDeclareException("You do not have that card.");
         if (play.getCardIds().stream().map(cardId -> cardsById.get(cardId).getValue()).distinct().count() != 1)
-            return false;
+            throw new InvalidDeclareException("All declared cards must be the same.");
         if (play.getCardIds().stream().map(cardId -> cardsById.get(cardId).getSuit()).distinct().count() != 1)
-            return false;
+            throw new InvalidDeclareException("All declared cards must be the same.");
         Card card = cardsById.get(play.getCardIds().get(0));
         if (card.getValue() != getCurrentTrump().getValue() && card.getSuit() != Card.Suit.JOKER)
-            return false;
+            throw new InvalidDeclareException("You can only declare the current trump value.");
+
         if (declaredCards.isEmpty())
-            return true;
+            return;
+
         Play lastDeclaredPlay = declaredCards.get(declaredCards.size() - 1);
         Suit lastDeclaredSuit = cardsById.get(lastDeclaredPlay.getCardIds().get(0)).getSuit();
         if (lastDeclaredPlay.getPlayerId() == play.getPlayerId()) {
             // same player is only allowed to strengthen the declared suit
-            return card.getSuit() == lastDeclaredSuit
-                    && play.getCardIds().size() > lastDeclaredPlay.getCardIds().size();
+            if (card.getSuit() != lastDeclaredSuit)
+                throw new InvalidDeclareException("You can only strengthen your declare.");
+            if (play.getCardIds().size() <= lastDeclaredPlay.getCardIds().size())
+                throw new InvalidDeclareException("You can only strengthen your declare.");
         } else {
             // other players can only override
             if (card.getSuit() == lastDeclaredSuit)
-                return false;
+                throw new InvalidDeclareException("You may not re-declare the current suit.");
+            if (play.getCardIds().size() < lastDeclaredPlay.getCardIds().size())
+                throw new InvalidDeclareException("You must declare more cards than the last declare.");
             if (play.getCardIds().size() > lastDeclaredPlay.getCardIds().size())
-                return true;
-            return card.getSuit() == Card.Suit.JOKER
-                    && lastDeclaredSuit != Card.Suit.JOKER
-                    && play.getCardIds().size() == lastDeclaredPlay.getCardIds().size();
+                return;
+            if (play.getCardIds().size() == 1 || card.getSuit() != Card.Suit.JOKER || lastDeclaredSuit == Card.Suit.JOKER)
+                throw new InvalidDeclareException("You must declare more cards than the last declare.");
         }
     }
 

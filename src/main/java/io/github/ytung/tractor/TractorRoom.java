@@ -123,10 +123,15 @@ public class TractorRoom {
 
         if (message instanceof DeclareRequest) {
             List<Integer> cardIds = ((DeclareRequest) message).getCardIds();
-            game.declare(r.uuid(), cardIds);
-            Map<Integer, Card> cardsById = game.getCardsById();
-            sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-            return new Declare(game.getDeclarerPlayerIndex(), game.getPlayerHands(), game.getDeclaredCards(), game.getCurrentTrump());
+            try {
+                game.declare(r.uuid(), cardIds);
+                Map<Integer, Card> cardsById = game.getCardsById();
+                sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
+                return new Declare(game.getDeclarerPlayerIndex(), game.getPlayerHands(), game.getDeclaredCards(), game.getCurrentTrump());
+            } catch (InvalidDeclareException e) {
+                sendSync(r, new InvalidAction(e.getMessage()));
+                return null;
+            }
         }
 
         if (message instanceof MakeKittyRequest) {
@@ -180,7 +185,7 @@ public class TractorRoom {
                         game.getPlayerHands()));
                     Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
-                Uninterruptibles.sleepUninterruptibly(2500, TimeUnit.MILLISECONDS);
+                Uninterruptibles.sleepUninterruptibly(4000, TimeUnit.MILLISECONDS);
                 Play kitty = game.takeKitty();
                 if (kitty == null)
                     return;

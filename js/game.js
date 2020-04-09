@@ -187,7 +187,6 @@ export class Game extends React.Component {
         const {
             playerNames,
             playerIds,
-            roundNumber,
             declarerPlayerIndex,
             status,
             isDeclaringTeam,
@@ -208,9 +207,8 @@ export class Game extends React.Component {
         });
         return (
             <div className="round_info">
-                <div>Round {roundNumber + 1}</div>
-                <div>Declarer: {declarer}</div>
                 <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
+                <div>Declarer: {declarer}</div>
                 <div>Opponent's points: {opponentsPoints}</div>
             </div>
         );
@@ -370,14 +368,18 @@ export class Game extends React.Component {
     }
 
     renderActionButton() {
-        const { selectedCardIds, playerIds, currentPlayerIndex, status } = this.state;
-        if (status === 'DRAW' || status === 'DRAW_KITTY') {
+        const { selectedCardIds, playerIds, currentPlayerIndex, status, declaredCards } = this.state;
+        const selectedCardIdsList = Object.entries(selectedCardIds)
+            .filter(([_cardId, selected]) => selected)
+            .map(([cardId, _selected]) => cardId);
+        if ((status === 'DRAW' || status === 'DRAW_KITTY') && selectedCardIdsList.length > 0) {
             return <div
                 className="action_button game_action_button"
                 onClick={() => {
-                    const cardIds = Object.entries(selectedCardIds)
-                        .filter(([_cardId, selected]) => selected)
-                        .map(([cardId, _selected]) => cardId);
+                    const cardIds = [...selectedCardIdsList];
+                    if (declaredCards.length > 0 && declaredCards[declaredCards.length - 1].playerId === this.myId) {
+                        cardIds.push(...declaredCards[declaredCards.length - 1].cardIds);
+                    }
                     this.subSocket.push(JSON.stringify({ "DECLARE": { cardIds } }));
                     this.setState({ selectedCardIds: {} });
                 }}
@@ -392,10 +394,7 @@ export class Game extends React.Component {
             return <div
                 className="action_button game_action_button"
                 onClick={() => {
-                    const cardIds = Object.entries(selectedCardIds)
-                        .filter(([_cardId, selected]) => selected)
-                        .map(([cardId, _selected]) => cardId);
-                    this.subSocket.push(JSON.stringify({ "MAKE_KITTY": { cardIds } }));
+                    this.subSocket.push(JSON.stringify({ "MAKE_KITTY": { cardIds: selectedCardIdsList } }));
                     this.setState({ selectedCardIds: {} });
                 }}
             >
@@ -406,10 +405,7 @@ export class Game extends React.Component {
             return <div
                 className="action_button game_action_button"
                 onClick={() => {
-                    const cardIds = Object.entries(selectedCardIds)
-                        .filter(([_cardId, selected]) => selected)
-                        .map(([cardId, _selected]) => cardId);
-                    this.subSocket.push(JSON.stringify({ "PLAY": { cardIds } }));
+                    this.subSocket.push(JSON.stringify({ "PLAY": { cardIds: selectedCardIdsList } }));
                     this.setState({ selectedCardIds: {} });
                 }}
             >
