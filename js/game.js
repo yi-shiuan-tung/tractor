@@ -171,6 +171,7 @@ export class Game extends React.Component {
         return (
             <div className="game_area" style={{ width: `${WIDTH}px`, height: `${HEIGHT}px` }}>
                 {this.renderRoundInfo()}
+                {this.renderGameInfo()}
                 {this.renderPlayerNames()}
                 {this.renderNotifications()}
                 {this.renderPlayerHands()}
@@ -196,6 +197,24 @@ export class Game extends React.Component {
                 <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
             </div>
         );
+    }
+
+    renderGameInfo() {
+        const { playerNames, playerIds, playerRankScores } = this.state;
+        return (
+            <div className="game_info">
+                <div>Player scores:</div>
+                <ul>
+                    {playerIds.map(playerId => {
+                        return <li
+                            key={playerId}
+                        >
+                            {`${playerNames[playerId]}: ${VALUES[playerRankScores[playerId]]}`}
+                        </li>;
+                    })}
+                </ul>
+            </div>
+        )
     }
 
     renderPlayerNames() {

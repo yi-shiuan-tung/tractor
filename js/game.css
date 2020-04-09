@@ -6,6 +6,7 @@
 ul {
     list-style-type: none;
     padding-left: 0;
+    margin-bottom: 0;
 }
 
 i {
@@ -76,10 +77,25 @@ i {
     top: 20px;
     left: 20px;
     padding: 16px;
-    color: white;
+    color: darkblue;
     border: 1px solid black;
     border-radius: 16px;
     background-color: tan;
+}
+
+.game_area .game_info {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 16px;
+    color: darkblue;
+    border: 1px solid black;
+    border-radius: 16px;
+    background-color: tan;
+}
+
+.game_area .game_info li {
+    margin-top: 4px;
 }
 
 .game_area .player_name {
