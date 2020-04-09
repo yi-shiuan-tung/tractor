@@ -90,7 +90,12 @@ public class TractorRoom {
 
         if (message instanceof PlayerOrderRequest) {
             List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
+            List<String> currentPlayerIds = game.getPlayerIds();
+            String currentPlayerId = currentPlayerIds.get(game.getCurrentPlayerIndex());
+            String declarerPlayerId = currentPlayerIds.get(game.getDeclarerPlayerIndex());
             game.setPlayerIds(playerIds);
+            game.setCurrentPlayerIndex(playerIds.indexOf(currentPlayerId));
+            game.setDeclarerPlayerIndex(playerIds.indexOf(declarerPlayerId));
             return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
         }
 

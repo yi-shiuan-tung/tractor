@@ -180,7 +180,7 @@ public class Game {
         Play play = new Play(playerId, cardIds);
         if (status != GameStatus.MAKE_KITTY)
             throw new InvalidKittyException("You cannot make kitty now");
-        if (play.getPlayerId() != playerIds.get(currentPlayerIndex))
+        if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
             throw new InvalidKittyException("You cannot make kitty");
         if (play.getCardIds().size() != kittySize)
             throw new InvalidKittyException("The kitty has to have " + kittySize + " cards");
