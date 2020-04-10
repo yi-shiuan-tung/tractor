@@ -14,3 +14,6 @@ bundle.js
 src/main/resources/assets/*.png
 src/main/resources/assets/*.ttf
 package-lock.json
+.DS_Store
+src/main/resources/assets/bundle.js.map
+yarn.lock
