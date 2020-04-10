@@ -79,6 +79,17 @@ public class Game {
             kittySize += playerIds.size();
     }
 
+    public synchronized void setPlayerOrder(List<String> newPlayerIds) {
+        if (!new HashSet<>(playerIds).equals(new HashSet<>(newPlayerIds)))
+            throw new IllegalStateException();
+
+        String currentPlayerId = playerIds.get(currentPlayerIndex);
+        String declarerPlayerId = playerIds.get(declarerPlayerIndex);
+        playerIds = newPlayerIds;
+        currentPlayerIndex = playerIds.indexOf(currentPlayerId);
+        declarerPlayerIndex = playerIds.indexOf(declarerPlayerId);
+    }
+
     public synchronized void startRound() {
         if (status != GameStatus.START_ROUND)
             throw new IllegalStateException();
