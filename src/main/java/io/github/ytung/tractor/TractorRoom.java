@@ -61,6 +61,9 @@ public class TractorRoom {
     @Ready(encoders = {JacksonEncoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public OutgoingMessage onReady(AtmosphereResource r) {
+        if (resources.containsKey(r.uuid()))
+            return null;
+
         resources.put(r.uuid(), r);
         playerNames.put(r.uuid(), Names.generateRandomName());
         game.addPlayer(r.uuid());
