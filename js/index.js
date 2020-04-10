@@ -15,9 +15,9 @@ class App extends React.Component {
     render() {
         const { roomCode } = this.state;
         if (roomCode !== undefined) {
-            return <Game roomCode={roomCode} />
+            return <Game roomCode={roomCode} />;
         } else {
-            return <Lobby joinRoom={roomCode => this.setState({ roomCode })}/>
+            return <Lobby joinRoom={roomCode => this.setState({ roomCode })}/>;
         }
     }
 }

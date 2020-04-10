@@ -1,6 +1,8 @@
 const path = require('path');
 
-module.exports = [{
+const TARGET = process.env.npm_lifecycle_event;
+
+const common = {
   entry: './js/index.js',
   mode: 'development',
   output: {
@@ -33,4 +35,27 @@ module.exports = [{
       },
     ]
   },
-}];
+};
+
+if (TARGET === 'start' || !TARGET) {
+  module.exports = Object.assign({}, common, {
+    devServer: {
+      contentBase: path.join(__dirname, 'js'),
+      port: 3000,
+      proxy: {
+        '/': {
+          target: 'http://localhost:8080',
+          secure: false,
+          prependPath: false
+        }
+      },
+      publicPath: 'http://localhost:3000/',
+      historyApiFallback: true,
+    },
+    devtool: 'source-map',
+  });
+}
+
+if (TARGET === 'build') {
+  module.exports = common;
+}

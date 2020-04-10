@@ -5,6 +5,7 @@
   "private": "true",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --config './webpack.config.js'",
     "build": "webpack"
   },
   "repository": {
@@ -26,7 +27,8 @@
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "npm": "^6.14.4",
     "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
     "@babel/preset-env": "^7.9.0",
