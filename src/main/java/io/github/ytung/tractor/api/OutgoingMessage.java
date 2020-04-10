@@ -174,6 +174,12 @@ public interface OutgoingMessage {
     public static class Forfeit implements OutgoingMessage {
 
         private final String playerId;
+
+        private final int roundNumber;
+        private final int declarerPlayerIndex;
+        private final Map<String, Card.Value> playerRankScores;
+
+        private final GameStatus status;
     }
 
     @Data

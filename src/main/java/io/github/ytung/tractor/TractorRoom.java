@@ -165,7 +165,12 @@ public class TractorRoom {
 
         if (message instanceof ForfeitRequest) {
             game.forfeitRound(r.uuid());
-            return new Forfeit(r.uuid());
+            return new Forfeit(
+                r.uuid(),
+                game.getRoundNumber(),
+                game.getDeclarerPlayerIndex(),
+                game.getPlayerRankScores(),
+                game.getStatus());
         }
 
         throw new IllegalArgumentException("Invalid message.");

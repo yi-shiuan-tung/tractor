@@ -316,7 +316,7 @@ public class Game {
     }
 
     public synchronized void forfeitRound(String playerId) {
-        boolean doDeclarersWin = isDeclaringTeam.get(playerId);
+        boolean doDeclarersWin = !isDeclaringTeam.get(playerId);
         roundEnd(doDeclarersWin, doDeclarersWin ? 1 : 0);
     }
 
