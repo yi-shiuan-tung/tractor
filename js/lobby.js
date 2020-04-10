@@ -1,5 +1,6 @@
 import * as React from "react";
 import { setUpConnection } from "./connection";
+import { LOCATION } from "./consts";
 
 export class Lobby extends React.Component {
 
@@ -12,7 +13,7 @@ export class Lobby extends React.Component {
 
     componentDidMount() {
         const { joinRoom } = this.props;
-        this.subSocket = setUpConnection(document.location.toString() + "tractor", undefined, response => {
+        this.subSocket = setUpConnection(LOCATION + "tractor", undefined, response => {
             let message = response.responseBody;
             console.log("Received message: " + message);
 

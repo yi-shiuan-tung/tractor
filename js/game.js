@@ -3,6 +3,8 @@ import { VALUES, getCardImageSrc, getFaceDownCardImageSrc } from "./assets";
 import { setUpConnection } from "./connection";
 import "./game.css";
 import { PlayerArea } from "./playerArea";
+import { LOCATION } from "./consts";
+
 
 export const WIDTH = 1200;
 export const HEIGHT = 800;
@@ -49,7 +51,7 @@ export class Game extends React.Component {
 
     componentDidMount() {
         const { roomCode } = this.props;
-        this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => this.myId = response.request.uuid, response => {
+        this.subSocket = setUpConnection(LOCATION + "tractor/" + roomCode, response => this.myId = response.request.uuid, response => {
             const { playerNames, playerIds, kittySize, cardsById } = this.state;
 
             let message = response.responseBody;
