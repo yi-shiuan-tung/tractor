@@ -149,7 +149,12 @@ public class TractorRoom {
                 game.declare(r.uuid(), cardIds);
                 Map<Integer, Card> cardsById = game.getCardsById();
                 sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-                return new Declare(game.getDeclarerPlayerIndex(), game.getPlayerHands(), game.getDeclaredCards(), game.getCurrentTrump());
+                return new Declare(
+                    game.getDeclarerPlayerIndex(),
+                    game.getIsDeclaringTeam(),
+                    game.getPlayerHands(),
+                    game.getDeclaredCards(),
+                    game.getCurrentTrump());
             } catch (InvalidDeclareException e) {
                 sendSync(r, new InvalidAction(e.getMessage()));
                 return null;

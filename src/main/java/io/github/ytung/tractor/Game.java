@@ -136,8 +136,12 @@ public class Game {
         playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
 
         // if this is the first round, then the person who declares is the declarer
-        if (roundNumber == 0)
-            declarerPlayerIndex = playerIds.indexOf(declaredCards.get(declaredCards.size() - 1).getPlayerId());
+        if (roundNumber == 0) {
+            declarerPlayerIndex = playerIds.indexOf(playerId);
+            isDeclaringTeam = IntStream.range(0, playerIds.size())
+                .boxed()
+                .collect(Collectors.toMap(i -> playerIds.get(i), i -> (i + declarerPlayerIndex) % 2 == 0));
+        }
     }
 
     private void verifyCanDeclare(Play play) throws InvalidDeclareException {
@@ -251,9 +255,9 @@ public class Game {
             int roundScore = 0;
             for (String playerId : playerIds)
                 if (!isDeclaringTeam.get(playerId))
-                    roundScore += currentRoundScores.get(playerId);
-            boolean doDeclarersWin = roundScore < 80;
-            int scoreIncrease = doDeclarersWin ? (115 - roundScore) / 40 : (roundScore - 120) / 40;
+                    roundScore += 4 * currentRoundScores.get(playerId);
+            boolean doDeclarersWin = roundScore < 40 * numDecks;
+            int scoreIncrease = doDeclarersWin ? (40 * numDecks + 35 - roundScore) / 40 : (roundScore - 40 * numDecks) / 40;
             roundEnd(doDeclarersWin, scoreIncrease);
         }
     }

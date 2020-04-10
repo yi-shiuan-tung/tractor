@@ -136,6 +136,7 @@ public interface OutgoingMessage {
 
         private final int declarerPlayerIndex;
 
+        private final Map<String, Boolean> isDeclaringTeam;
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
         private final Card currentTrump;
