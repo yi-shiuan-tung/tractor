@@ -1,6 +1,34 @@
+:root {
+  --font-size-action: 24px;
+  --button-primary-color: 0, 100, 25;
+  --spacing-med: 12px;
+}
+
 @font-face {
     font-family: 'Game';
-    src: url('./font.ttf');
+    src: url('./fonts/game.ttf');
+}
+
+@font-face {
+    font-family: 'Play';
+    src: url('./fonts/Play/Play-Regular.ttf');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Play';
+    src: url('./fonts/Play/Play-Bold.ttf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./fonts/Montserrat/Montserrat-Regular.ttf');
+    font-weight: normal;
+}
+
+html {
+  font-family: "Montserrat";
 }
 
 ul {
@@ -39,10 +67,11 @@ i {
 }
 
 .game_area {
-    font-family: 'Game';
+    font-family: 'Play';
     position: relative;
     border: 1px solid black;
     margin: auto;
+    background-color: #2c4d32;
 }
 
 .game_area .player_list {
@@ -60,7 +89,9 @@ i {
     background-color: tan;
 }
 
-.game_area .player_list .title {
+.title {
+    font-weight: bold;
+    text-transform: uppercase;
     font-size: 44px;
     margin-bottom: 40px;
 }
@@ -223,4 +254,47 @@ i {
     height: 40px;
     line-height: 40px;
     font-size: 25px;
+}
+
+.lobbyContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#joinContainer {
+  margin-bottom: calc(2 * var(--spacing-med));
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#joinContainer input {
+  font-size: var(--font-size-action);
+  text-align: center;
+  margin-right: var(--spacing-med);
+}
+
+.button {
+  border: black solid 1px;
+  border-radius: 10px;
+}
+
+.button.primary {
+  cursor: pointer;
+  padding: var(--spacing-med);
+  text-align: center;
+  color: white;
+  font-size: 24px;
+  background-color: rgba(var(--button-primary-color), 0.8);
+}
+
+.button.primary:hover {
+  background-color: rgba(var(--button-primary-color), 0.9);
+}
+
+.button.primary:active {
+  background-color: rgba(var(--button-primary-color), 1);
 }

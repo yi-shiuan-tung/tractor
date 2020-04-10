@@ -32,32 +32,46 @@ export class Lobby extends React.Component {
         this.subSocket.disconnect();
     }
 
+    connectToRoom = () => {
+      const {inputRoomCode} = this.state;  
+      this.subSocket.push(JSON.stringify({ "JOIN_ROOM": { "roomCode": inputRoomCode } }));
+    }
+
     render() {
         const { inputRoomCode } = this.state;
         return (
-            <div>
+          <div className='lobbyContainer'>
+            <h1 className='title' style={{'fontFamily':'Play'}}>Tractor</h1>
+            <div id="joinContainer">
                 <input
                     type="text"
                     value={inputRoomCode}
                     onChange={e => this.setState({ inputRoomCode: e.target.value })}
+                    onKeyPress = {
+                      e => {
+                        if (e.nativeEvent.key == "Enter") {
+                          this.connectToRoom();
+                          e.stopPropagation();
+                        }
+                      }
+                    }
                 />
-                <button
-                    type="button"
-                    onClick={() => {
-                        this.subSocket.push(JSON.stringify({ "JOIN_ROOM": { "roomCode": inputRoomCode } }));
-                    }}
+                <div
+                    className="button primary"
+                    onClick={this.connectToRoom}
                 >
                     Join existing game
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        this.subSocket.push(JSON.stringify({ "CREATE_ROOM": {} }));
-                    }}
-                >
+                </div>
+              </div>
+              <div
+                className="button primary"
+                onClick={() => {
+                    this.subSocket.push(JSON.stringify({ "CREATE_ROOM": {} }));
+                }}
+              >
                     Create new game
-                </button>
-            </div>
+              </div>
+          </div>
         );
     }
 }
