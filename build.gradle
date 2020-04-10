@@ -55,6 +55,21 @@ npm_run_build {
     outputs.dir 'src/main/resources/assets'
 }
 
+node {
+    /* gradle-node-plugin configuration
+       https://github.com/srs/gradle-node-plugin/blob/master/docs/node.md
+       Task name pattern:
+       ./gradlew npm_<command> Executes an NPM command.
+    */
+    // Version of node to use.
+    version = '12.16.2'
+    // Version of npm to use.
+    npmVersion = '6.14.4'
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = false
+}
+
 assemble.dependsOn npm_run_build
 
 shadowJar {
