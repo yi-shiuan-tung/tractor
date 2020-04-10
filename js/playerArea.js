@@ -40,6 +40,10 @@ export class PlayerArea extends React.Component {
                 angle -= 180;
             }
         }
+        let className = "player_container";
+        if (playerId === myId) {
+            className += " my_area";
+        }
         let transform = `rotate(${angle}deg)`;
         let ref = undefined;
         if (isText) {
@@ -58,7 +62,7 @@ export class PlayerArea extends React.Component {
         return (
             <div
                 key={playerId}
-                className="player_container"
+                className="player_container my_area"
                 style={
                     {
                         top: centerPoint.y,

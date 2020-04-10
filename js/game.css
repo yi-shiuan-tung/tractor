@@ -109,6 +109,10 @@ i {
     padding: 5px;
 }
 
+.game_area .my_area {
+    z-index: 1;
+}
+
 .game_area .current {
     color: darkblue;
     border: 1px solid black;
