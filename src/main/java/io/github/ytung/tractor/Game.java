@@ -71,9 +71,6 @@ public class Game {
         if (!playerIds.contains(playerId))
             return;
 
-        if (status != GameStatus.START_ROUND)
-            forfeitRound(playerId);
-
         playerIds.remove(playerId);
         playerRankScores.remove(playerId);
 
@@ -293,9 +290,10 @@ public class Game {
                 .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == startingGrouping)
                 .collect(Collectors.toList());
 
-            if (!sameSuitCards.isEmpty()) {
-                if (play.getCardIds().stream().anyMatch(cardId -> Cards.grouping(cardsById.get(cardId), trump) != startingGrouping))
-                    throw new InvalidPlayException("You must follow suit.");
+            if (!sameSuitCards.isEmpty()
+                    && sameSuitCards.stream().anyMatch(cardId -> !play.getCardIds().contains(cardId))
+                    && play.getCardIds().stream().anyMatch(cardId -> Cards.grouping(cardsById.get(cardId), trump) != startingGrouping)) {
+                throw new InvalidPlayException("You must follow suit.");
             }
 
             for (Component handComponent : getProfile(sameSuitCards)) {
@@ -315,7 +313,7 @@ public class Game {
     }
 
     public synchronized void forfeitRound(String playerId) {
-        boolean doDeclarersWin = isDeclaringTeam.get(playerId);
+        boolean doDeclarersWin = !isDeclaringTeam.get(playerId);
         roundEnd(doDeclarersWin, doDeclarersWin ? 1 : 0);
     }
 
@@ -340,7 +338,6 @@ public class Game {
 
     public Card getCurrentTrump() {
         return new Card(
-            0,
             playerRankScores.get(playerIds.get(declarerPlayerIndex)),
             declaredCards.isEmpty()
                     ? Card.Suit.JOKER
@@ -391,8 +388,6 @@ public class Game {
         Card trump = getCurrentTrump();
         List<Card> cards = cardIds.stream()
                 .map(cardsById::get)
-                // Ensure we only compare value and suit when checking for equality
-                .map(card -> new Card(0, card.getValue(), card.getSuit()))
                 .collect(Collectors.toList());
         List<Component> profile = cards.stream()
             .distinct()

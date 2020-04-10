@@ -37,7 +37,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
-import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
@@ -69,13 +68,25 @@ public class TractorRoom {
     @Disconnect
     public void onDisconnect(AtmosphereResourceEvent r) {
         String playerId = r.getResource().uuid();
-        resources.remove(playerId);
+        if (resources.remove(playerId) == null)
+            return;
+
+        if (game.getStatus() != GameStatus.START_ROUND) {
+            game.forfeitRound(playerId);
+            sendSync(r.getResource().getBroadcaster(), new Forfeit(
+                playerId,
+                game.getRoundNumber(),
+                game.getDeclarerPlayerIndex(),
+                game.getPlayerRankScores(),
+                game.getStatus()));
+        }
+
         game.removePlayer(playerId);
         playerNames.remove(playerId);
+        sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames));
         if (resources.isEmpty()) {
             TractorLobby.closeRoom(roomCode);
         }
-        r.broadcaster().broadcast(JacksonEncoder.INSTANCE.encode(new Goodbye(playerId)));
     }
 
     @Message(encoders = {JacksonEncoder.class}, decoders = {JacksonDecoder.class})
@@ -165,7 +176,12 @@ public class TractorRoom {
 
         if (message instanceof ForfeitRequest) {
             game.forfeitRound(r.uuid());
-            return new Forfeit(r.uuid());
+            return new Forfeit(
+                r.uuid(),
+                game.getRoundNumber(),
+                game.getDeclarerPlayerIndex(),
+                game.getPlayerRankScores(),
+                game.getStatus());
         }
 
         throw new IllegalArgumentException("Invalid message.");
@@ -186,7 +202,7 @@ public class TractorRoom {
                         game.getCurrentPlayerIndex(),
                         game.getDeck(),
                         game.getPlayerHands()));
-                    Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
+                    Uninterruptibles.sleepUninterruptibly(5 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
                 Uninterruptibles.sleepUninterruptibly(4000, TimeUnit.MILLISECONDS);
                 Play kitty = game.takeKitty();

@@ -14,7 +14,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
-import io.github.ytung.tractor.api.OutgoingMessage.Goodbye;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
@@ -31,7 +30,6 @@ import lombok.Data;
     @JsonSubTypes.Type(value = CreateRoom.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = Welcome.class, name = "WELCOME"),
-    @JsonSubTypes.Type(value = Goodbye.class, name = "GOODBYE"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
     @JsonSubTypes.Type(value = StartRound.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
@@ -64,12 +62,6 @@ public interface OutgoingMessage {
     public static class Welcome implements OutgoingMessage {
 
         private final Map<String, String> playerNames;
-    }
-
-    @Data
-    public static class Goodbye implements OutgoingMessage {
-
-        private final String playerId;
     }
 
     @Data
@@ -174,6 +166,12 @@ public interface OutgoingMessage {
     public static class Forfeit implements OutgoingMessage {
 
         private final String playerId;
+
+        private final int roundNumber;
+        private final int declarerPlayerIndex;
+        private final Map<String, Card.Value> playerRankScores;
+
+        private final GameStatus status;
     }
 
     @Data
