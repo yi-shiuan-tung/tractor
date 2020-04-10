@@ -121,7 +121,7 @@ export class Game extends React.Component {
 
     render() {
         const { roomCode } = this.props;
-        const { inputMyName, playerIds, playerNames, selectedCardIds } = this.state;
+        const { inputMyName, selectedCardIds } = this.state;
         return (
             <div>
                 <div>
@@ -129,7 +129,7 @@ export class Game extends React.Component {
                     {"Name:"}
                     <input type="text" value={inputMyName} onChange={e => this.setState({ inputMyName: e.target.value })} />
                     <button type="button" onClick={() => {
-                        this.subSocket.push(JSON.stringify({ "SET_NAME": { "name": inputMyName } }));
+                        this.subSocket.push(JSON.stringify({ "SET_NAME": { "name": inputMyName.slice(0, 20) } }));
                     }}>
                         {"Set my name"}
                     </button>
