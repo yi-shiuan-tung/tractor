@@ -19,11 +19,12 @@
   },
   "homepage": "https://github.com/ytung/tractor#readme",
   "devDependencies": {
-    "atmosphere.js": "^3.0.0",
     "@babel/core": "^7.9.0",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "atmosphere.js": "^3.0.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "npm": "^6.14.4",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   },

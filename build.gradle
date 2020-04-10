@@ -1,12 +1,21 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.moowork.gradle:gradle-node-plugin:1.2.0"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin: "com.moowork.node"
+apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
 
@@ -33,3 +42,26 @@ task run(type: JavaExec) {
     main "io.github.ytung.tractor.TractorServer"
 }
 
+task stage(dependsOn: ['build', 'clean', 'shadowJar'])
+build.mustRunAfter clean
+shadowJar.mustRunAfter build
+
+npm_run_build {
+    inputs.files fileTree('js')
+
+    inputs.file 'package.json'
+    inputs.file 'package-lock.json'
+
+    outputs.dir 'src/main/resources/assets'
+}
+
+assemble.dependsOn npm_run_build
+
+shadowJar {
+    mergeServiceFiles()
+    manifest {
+        attributes (
+            'Main-Class': "io.github.ytung.tractor.TractorServer"
+        )
+    }
+}
