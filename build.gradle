@@ -79,5 +79,4 @@ shadowJar {
             'Main-Class': "io.github.ytung.tractor.TractorServer"
         )
     }
-    baseName = "tractor-all"
 }
