@@ -17,6 +17,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.NumDecks;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
@@ -31,6 +32,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = Welcome.class, name = "WELCOME"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
+    @JsonSubTypes.Type(value = NumDecks.class, name = "NUM_DECKS"),
     @JsonSubTypes.Type(value = StartRound.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
@@ -69,7 +71,15 @@ public interface OutgoingMessage {
 
         private final List<String> playerIds;
         private final Map<String, Card.Value> playerRankScores;
+        private final int kittySize;
         private final Map<String, String> playerNames;
+    }
+
+    @Data
+    public static class NumDecks implements OutgoingMessage {
+
+        private final int numDecks;
+        private final int kittySize;
     }
 
     @Data

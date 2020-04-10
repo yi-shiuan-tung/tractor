@@ -27,6 +27,7 @@ import io.github.ytung.tractor.api.IncomingMessage;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
+import io.github.ytung.tractor.api.IncomingMessage.NumDecksRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
@@ -39,6 +40,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.NumDecks;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
@@ -62,7 +64,7 @@ public class TractorRoom {
         resources.put(r.uuid(), r);
         playerNames.put(r.uuid(), Names.generateRandomName());
         game.addPlayer(r.uuid());
-        return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
+        return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
     }
 
     @Disconnect
@@ -83,7 +85,11 @@ public class TractorRoom {
 
         game.removePlayer(playerId);
         playerNames.remove(playerId);
-        sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames));
+        sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(
+            game.getPlayerIds(),
+            game.getPlayerRankScores(),
+            game.getKittySize(),
+            playerNames));
         if (resources.isEmpty()) {
             TractorLobby.closeRoom(roomCode);
         }
@@ -97,17 +103,21 @@ public class TractorRoom {
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
-            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
+            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
         }
 
         if (message instanceof PlayerOrderRequest) {
             if (game.getStatus() == GameStatus.START_ROUND) {
                 List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
                 game.setPlayerOrder(playerIds);
-                return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), playerNames);
+                return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
             }
         }
 
+        if (message instanceof NumDecksRequest) {
+            game.setNumDecks(((NumDecksRequest) message).getNumDecks());
+            return new NumDecks(game.getNumDecks(), game.getKittySize());
+        }
 
         if (message instanceof StartRoundRequest) {
             game.startRound();

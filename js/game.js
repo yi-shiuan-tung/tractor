@@ -25,6 +25,7 @@ export class Game extends React.Component {
 
             // game state
             playerIds: [], // PlayerId[]
+            numDecks: 2, // integer
             kittySize: 8, // integer
             roundNumber: undefined, // integer
             declarerPlayerIndex: undefined, // integer
@@ -47,7 +48,7 @@ export class Game extends React.Component {
     componentDidMount() {
         const { roomCode } = this.props;
         this.subSocket = setUpConnection(document.location.toString() + "tractor/" + roomCode, response => this.myId = response.request.uuid, response => {
-            const { playerNames, playerIds, cardsById } = this.state;
+            const { playerNames, playerIds, kittySize, cardsById } = this.state;
 
             let message = response.responseBody;
             console.log("Received message: " + message);
@@ -59,6 +60,8 @@ export class Game extends React.Component {
                 this.setState({ playerNames });
             } else if (json.UPDATE_PLAYERS) {
                 this.setState(json.UPDATE_PLAYERS);
+            } else if (json.NUM_DECKS) {
+                this.setState(json.NUM_DECKS);
             } else if (json.START_ROUND) {
                 this.setState(json.START_ROUND);
             } else if (json.CARD_INFO) {
@@ -76,7 +79,7 @@ export class Game extends React.Component {
                 this.setNotification(this.state.playerNames[playerId] + " is selecting cards for the kitty");
             } else if (json.YOUR_KITTY) {
                 this.setState(json.YOUR_KITTY);
-                this.setNotification("Select 8 cards to put in the kitty");
+                this.setNotification(`Select ${kittySize} cards to put in the kitty`);
                 this.setState({showKittyButton: true});
             } else if (json.MAKE_KITTY) {
                 this.setState(json.MAKE_KITTY);
@@ -218,7 +221,7 @@ export class Game extends React.Component {
     }
 
     renderPlayerNames() {
-        const { playerNames, playerIds, playerRankScores, status, currentPlayerIndex } = this.state;
+        const { playerNames, playerIds, numDecks, playerRankScores, status, currentPlayerIndex } = this.state;
         if (status === 'START_ROUND') {
             return (
                 <div className="player_list">
@@ -243,6 +246,19 @@ export class Game extends React.Component {
                             {`${playerNames[playerId]} (${VALUES[playerRankScores[playerId]]})`}
                         </li>)}
                     </ul>
+                    <div className="game_properties">
+                        <div>
+                            <i
+                                className={numDecks < 10 ? "arrow up" : "hidden"}
+                                onClick={() => this.subSocket.push(JSON.stringify({ "NUM_DECKS": { numDecks: numDecks + 1 } }))}
+                            />
+                            <i
+                                className={numDecks > 1 ? "arrow down" : "hidden"}
+                                onClick={() => this.subSocket.push(JSON.stringify({ "NUM_DECKS": { numDecks: numDecks - 1 } }))}
+                            />
+                            {`${numDecks} ${numDecks > 1 ? "decks" : "deck"}`}
+                        </div>
+                    </div>
                     <div
                         className="action_button start_action_button"
                         onClick={() => this.subSocket.push(JSON.stringify({ "START_ROUND": {} }))}

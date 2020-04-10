@@ -32,7 +32,6 @@ public class Game {
 
     // game configuration
     private int numDecks = 2;
-    private int kittySize = 8;
 
     // constant over each round
     private int roundNumber = 0;
@@ -61,10 +60,6 @@ public class Game {
 
         playerIds.add(playerId);
         playerRankScores.put(playerId, Card.Value.TWO);
-
-        kittySize = numDecks * Decks.SIZE % playerIds.size();
-        while (kittySize < 5)
-            kittySize += playerIds.size();
     }
 
     public synchronized void removePlayer(String playerId) {
@@ -73,10 +68,6 @@ public class Game {
 
         playerIds.remove(playerId);
         playerRankScores.remove(playerId);
-
-        kittySize = numDecks * Decks.SIZE % playerIds.size();
-        while (kittySize < 5)
-            kittySize += playerIds.size();
     }
 
     public synchronized void setPlayerOrder(List<String> newPlayerIds) {
@@ -88,6 +79,15 @@ public class Game {
         playerIds = newPlayerIds;
         currentPlayerIndex = playerIds.indexOf(currentPlayerId);
         declarerPlayerIndex = playerIds.indexOf(declarerPlayerId);
+    }
+
+    public synchronized void setNumDecks(int numDecks) {
+        if (status != GameStatus.START_ROUND)
+            throw new IllegalStateException();
+        if (numDecks <= 0 || numDecks > 10)
+            throw new IllegalStateException();
+
+        this.numDecks = numDecks;
     }
 
     public synchronized void startRound() {
@@ -124,7 +124,7 @@ public class Game {
         playerHands.get(playerId).add(cardId);
         sortCards(playerHands.get(playerId));
         currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
-        if (deck.size() <= kittySize)
+        if (deck.size() <= getKittySize())
             status = GameStatus.DRAW_KITTY;
         return new Play(playerId, Collections.singletonList(cardId));
     }
@@ -199,8 +199,8 @@ public class Game {
             throw new InvalidKittyException("You cannot make kitty now");
         if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
             throw new InvalidKittyException("You cannot make kitty");
-        if (play.getCardIds().size() != kittySize)
-            throw new InvalidKittyException("The kitty has to have " + kittySize + " cards");
+        if (play.getCardIds().size() != getKittySize())
+            throw new InvalidKittyException("The kitty has to have " + getKittySize() + " cards");
         if (!isPlayable(play))
             throw new InvalidKittyException("Unknown error");
         status = GameStatus.PLAY;
@@ -353,6 +353,13 @@ public class Game {
             declaredCards.isEmpty()
                     ? Card.Suit.JOKER
                     : cardsById.get(declaredCards.get(declaredCards.size() - 1).getCardIds().get(0)).getSuit());
+    }
+
+    public int getKittySize() {
+        int kittySize = numDecks * Decks.SIZE % playerIds.size();
+        while (kittySize < 5)
+            kittySize += playerIds.size();
+        return kittySize;
     }
 
     private void sortCards(List<Integer> hand) {

@@ -47,11 +47,11 @@ i {
 .game_area .player_list {
     position: absolute;
     padding-top: 44px;
-    top: 200px;
+    top: 150px;
     left: 50%;
     width: 600px;
     margin-left: -300px;
-    height: 360px;
+    height: 460px;
     text-align: center;
     color: darkblue;
     border: 1px solid black;
@@ -82,6 +82,10 @@ i {
     border: 1px solid black;
     border-radius: 16px;
     background-color: tan;
+}
+
+.game_area .game_properties {
+    margin: 40px;
 }
 
 .game_area .game_info {
