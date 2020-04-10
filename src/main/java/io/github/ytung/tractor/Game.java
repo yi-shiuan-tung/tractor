@@ -312,13 +312,21 @@ public class Game {
                 boolean isCapturedByStartingPlay = getProfile(startingPlay.getCardIds()).stream()
                     .map(Component::getShape)
                     .anyMatch(shape -> shape.getWidth() >= handShape.getWidth() && shape.getHeight() >= handShape.getHeight());
-                boolean isBetterThanCurrentPlay = getProfile(play.getCardIds()).stream()
-                    .map(Component::getShape)
-                    .anyMatch(shape -> shape.getWidth() <= handShape.getWidth()
-                            && shape.getHeight() <= handShape.getHeight()
-                            && shape.getWidth() + shape.getHeight() < handShape.getWidth() + handShape.getHeight());
-                if (isCapturedByStartingPlay && isBetterThanCurrentPlay && !getProfile(play.getCardIds()).contains(handComponent))
-                    throw new InvalidPlayException("You must play pairs before singles, etc.");
+                boolean inPlay = getProfile(play.getCardIds()).contains(handComponent);
+                // Suppose the starting player played pairs. If you have any pairs (isCapturedByStartingPlay), but you didn't play it
+                // (!inPlay), then look at how many cards you played are worse than it (numFreeCardsInPlay). If there are at least as many
+                // worse cards (2), then those cards could have been replaced with the pair. This logic extends for any set of n cards.
+                if (isCapturedByStartingPlay && !inPlay) {
+                    int numFreeCardsInPlay = getProfile(play.getCardIds()).stream()
+                        .map(Component::getShape)
+                        .filter(shape -> shape.getWidth() <= handShape.getWidth()
+                                && shape.getHeight() <= handShape.getHeight()
+                                && shape.getWidth() + shape.getHeight() < handShape.getWidth() + handShape.getHeight())
+                        .mapToInt(shape -> shape.getWidth() * shape.getHeight())
+                        .sum();
+                    if (numFreeCardsInPlay >= handShape.getWidth() * handShape.getHeight())
+                        throw new InvalidPlayException("You must play pairs before singles, etc.");
+                }
             }
         }
     }
