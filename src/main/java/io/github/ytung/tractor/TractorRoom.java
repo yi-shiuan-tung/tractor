@@ -207,7 +207,7 @@ public class TractorRoom {
                         game.getCurrentPlayerIndex(),
                         game.getDeck(),
                         game.getPlayerHands()));
-                    Uninterruptibles.sleepUninterruptibly(5 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
+                    Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
                 Uninterruptibles.sleepUninterruptibly(4000, TimeUnit.MILLISECONDS);
                 Play kitty = game.takeKitty();

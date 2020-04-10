@@ -42,6 +42,7 @@ i {
     font-family: 'Game';
     position: relative;
     border: 1px solid black;
+    margin: auto;
 }
 
 .game_area .player_list {
