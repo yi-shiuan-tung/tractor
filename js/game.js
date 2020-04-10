@@ -125,7 +125,7 @@ export class Game extends React.Component {
 
     render() {
         const { roomCode } = this.props;
-        const { inputMyName, selectedCardIds } = this.state;
+        const { inputMyName } = this.state;
         return (
             <div>
                 <div>

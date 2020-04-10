@@ -71,9 +71,6 @@ public class Game {
         if (!playerIds.contains(playerId))
             return;
 
-        if (status != GameStatus.START_ROUND)
-            forfeitRound(playerId);
-
         playerIds.remove(playerId);
         playerRankScores.remove(playerId);
 
