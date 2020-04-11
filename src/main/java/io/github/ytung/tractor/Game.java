@@ -344,10 +344,12 @@ public class Game {
     private void roundEnd(boolean doDeclarersWin, int scoreIncrease) {
         roundNumber++;
         this.doDeclarersWin = doDeclarersWin;
+        int prevDeclarerPlayerIndex = declarerPlayerIndex;
         do {
             // declarer goes to next person on the winning team
             declarerPlayerIndex = (declarerPlayerIndex + 1) % playerIds.size();
-        } while (isDeclaringTeam.get(playerIds.get(declarerPlayerIndex)) != doDeclarersWin);
+        } while (declarerPlayerIndex != prevDeclarerPlayerIndex
+                && isDeclaringTeam.get(playerIds.get(declarerPlayerIndex)) != doDeclarersWin);
         winningPlayerIds.clear();
         for (String playerId : playerIds)
             if (isDeclaringTeam.get(playerId) == doDeclarersWin) {
