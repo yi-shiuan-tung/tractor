@@ -281,6 +281,10 @@ public class TractorRoom {
                     game.getCurrentTrick(),
                     game.getCurrentRoundScores(),
                     game.getCurrentTrump()));
+                if (game.getStatus() != GameStatus.PLAY)
+                    // game end, send kitty card info to all players
+                    sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
+
             }
         };
 

@@ -25,6 +25,7 @@ export class Game extends React.Component {
       selectedCardIds: {}, // {cardId: boolean}
       notifications: {},
       showPreviousTrick: false,
+      showKitty: false,
       playerReadyForPlay: {}, // {playerId: boolean}
 
       // game state
@@ -192,6 +193,7 @@ export class Game extends React.Component {
         {this.renderDeclaredCards()}
         {this.renderCurrentTrick()}
         {this.renderActionButton()}
+        {this.renderKitty()}
         {this.renderLastTrickButton()}
       </div>
     );
@@ -538,6 +540,39 @@ export class Game extends React.Component {
       >
         Play
       </div>;
+    }
+  }
+
+  renderKitty() {
+    const {status, kitty, playerIds, declarerPlayerIndex} = this.state;
+
+    if ((status === 'START_ROUND' || playerIds[declarerPlayerIndex] === this.myId) && kitty && kitty.length !== 0) {
+      return <div>
+        {this.renderKittyCards()}
+        {this.renderViewKittyButton()}
+      </div>
+    }
+  }
+
+  renderViewKittyButton() {
+     return <div
+        className='view_kitty_button'
+        onMouseDown={() => this.setState({showKitty: true})}
+        onMouseUp={() => this.setState({showKitty: false})}
+      >View Kitty</div>
+  }
+
+  renderKittyCards() {
+    const {kitty, showKitty} = this.state;
+
+    if (showKitty) {
+      return <div className='kitty'>
+        {this.renderCards(kitty, {
+          interCardDistance: 15,
+          faceUp: true,
+          canSelect: false,
+        })}
+      </div>
     }
   }
 
