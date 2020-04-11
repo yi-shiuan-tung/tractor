@@ -1,5 +1,5 @@
 :root {
-  --font-size-action: 24px;
+  --font-size-action: 18px;
   --button-primary-color: 0, 100, 25;
   --spacing-med: 12px;
 }
@@ -272,14 +272,16 @@ i {
 }
 
 #joinContainer input {
+  font-family: "Montserrat";
   font-size: var(--font-size-action);
-  text-align: center;
   margin-right: var(--spacing-med);
+  text-align: center;
 }
 
 .button {
   border: black solid 1px;
   border-radius: 10px;
+  font-family: "Play";
 }
 
 .button.primary {
@@ -287,7 +289,7 @@ i {
   padding: var(--spacing-med);
   text-align: center;
   color: white;
-  font-size: 24px;
+  font-size: var(--font-size-action);
   background-color: rgba(var(--button-primary-color), 0.8);
 }
 
@@ -297,4 +299,5 @@ i {
 
 .button.primary:active {
   background-color: rgba(var(--button-primary-color), 1);
+  transform: scale(0.99);
 }

@@ -1,38 +1,42 @@
 import atmosphere from 'atmosphere.js';
 
-export var setUpConnection = function(url, onOpen, onMessage) {
+export const setUpConnection = function(url, onOpen, onMessage) {
+  let subSocket;
+  const request = {
+    url: url,
+    contentType: 'application/json',
+    logLevel: 'debug',
+    transport: 'websocket',
+    fallbackTransport: 'long-polling',
+  };
 
-    let subSocket;
+  request.onOpen = onOpen;
 
-    let request = {
-        url: url,
-        contentType : "application/json",
-        logLevel : 'debug',
-        transport : 'websocket' ,
-        fallbackTransport: 'long-polling'
-    };
+  request.onClientTimeout = function(r) {
+    subSocket.push(
+        JSON.stringify({
+          author: author,
+          message: 'is inactive and closed the connection. '+
+          'Will reconnect in ' + request.reconnectInterval,
+        }),
+    );
+    setTimeout(function() {
+      subSocket = socket.subscribe(request);
+    }, request.reconnectInterval);
+  };
 
-    request.onOpen = onOpen;
+  request.onReopen = function(response) {
+    console.log('Atmosphere re-connected using ' + response.transport);
+  };
 
-    request.onClientTimeout = function(r) {
-        subSocket.push(JSON.stringify({ author: author, message: 'is inactive and closed the connection. Will reconnect in ' + request.reconnectInterval }));
-        setTimeout(function (){
-            subSocket = socket.subscribe(request);
-        }, request.reconnectInterval);
-    };
+  request.onClose = function(response) {
+    // TODO: send close request?
+    console.log('disconnecting');
+  };
 
-    request.onReopen = function(response) {
-        console.log('Atmosphere re-connected using ' + response.transport);
-    };
+  request.onError = console.error;
 
-    request.onClose = function (response) {
-        // TODO: send close request?
-        console.log("disconnecting");
-    };
+  request.onMessage = onMessage;
 
-    request.onError = console.error;
-
-    request.onMessage = onMessage;
-
-    return atmosphere.subscribe(request);
+  return atmosphere.subscribe(request);
 };

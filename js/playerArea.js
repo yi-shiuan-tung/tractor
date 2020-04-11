@@ -1,79 +1,93 @@
-
-import * as React from "react";
-import { WIDTH, HEIGHT } from "./game";
+import PropTypes from 'prop-types';
+import * as React from 'react';
+import {WIDTH, HEIGHT} from './game';
 
 /*
- * Renders the given children in front of the given player (under the correct orientation).
- * The distance is a number from 0 (in the middle) to 1 (very close to the player)
+ * Renders the given children in front of the given player (under the correct
+ * orientation). The distance is a number from 0 (in the middle) to 1 (very
+ * close to the player)
  */
 export class PlayerArea extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      textWidth: undefined,
+    };
+  }
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            textWidth: undefined,
-        }
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillUpdate(prevProps) {
+    if (prevProps.children !== this.props.children) {
+      this.setState({textWidth: undefined});
     }
+  }
 
-    componentWillUpdate(prevProps) {
-        if (prevProps.children !== this.props.children) {
-            this.setState({ textWidth: undefined })
-        }
+  render() {
+    const {
+      playerIds,
+      playerId,
+      myId,
+      distance,
+      isText,
+      children,
+    } = this.props;
+    const {textWidth} = this.state;
+    const playerIndex = playerIds.indexOf(playerId);
+    const myIndex = playerIds.indexOf(myId);
+    const centerPoint = {
+      x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 *
+        Math.PI / playerIds.length) * distance / 2),
+      y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 *
+        Math.PI / playerIds.length) * distance / 2),
+    };
+    let angle = (myIndex - playerIndex) * 360. / playerIds.length;
+    if (isText) {
+    // ensure text is always facing the player by possibly rotating 180 degrees
+      if (angle < 0) {
+        angle += 360;
+      }
+      if (angle > 90 && angle < 270) {
+        angle -= 180;
+      }
     }
-
-    render() {
-        const { playerIds, playerId, myId, distance, isText, children } = this.props;
-        const { textWidth } = this.state;
-        const playerIndex = playerIds.indexOf(playerId);
-        const myIndex = playerIds.indexOf(myId);
-        const centerPoint = {
-            x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
-            y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
+    let transform = `rotate(${angle}deg)`;
+    let ref = undefined;
+    if (isText) {
+      // In the first loop, render the text anywhere and compute its width from
+      // the ref. In subsequent renders, the transform will be correct, so we
+      // can remove the ref (and avoid an infinite loop).
+      if (textWidth) {
+        transform = `translate(-${textWidth / 2}px) ` + transform;
+      } else {
+        ref = (el) => {
+          if (el) {
+            this.setState({textWidth: el.clientWidth});
+          }
         };
-        let angle = (myIndex - playerIndex) * 360. / playerIds.length;
-        if (isText) {
-            // ensure text is always facing the player by possibly rotating 180 degrees
-            if (angle < 0) {
-                angle += 360;
-            }
-            if (angle > 90 && angle < 270) {
-                angle -= 180;
-            }
-        }
-        let className = "player_container";
-        if (playerId === myId) {
-            className += " my_area";
-        }
-        let transform = `rotate(${angle}deg)`;
-        let ref = undefined;
-        if (isText) {
-            // In the first loop, render the text anywhere and compute its width from the ref.
-            // In subsequent renders, the transform will be correct, so we can remove the ref (and avoid an infinite loop).
-            if (textWidth) {
-                transform = `translate(-${textWidth / 2}px) ` + transform;
-            } else {
-                ref = el => {
-                    if (el) {
-                        this.setState({ textWidth: el.clientWidth });
-                    }
-                };
-            }
-        }
-        return (
-            <div
-                key={playerId}
-                className="player_container my_area"
-                style={
-                    {
-                        top: centerPoint.y,
-                        left: centerPoint.x,
-                        transform,
-                    }
-                }
-                ref={ref}
-            >
-                {children}
-            </div>
-        );
+      }
     }
+    return (
+      <div
+        key={playerId}
+        className='player_container my_area'
+        style={{
+          top: centerPoint.y,
+          left: centerPoint.x,
+          transform,
+        }}
+        ref={ref}
+      >
+        {children}
+      </div>
+    );
+  }
 }
+
+PlayerArea.propTypes = {
+  playerIds: PropTypes.array,
+  playerId: PropTypes.num,
+  myId: PropTypes.num,
+  distance: PropTypes.num,
+  isText: PropTypes.bool,
+  children: PropTypes.node,
+};
