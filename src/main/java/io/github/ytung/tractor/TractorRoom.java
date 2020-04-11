@@ -52,6 +52,16 @@ import io.github.ytung.tractor.api.Play;
 @ManagedService(path = "/tractor/{roomCode: [a-zA-Z][a-zA-Z_0-9]*}")
 public class TractorRoom {
 
+    /**
+     * When this flag is on, certain properties will be simplified to facilitate easier testing:
+     *
+     * <pre>
+     * 1. Only one person is needed to start the game or to confirm the declare phase is over.
+     * 2. The deal phase becomes very fast.
+     * </pre>
+     */
+    private static final boolean DEV_MODE = false;
+
     private final Map<String, AtmosphereResource> resources = new ConcurrentHashMap<>();
     private final Map<String, String> playerNames = new ConcurrentHashMap<>();
     private final Map<String, Boolean> playerReadyForPlay = new ConcurrentHashMap<>();
@@ -149,7 +159,7 @@ public class TractorRoom {
 
         if (message instanceof ReadyForPlayRequest) {
             playerReadyForPlay.put(r.uuid(), ((ReadyForPlayRequest) message).isReady());
-            if (!playerReadyForPlay.containsValue(false)) {
+            if (!playerReadyForPlay.containsValue(false) || DEV_MODE) {
                 if (game.getStatus() == GameStatus.START_ROUND)
                     startRound(r.getBroadcaster());
                 else if (game.getStatus() == GameStatus.DRAW_KITTY)
@@ -231,7 +241,7 @@ public class TractorRoom {
                         game.getCurrentPlayerIndex(),
                         game.getDeck(),
                         game.getPlayerHands()));
-                    Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
+                    Uninterruptibles.sleepUninterruptibly((DEV_MODE ? 5 : 500) / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
                 sendSync(broadcaster, new DoneDealing());
             }
