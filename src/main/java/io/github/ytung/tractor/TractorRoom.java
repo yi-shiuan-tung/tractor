@@ -30,18 +30,21 @@ import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.NumDecksRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
+import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.NumDecks;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
+import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
@@ -53,6 +56,7 @@ public class TractorRoom {
 
     private final Map<String, AtmosphereResource> resources = new ConcurrentHashMap<>();
     private final Map<String, String> playerNames = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> playerReadyForPlay = new ConcurrentHashMap<>();
     private final Game game = new Game();
 
     @PathParam("roomCode")
@@ -66,6 +70,7 @@ public class TractorRoom {
 
         resources.put(r.uuid(), r);
         playerNames.put(r.uuid(), Names.generateRandomName());
+        playerReadyForPlay.put(r.uuid(), false);
         game.addPlayer(r.uuid());
         return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
     }
@@ -88,6 +93,7 @@ public class TractorRoom {
 
         game.removePlayer(playerId);
         playerNames.remove(playerId);
+        playerReadyForPlay.remove(playerId);
         sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(
             game.getPlayerIds(),
             game.getPlayerRankScores(),
@@ -149,16 +155,27 @@ public class TractorRoom {
                 game.declare(r.uuid(), cardIds);
                 Map<Integer, Card> cardsById = game.getCardsById();
                 sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
+                // reset all players to not ready
+                playerReadyForPlay.replaceAll((k, v) -> v=false);
                 return new Declare(
                     game.getDeclarerPlayerIndex(),
                     game.getIsDeclaringTeam(),
                     game.getPlayerHands(),
                     game.getDeclaredCards(),
-                    game.getCurrentTrump());
+                    game.getCurrentTrump(),
+                    playerReadyForPlay);
             } catch (InvalidDeclareException e) {
                 sendSync(r, new InvalidAction(e.getMessage()));
                 return null;
             }
+        }
+
+        if (message instanceof ReadyForPlayRequest) {
+            playerReadyForPlay.put(r.uuid(), !playerReadyForPlay.get(r.uuid()));
+
+            if (!playerReadyForPlay.containsValue(false))
+                dealKitty(r.getBroadcaster());
+            return new ReadyForPlay(playerReadyForPlay);
         }
 
         if (message instanceof MakeKittyRequest) {
@@ -217,22 +234,25 @@ public class TractorRoom {
                         game.getPlayerHands()));
                     Uninterruptibles.sleepUninterruptibly(500 / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
-                Uninterruptibles.sleepUninterruptibly(4000, TimeUnit.MILLISECONDS);
-                Play kitty = game.takeKitty();
-                if (kitty == null)
-                    return;
-                sendSync(resources.get(kitty.getPlayerId()), new CardInfo(Maps.toMap(kitty.getCardIds(), cardsById::get)));
-                sendSync(broadcaster, new TakeKitty(
-                    game.getStatus(),
-                    game.getCurrentPlayerIndex(),
-                    game.getDeck(),
-                    game.getPlayerHands()));
-                sendSync(resources.get(kitty.getPlayerId()), new YourKitty(game.getPlayerHands()));
+                sendSync(broadcaster, new DoneDealing());
             }
         };
 
         dealingThread.setDaemon(true);
         dealingThread.start();
+    }
+
+    private void dealKitty(Broadcaster broadcaster) {
+        Play kitty = game.takeKitty();
+        if (kitty == null)
+            return;
+        sendSync(resources.get(kitty.getPlayerId()), new CardInfo(Maps.toMap(kitty.getCardIds(), game.getCardsById()::get)));
+        sendSync(broadcaster, new TakeKitty(
+                game.getStatus(),
+                game.getCurrentPlayerIndex(),
+                game.getDeck(),
+                game.getPlayerHands()));
+        sendSync(resources.get(kitty.getPlayerId()), new YourKitty(game.getPlayerHands()));
     }
 
     private void scheduleFinishTrick(Broadcaster broadcaster) {

@@ -14,6 +14,7 @@ import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.NumDecksRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
+import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import lombok.Data;
@@ -29,6 +30,7 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = StartRoundRequest.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = DeclareRequest.class, name = "DECLARE"),
     @JsonSubTypes.Type(value = MakeKittyRequest.class, name = "MAKE_KITTY"),
+    @JsonSubTypes.Type(value = ReadyForPlayRequest.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayRequest.class, name = "PLAY"),
     @JsonSubTypes.Type(value = ForfeitRequest.class, name = "FORFEIT"),
 })
@@ -78,6 +80,12 @@ public interface IncomingMessage {
     public static class DeclareRequest implements IncomingMessage {
 
         private List<Integer> cardIds;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class ReadyForPlayRequest implements IncomingMessage {
+
     }
 
     @Data

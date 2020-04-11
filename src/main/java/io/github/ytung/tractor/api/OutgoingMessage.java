@@ -12,6 +12,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
@@ -19,6 +20,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.NumDecks;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
+import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
@@ -37,9 +39,11 @@ import lombok.Data;
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
+    @JsonSubTypes.Type(value = DoneDealing.class, name = "DONE_DEALING"),
     @JsonSubTypes.Type(value = TakeKitty.class, name = "TAKE_KITTY"),
     @JsonSubTypes.Type(value = YourKitty.class, name = "YOUR_KITTY"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
+    @JsonSubTypes.Type(value = ReadyForPlay.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
@@ -117,6 +121,11 @@ public interface OutgoingMessage {
     }
 
     @Data
+    public static class DoneDealing implements OutgoingMessage {
+
+    }
+
+    @Data
     public static class TakeKitty implements OutgoingMessage {
 
         private final GameStatus status;
@@ -140,6 +149,13 @@ public interface OutgoingMessage {
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
         private final Card currentTrump;
+        private final Map<String, Boolean> playerReadyForPlay;
+    }
+
+    @Data
+    public static class ReadyForPlay implements OutgoingMessage {
+
+        private final Map<String, Boolean> playerReadyForPlay;
     }
 
     @Data

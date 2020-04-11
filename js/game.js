@@ -22,6 +22,7 @@ export class Game extends React.Component {
             notifications: {},
             showKittyButton: false,
             showPreviousTrick: false,
+            playerReadyForPlay: {}, // { playerId: boolean }
 
             // game state
             playerIds: [], // PlayerId[]
@@ -71,8 +72,12 @@ export class Game extends React.Component {
                 }});
             } else if (json.DRAW) {
                 this.setState(json.DRAW);
+            } else if (json.DONE_DEALING) {
+                this.setNotification(`Select card(s) to declare trump suit or press READY`)
             } else if (json.DECLARE) {
                 this.setState(json.DECLARE);
+            } else if (json.READY_FOR_PLAY) {
+                this.setState(json.READY_FOR_PLAY);
             } else if (json.TAKE_KITTY) {
                 this.setState(json.TAKE_KITTY);
                 const playerId = playerIds[json.TAKE_KITTY.currentPlayerIndex];
@@ -384,11 +389,11 @@ export class Game extends React.Component {
     }
 
     renderActionButton() {
-        const { selectedCardIds, playerIds, currentPlayerIndex, status, declaredCards } = this.state;
+        const { selectedCardIds, playerIds, currentPlayerIndex, status, declaredCards, playerReadyForPlay } = this.state;
         const selectedCardIdsList = Object.entries(selectedCardIds)
             .filter(([_cardId, selected]) => selected)
             .map(([cardId, _selected]) => cardId);
-        if ((status === 'DRAW' || status === 'DRAW_KITTY') && selectedCardIdsList.length > 0) {
+        if ((status === 'DRAW' || status === 'DRAW_KITTY') && selectedCardIdsList.length > 0 && !playerReadyForPlay[this.myId]) {
             return <div
                 className="action_button game_action_button"
                 onClick={() => {
@@ -401,6 +406,17 @@ export class Game extends React.Component {
                 }}
             >
                 {"Declare"}
+            </div>
+        }
+
+        if (status === 'DRAW_KITTY') {
+            return <div
+                className={playerReadyForPlay[this.myId] ? "ready action_button game_action_button" : "action_button game_action_button"}
+                onClick={() => {
+                    this.subSocket.push(JSON.stringify({ "READY_FOR_PLAY": { } }));
+                }}
+            >
+                {"Ready"}
             </div>
         }
         if (playerIds[currentPlayerIndex] !== this.myId) {

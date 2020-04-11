@@ -206,6 +206,10 @@ i {
     background-color: green;
 }
 
+.ready {
+    background-color: gray;
+}
+
 .action_button:hover {
     height: 40px;
     line-height: 40px;
