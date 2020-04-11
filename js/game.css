@@ -149,6 +149,17 @@ i {
     margin-left: 5px;
 }
 
+.game_area .big_crown {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background-image: url("./crown.png");
+    background-size: cover;
+    display: inline-block;
+    left: -24px;
+    bottom: 40px;
+}
+
 .game_area .my_area {
     z-index: 1;
 }

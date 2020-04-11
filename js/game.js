@@ -7,6 +7,7 @@ import './game.css';
 
 import Card from './components/Card';
 import {PlayerArea} from './playerArea';
+import { Trick } from './trick';
 
 
 export const WIDTH = 1200;
@@ -433,39 +434,19 @@ export class Game extends React.Component {
       return;
     }
     if (showPreviousTrick && pastTricks.length > 0) {
-      return <div>
-        {pastTricks[pastTricks.length - 1].plays.map(({playerId, cardIds}) =>
-          <PlayerArea
-            key={`playerArea${playerId}`}
-            playerIds={playerIds}
-            playerId={playerId}
-            myId={this.myId}
-            distance={0.2}
-          >
-            {this.renderCards(cardIds, {
-              interCardDistance: 15,
-              faceUp: true,
-              canSelect: false,
-            })}
-          </PlayerArea>)}
-      </div>;
+      return <Trick
+        trick={pastTricks[pastTricks.length - 1]}
+        playerIds={playerIds}
+        myId={this.myId}
+        renderCards={this.renderCards}
+      />
     }
-    return <div>
-      {currentTrick.plays.map(({playerId, cardIds}) =>
-        <PlayerArea
-          key={`playerArea${playerId}`}
-          playerIds={playerIds}
-          playerId={playerId}
-          myId={this.myId}
-          distance={0.2}
-        >
-          {this.renderCards(cardIds, {
-            interCardDistance: 15,
-            faceUp: true,
-            canSelect: false,
-          })}
-        </PlayerArea>)}
-    </div>;
+    return <Trick
+      trick={currentTrick}
+      playerIds={playerIds}
+      myId={this.myId}
+      renderCards={this.renderCards}
+    />
   }
 
   renderActionButton() {
@@ -503,8 +484,8 @@ export class Game extends React.Component {
     if (status === 'DRAW_KITTY') {
       return <div
         className={iAmReadyForPlay ?
-          'action_button game_action_button' :
-          'inactive action_button game_action_button'}
+          'button action_button game_action_button' :
+          'inactive button action_button game_action_button'}
         onClick={() => {
           this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {ready: !iAmReadyForPlay}}));
         }}
@@ -588,7 +569,7 @@ export class Game extends React.Component {
     />;
   }
 
-  renderCards(cardIds, args) {
+  renderCards = (cardIds, args) => {
     const {interCardDistance, faceUp, canSelect} = args;
     const {selectedCardIds, cardsById} = this.state;
 

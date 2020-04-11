@@ -10,4 +10,5 @@ public class Trick {
 
     private final String startPlayerId;
     private final List<Play> plays = new ArrayList<>();
+    private String winningPlayerId;
 }
