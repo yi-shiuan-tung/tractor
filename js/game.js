@@ -2,9 +2,11 @@ import PropTypes from 'prop-types';
 import * as React from 'react';
 import {VALUES, getCardImageSrc, getFaceDownCardImageSrc} from './assets';
 import {setUpConnection} from './connection';
-import './game.css';
-import {PlayerArea} from './playerArea';
 import {LOCATION} from './consts';
+import './game.css';
+
+import Card from './components/Card';
+import {PlayerArea} from './playerArea';
 
 
 export const WIDTH = 1200;
@@ -344,14 +346,14 @@ export class Game extends React.Component {
       return <div>
         {playerIds
             .filter((playerId) => playerId !== this.myId)
-            .map((playerId, i) => {
+            .map((playerId) => {
               let className = 'player_name';
               if (status !== 'DRAW' &&
                 playerId === playerIds[currentPlayerIndex]) {
                 className += ' current';
               }
               return <PlayerArea
-                key={`playerArea${i}`}
+                key={`playerArea${playerId}`}
                 playerIds={playerIds}
                 playerId={playerId}
                 myId={this.myId}
@@ -377,7 +379,7 @@ export class Game extends React.Component {
     if (status === 'START_ROUND') {
       return;
     }
-    return playerIds.map((playerId, i) => {
+    return playerIds.map((playerId) => {
       const nonDeclaredCards = playerHands[playerId]
       // If not playing tricks, declared cards should be shown in front,
       // not in hand
@@ -388,7 +390,7 @@ export class Game extends React.Component {
 
       return (
         <PlayerArea
-          key={`playerArea${i}`}
+          key={`playerArea${playerId}`}
           playerIds={playerIds}
           playerId={playerId}
           myId={this.myId}
@@ -435,9 +437,9 @@ export class Game extends React.Component {
     }
     if (showPreviousTrick && pastTricks.length > 0) {
       return <div>
-        {pastTricks[pastTricks.length - 1].plays.map(({playerId, cardIds}, i) =>
+        {pastTricks[pastTricks.length - 1].plays.map(({playerId, cardIds}) =>
           <PlayerArea
-            key={`playerArea${i}`}
+            key={`playerArea${playerId}`}
             playerIds={playerIds}
             playerId={playerId}
             myId={this.myId}
@@ -452,9 +454,9 @@ export class Game extends React.Component {
       </div>;
     }
     return <div>
-      {currentTrick.plays.map(({playerId, cardIds}, i) =>
+      {currentTrick.plays.map(({playerId, cardIds}) =>
         <PlayerArea
-          key={`playerArea${i}`}
+          key={`playerArea${playerId}`}
           playerIds={playerIds}
           playerId={playerId}
           myId={this.myId}
@@ -572,19 +574,10 @@ export class Game extends React.Component {
               [cardId]: !selectedCardIds[cardId],
             },
           }) : undefined;
-          return (
-            <img
-              key={cardId}
-              style={
-                {
-                  top: `${y}px`,
-                  left: `${x}px`,
-                }
-              }
-              src={src}
-              onClick={onClick}
-            />
-          );
+          const input = {
+            x, y, src, onClick,
+          };
+          return <Card key={cardId} {...input} />;
         });
     return <div>{cardImgs}</div>;
   }

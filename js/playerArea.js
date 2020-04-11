@@ -85,9 +85,9 @@ export class PlayerArea extends React.Component {
 
 PlayerArea.propTypes = {
   playerIds: PropTypes.array,
-  playerId: PropTypes.num,
-  myId: PropTypes.num,
-  distance: PropTypes.num,
+  playerId: PropTypes.string,
+  myId: PropTypes.string,
+  distance: PropTypes.number,
   isText: PropTypes.bool,
-  children: PropTypes.node,
+  children: PropTypes.any,
 };
