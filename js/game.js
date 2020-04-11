@@ -305,9 +305,7 @@ export class Game extends React.Component {
                       JSON.stringify({'PLAYER_ORDER': {playerIds}}),
                   );
                 }}/>
-              {`${playerNames[playerId]} (${
-                VALUES[playerRankScores[playerId]]}
-              )`}
+              {`${playerNames[playerId]} (${VALUES[playerRankScores[playerId]]})`}
               {winningPlayerIds.indexOf(playerId) >= 0 ?
                 <span className='crown' /> : undefined
               }
@@ -333,7 +331,7 @@ export class Game extends React.Component {
             </div>
           </div>
           <div
-            className='button primary'
+            className='button primary start_game_button'
             onClick={() =>
               this.subSocket.push(JSON.stringify({'START_ROUND': {}}))
             }
