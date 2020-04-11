@@ -8,10 +8,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
 import io.github.ytung.tractor.api.IncomingMessage.CreateRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
+import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
+import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.JoinRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
-import io.github.ytung.tractor.api.IncomingMessage.NumDecksRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
@@ -26,9 +27,10 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = JoinRoomRequest.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = SetNameRequest.class, name = "SET_NAME"),
     @JsonSubTypes.Type(value = PlayerOrderRequest.class, name = "PLAYER_ORDER"),
-    @JsonSubTypes.Type(value = NumDecksRequest.class, name = "NUM_DECKS"),
+    @JsonSubTypes.Type(value = GameConfigurationRequest.class, name = "GAME_CONFIGURATION"),
     @JsonSubTypes.Type(value = StartRoundRequest.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = DeclareRequest.class, name = "DECLARE"),
+    @JsonSubTypes.Type(value = FindAFriendDeclarationRequest.class, name = "FRIEND_DECLARE"),
     @JsonSubTypes.Type(value = MakeKittyRequest.class, name = "MAKE_KITTY"),
     @JsonSubTypes.Type(value = ReadyForPlayRequest.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayRequest.class, name = "PLAY"),
@@ -65,9 +67,10 @@ public interface IncomingMessage {
 
     @Data
     @NoArgsConstructor
-    public static class NumDecksRequest implements IncomingMessage {
+    public static class GameConfigurationRequest implements IncomingMessage {
 
         private int numDecks;
+        private boolean findAFriend;
     }
 
     @Data
@@ -87,6 +90,13 @@ public interface IncomingMessage {
     public static class ReadyForPlayRequest implements IncomingMessage {
 
         private boolean ready;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class FindAFriendDeclarationRequest implements IncomingMessage {
+
+        private FindAFriendDeclaration declaration;
     }
 
     @Data

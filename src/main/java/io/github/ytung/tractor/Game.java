@@ -12,14 +12,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
 import io.github.ytung.tractor.Cards.Grouping;
 import io.github.ytung.tractor.api.Card;
 import io.github.ytung.tractor.api.Card.Suit;
+import io.github.ytung.tractor.api.FindAFriendDeclaration;
+import io.github.ytung.tractor.api.FindAFriendDeclaration.Declaration;
 import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.Play;
 import io.github.ytung.tractor.api.Trick;
@@ -32,6 +36,7 @@ public class Game {
 
     // game configuration
     private int numDecks = 2;
+    private boolean findAFriend = false;
 
     // constant over each round
     private int roundNumber = 0;
@@ -49,9 +54,13 @@ public class Game {
     private Map<String, List<Integer>> playerHands;
     private List<Play> declaredCards;
     private List<Integer> kitty;
+    private FindAFriendDeclaration findAFriendDeclaration;
     private List<Trick> pastTricks;
     private Trick currentTrick;
     private Map<String, Integer> currentRoundScores = new HashMap<>();
+
+    // internal state for convenience
+    private Multimap<Card, Integer> findAFriendDeclarationCounters;
 
     public synchronized void addPlayer(String playerId) {
         if (status != GameStatus.START_ROUND)
@@ -69,6 +78,9 @@ public class Game {
 
         playerIds.remove(playerId);
         playerRankScores.remove(playerId);
+
+        if (playerIds.size() < 4)
+            findAFriend = false;
     }
 
     public synchronized void setPlayerOrder(List<String> newPlayerIds) {
@@ -93,20 +105,28 @@ public class Game {
         this.numDecks = numDecks;
     }
 
+    public synchronized void setFindAFriend(boolean findAFriend) {
+        if (status != GameStatus.START_ROUND)
+            throw new IllegalStateException();
+        if (playerIds.size() < 4)
+            throw new IllegalStateException();
+
+        this.findAFriend = findAFriend;
+    }
+
     public synchronized void startRound() {
         if (status != GameStatus.START_ROUND)
             throw new IllegalStateException();
 
         status = GameStatus.DRAW;
         currentPlayerIndex = declarerPlayerIndex;
-        isDeclaringTeam = IntStream.range(0, playerIds.size())
-            .boxed()
-            .collect(Collectors.toMap(i -> playerIds.get(i), i -> (i + declarerPlayerIndex) % 2 == 0));
+        setIsDeclaringTeam();
         cardsById = Decks.getCardsById(numDecks);
         deck = Decks.shuffle(cardsById);
         playerHands = new HashMap<>();
         declaredCards = new ArrayList<>();
         kitty = new ArrayList<>();
+        findAFriendDeclaration = null;
         pastTricks = new ArrayList<>();
         currentTrick = null;
         currentRoundScores = new HashMap<>(Maps.toMap(playerIds, playerId -> 0));
@@ -143,9 +163,7 @@ public class Game {
         // if this is the first round, then the person who declares is the declarer
         if (roundNumber == 0) {
             declarerPlayerIndex = playerIds.indexOf(playerId);
-            isDeclaringTeam = IntStream.range(0, playerIds.size())
-                .boxed()
-                .collect(Collectors.toMap(i -> playerIds.get(i), i -> (i + declarerPlayerIndex) % 2 == 0));
+            setIsDeclaringTeam();
         }
     }
 
@@ -188,6 +206,13 @@ public class Game {
         }
     }
 
+    private void setIsDeclaringTeam() {
+        isDeclaringTeam = IntStream.range(0, playerIds.size())
+            .boxed()
+            .collect(
+                Collectors.toMap(i -> playerIds.get(i), i -> findAFriend ? i == declarerPlayerIndex : (i + declarerPlayerIndex) % 2 == 0));
+    }
+
     public synchronized Play takeKitty() {
         if (status != GameStatus.DRAW_KITTY)
             return null;
@@ -202,12 +227,58 @@ public class Game {
         return new Play(playerId, cardIds);
     }
 
+    public synchronized void makeFindAFriendDeclaration(String playerId, FindAFriendDeclaration declarations)
+            throws InvalidFindAFriendDeclarationException {
+        if (!findAFriend)
+            throw new InvalidFindAFriendDeclarationException("The game is not in find a friend mode.");
+        if (status != GameStatus.MAKE_KITTY)
+            throw new InvalidFindAFriendDeclarationException("You cannot declare a friend now.");
+        if (!playerId.equals(playerIds.get(currentPlayerIndex)))
+            throw new InvalidFindAFriendDeclarationException("Only the declarer can declare a friend.");
+        if (findAFriendDeclaration != null)
+            throw new InvalidFindAFriendDeclarationException("You've already declared.");
+
+        // check for valid declaration
+        if (declarations.getDeclarations().size() != playerIds.size() / 2 - 1)
+            throw new InvalidFindAFriendDeclarationException("Invalid number of declarations.");
+        for (Declaration declaration : declarations.getDeclarations()) {
+            Card card = new Card(declaration.getValue(), declaration.getSuit());
+            if (declaration.getOrdinal() > numDecks)
+                throw new InvalidFindAFriendDeclarationException("Invalid ordinal.");
+            if (declaration.getOrdinal() < 0)
+                throw new InvalidFindAFriendDeclarationException("Invalid ordinal.");
+            if (!cardsById.containsValue(card))
+                throw new InvalidFindAFriendDeclarationException("Invalid card.");
+
+            if (declaration.getOrdinal() == 0) {
+                if (numDecks != 2)
+                    throw new InvalidFindAFriendDeclarationException("You can only declare OTHER with 2 decks.");
+
+                long numCards = playerHands.get(playerId).stream()
+                        .filter(cardId -> cardsById.get(cardId).equals(card))
+                        .count();
+                if (numCards != 1)
+                    throw new InvalidFindAFriendDeclarationException("You need the card to declare OTHER.");
+            }
+        }
+
+        findAFriendDeclaration = declarations;
+
+        findAFriendDeclarationCounters = ArrayListMultimap.create();
+        for (Declaration declaration : declarations.getDeclarations()) {
+            Card card = new Card(declaration.getValue(), declaration.getSuit());
+            findAFriendDeclarationCounters.put(card, declaration.getOrdinal());
+        }
+    }
+
     public synchronized void makeKitty(String playerId, List<Integer> cardIds) throws InvalidKittyException {
         Play play = new Play(playerId, cardIds);
         if (status != GameStatus.MAKE_KITTY)
             throw new InvalidKittyException("You cannot make kitty now");
         if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
             throw new InvalidKittyException("You cannot make kitty");
+        if (findAFriend && findAFriendDeclaration == null)
+            throw new InvalidKittyException("You must make a friend declaration first.");
         if (play.getCardIds().size() != getKittySize())
             throw new InvalidKittyException("The kitty has to have " + getKittySize() + " cards");
         if (!isPlayable(play))
@@ -219,9 +290,9 @@ public class Game {
     }
 
     /**
-     * The specified player makes the given play. Returns whether the current trick is finished.
+     * The specified player makes the given play.
      */
-    public synchronized boolean play(String playerId, List<Integer> cardIds) throws InvalidPlayException {
+    public synchronized PlayResult play(String playerId, List<Integer> cardIds) throws InvalidPlayException {
         sortCards(cardIds);
         Play play = new Play(playerId, cardIds);
         verifyCanPlay(play);
@@ -230,12 +301,38 @@ public class Game {
         currentTrick.getPlays().add(play);
         currentTrick.setWinningPlayerId(winningPlayerId(currentTrick));
 
+        // test for find a friend
+        boolean didFriendJoin = false;
+        for (Map.Entry<Card, Integer> entry : new ArrayList<>(findAFriendDeclarationCounters.entries())) {
+            Card card = entry.getKey();
+            int counter = entry.getValue();
+            int count = (int) cardIds.stream().map(cardsById::get).filter(otherCard -> card.equals(otherCard)).count();
+            if (count == 0)
+                continue;
+
+            // handle an OTHER declaration
+            if (counter == 0 && !playerIds.get(declarerPlayerIndex).equals(playerId)) {
+                findAFriendDeclarationCounters.remove(card, counter);
+                didFriendJoin = true;
+                continue;
+            }
+
+            // handle normal declaration
+            if (counter - count <= 0) {
+                findAFriendDeclarationCounters.remove(card, counter);
+                didFriendJoin = true;
+                continue;
+            }
+        }
+        if (didFriendJoin)
+            isDeclaringTeam.put(playerId, true);
+
         if (currentTrick.getPlays().size() == playerIds.size()) {
             currentPlayerIndex = -1;
-            return true;
+            return new PlayResult(true, didFriendJoin);
         } else {
             currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
-            return false;
+            return new PlayResult(false, didFriendJoin);
         }
     }
 

@@ -131,6 +131,15 @@ ul {
     margin: 40px;
 }
 
+.game_area .game_properties div {
+    margin-bottom: 10px;
+}
+
+.game_area .game_properties input[type=checkbox] {
+    width: 18px;
+    height: 18px;
+}
+
 .game_area .game_info {
     position: absolute;
     top: 20px;
@@ -149,6 +158,7 @@ ul {
 .game_area .player_name {
     font-size: 16px;
     padding: 5px;
+    color: white;
 }
 
 .game_area .crown {

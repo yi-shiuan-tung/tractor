@@ -8,6 +8,7 @@ import './game.css';
 import Card from './components/Card';
 import {PlayerArea} from './playerArea';
 import { Trick } from './trick';
+import { FindAFriendPanel } from './findAFriendPanel';
 
 
 export const WIDTH = 1200;
@@ -33,6 +34,7 @@ export class Game extends React.Component {
       // game state
       playerIds: [], // PlayerId[]
       numDecks: 2, // integer
+      findAFriend: false, // boolean
       kittySize: 8, // integer
       roundNumber: undefined, // integer
       declarerPlayerIndex: undefined, // integer
@@ -71,8 +73,8 @@ export class Game extends React.Component {
             this.setState({playerNames});
           } else if (json.UPDATE_PLAYERS) {
             this.setState(json.UPDATE_PLAYERS);
-          } else if (json.NUM_DECKS) {
-            this.setState(json.NUM_DECKS);
+          } else if (json.GAME_CONFIGURATION) {
+            this.setState(json.GAME_CONFIGURATION);
           } else if (json.START_ROUND) {
             this.setState(json.START_ROUND);
           } else if (json.CARD_INFO) {
@@ -151,7 +153,6 @@ export class Game extends React.Component {
 
   render() {
     const {roomCode} = this.props;
-    const {inputMyName} = this.state;
     return (
       <div>
         <div>
@@ -162,6 +163,11 @@ export class Game extends React.Component {
             {'Forfeit'}
           </button>
         </div>
+        <FindAFriendPanel
+          findAFriend={this.state.findAFriend}
+          status={this.state.status}
+          setFindAFriendDeclaration={declarations => this.subSocket.push(JSON.stringify({ 'FRIEND_DECLARE': { declaration: { declarations } } }))}
+        />
         {this.renderGameArea()}
       </div>
     );
@@ -250,6 +256,7 @@ export class Game extends React.Component {
       playerReadyForPlay,
       playerIds,
       numDecks,
+      findAFriend,
       playerRankScores,
       winningPlayerIds,
       status,
@@ -333,17 +340,28 @@ export class Game extends React.Component {
                 className={numDecks < 10 ? 'arrow up' : 'hidden'}
                 onClick={() =>
                   this.subSocket.push(
-                      JSON.stringify({'NUM_DECKS': {numDecks: numDecks + 1}}),
+                      JSON.stringify({'GAME_CONFIGURATION': {numDecks: numDecks + 1, findAFriend}}),
                   )}
               />
               <i
                 className={numDecks > 1 ? 'arrow down' : 'hidden'}
                 onClick={() =>
                   this.subSocket.push(
-                      JSON.stringify({'NUM_DECKS': {numDecks: numDecks - 1}}),
+                      JSON.stringify({'GAME_CONFIGURATION': {numDecks: numDecks - 1, findAFriend}}),
                   )}
               />
               {`${numDecks} ${numDecks > 1 ? 'decks' : 'deck'}`}
+            </div>
+            <div className={playerIds.length >= 4 ? '' : 'hidden'}>
+              <input
+                type="checkbox"
+                checked={findAFriend}
+                onChange={() =>
+                  this.subSocket.push(
+                      JSON.stringify({'GAME_CONFIGURATION': {numDecks, findAFriend: !findAFriend}}),
+                  )}
+              />
+              {"Find a friend mode"}
             </div>
           </div>
           <div

@@ -22,12 +22,14 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Uninterruptibles;
 
 import io.github.ytung.tractor.api.Card;
+import io.github.ytung.tractor.api.FindAFriendDeclaration;
 import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.IncomingMessage;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
+import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
+import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
-import io.github.ytung.tractor.api.IncomingMessage.NumDecksRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
@@ -37,11 +39,13 @@ import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
+import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
+import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
-import io.github.ytung.tractor.api.OutgoingMessage.NumDecks;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
@@ -80,7 +84,13 @@ public class TractorRoom {
         playerNames.put(r.uuid(), Names.generateRandomName());
         playerReadyForPlay.put(r.uuid(), false);
         game.addPlayer(r.uuid());
-        return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames, playerReadyForPlay);
+        return new UpdatePlayers(
+            game.getPlayerIds(),
+            game.getPlayerRankScores(),
+            game.isFindAFriend(),
+            game.getKittySize(),
+            playerNames,
+            playerReadyForPlay);
     }
 
     @Disconnect
@@ -105,6 +115,7 @@ public class TractorRoom {
         sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(
             game.getPlayerIds(),
             game.getPlayerRankScores(),
+            game.isFindAFriend(),
             game.getKittySize(),
             playerNames,
             playerReadyForPlay));
@@ -121,20 +132,33 @@ public class TractorRoom {
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
-            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames, playerReadyForPlay);
+            return new UpdatePlayers(
+                game.getPlayerIds(),
+                game.getPlayerRankScores(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerNames,
+                playerReadyForPlay);
         }
 
         if (message instanceof PlayerOrderRequest) {
             List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
             game.setPlayerOrder(playerIds);
             playerReadyForPlay.replaceAll((k, v) -> v=false);
-            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames, playerReadyForPlay);
+            return new UpdatePlayers(
+                game.getPlayerIds(),
+                game.getPlayerRankScores(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerNames,
+                playerReadyForPlay);
         }
 
-        if (message instanceof NumDecksRequest) {
-            game.setNumDecks(((NumDecksRequest) message).getNumDecks());
+        if (message instanceof GameConfigurationRequest) {
+            game.setNumDecks(((GameConfigurationRequest) message).getNumDecks());
+            game.setFindAFriend(((GameConfigurationRequest) message).isFindAFriend());
             playerReadyForPlay.replaceAll((k, v) -> v=false);
-            return new NumDecks(game.getNumDecks(), game.getKittySize(), playerReadyForPlay);
+            return new GameConfiguration(game.getNumDecks(), game.isFindAFriend(), game.getKittySize(), playerReadyForPlay);
         }
 
         if (message instanceof DeclareRequest) {
@@ -171,6 +195,17 @@ public class TractorRoom {
             return new ReadyForPlay(playerReadyForPlay);
         }
 
+        if (message instanceof FindAFriendDeclarationRequest) {
+            FindAFriendDeclaration declaration = ((FindAFriendDeclarationRequest) message).getDeclaration();
+            try {
+                game.makeFindAFriendDeclaration(r.uuid(), declaration);
+                return new FindAFriendDeclarationMessage(declaration);
+            } catch (InvalidFindAFriendDeclarationException e) {
+                sendSync(resources.get(r.uuid()), new InvalidAction(e.getMessage()));
+                return null;
+            }
+        }
+
         if (message instanceof MakeKittyRequest) {
             List<Integer> cardIds = ((MakeKittyRequest) message).getCardIds();
             try {
@@ -185,12 +220,17 @@ public class TractorRoom {
         if (message instanceof PlayRequest) {
             List<Integer> cardIds = ((PlayRequest) message).getCardIds();
             try {
-                boolean isTrickFinished = game.play(r.uuid(), cardIds);
+                PlayResult result = game.play(r.uuid(), cardIds);
                 Map<Integer, Card> cardsById = game.getCardsById();
                 sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-                sendSync(r.getBroadcaster(), new PlayMessage(game.getCurrentPlayerIndex(), game.getPlayerHands(), game.getCurrentTrick()));
-                if (isTrickFinished)
+                sendSync(r.getBroadcaster(), new PlayMessage(
+                    game.getCurrentPlayerIndex(),
+                    game.getPlayerHands(),
+                    game.getCurrentTrick()));
+                if (result.isTrickComplete())
                     scheduleFinishTrick(r.getBroadcaster());
+                if (result.isDidFriendJoin())
+                    sendSync(r.getBroadcaster(), new FriendJoined(r.uuid(), game.getIsDeclaringTeam()));
             } catch (InvalidPlayException e) {
                 sendSync(r, new InvalidAction(e.getMessage()));
             }

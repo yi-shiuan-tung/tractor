@@ -14,12 +14,14 @@ import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
+import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
+import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
-import io.github.ytung.tractor.api.OutgoingMessage.NumDecks;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
@@ -34,17 +36,19 @@ import lombok.Data;
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = Welcome.class, name = "WELCOME"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
-    @JsonSubTypes.Type(value = NumDecks.class, name = "NUM_DECKS"),
+    @JsonSubTypes.Type(value = GameConfiguration.class, name = "GAME_CONFIGURATION"),
     @JsonSubTypes.Type(value = StartRound.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
     @JsonSubTypes.Type(value = DoneDealing.class, name = "DONE_DEALING"),
     @JsonSubTypes.Type(value = TakeKitty.class, name = "TAKE_KITTY"),
+    @JsonSubTypes.Type(value = FindAFriendDeclarationMessage.class, name = "FRIEND_DECLARE"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
     @JsonSubTypes.Type(value = ReadyForPlay.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
+    @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
     @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
 })
@@ -74,15 +78,17 @@ public interface OutgoingMessage {
 
         private final List<String> playerIds;
         private final Map<String, Card.Value> playerRankScores;
+        private final boolean findAFriend;
         private final int kittySize;
         private final Map<String, String> playerNames;
         private final Map<String, Boolean> playerReadyForPlay;
     }
 
     @Data
-    public static class NumDecks implements OutgoingMessage {
+    public static class GameConfiguration implements OutgoingMessage {
 
         private final int numDecks;
+        private final boolean findAFriend;
         private final int kittySize;
         private final Map<String, Boolean> playerReadyForPlay;
     }
@@ -154,6 +160,12 @@ public interface OutgoingMessage {
     }
 
     @Data
+    public static class FindAFriendDeclarationMessage implements OutgoingMessage {
+
+        private final FindAFriendDeclaration declaration;
+    }
+
+    @Data
     public static class MakeKitty implements OutgoingMessage {
 
         private final GameStatus status;
@@ -185,6 +197,13 @@ public interface OutgoingMessage {
         private final Trick currentTrick;
         private final Map<String, Integer> currentRoundScores;
         private final Card currentTrump;
+    }
+
+    @Data
+    public static class FriendJoined implements OutgoingMessage {
+
+        private final String playerId;
+        private final Map<String, Boolean> isDeclaringTeam;
     }
 
     @Data
