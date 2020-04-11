@@ -228,6 +228,7 @@ public class Game {
 
         playerHands.get(playerId).removeAll(cardIds);
         currentTrick.getPlays().add(play);
+        currentTrick.setWinningPlayerId(winningPlayerId(currentTrick));
 
         if (currentTrick.getPlays().size() == playerIds.size()) {
             currentPlayerIndex = -1;
@@ -243,7 +244,7 @@ public class Game {
             throw new IllegalStateException();
 
         // finish trick
-        String winningPlayerId = winningPlayerId(currentTrick);
+        String winningPlayerId = currentTrick.getWinningPlayerId();
         for (Play play : currentTrick.getPlays())
             currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + totalCardScore(play.getCardIds()));
 
