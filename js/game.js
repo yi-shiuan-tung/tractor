@@ -300,7 +300,7 @@ export class Game extends React.Component {
                       JSON.stringify({'PLAYER_ORDER': {playerIds}}),
                   );
                 }}/>
-              {`${playerNames[playerId]} (${VALUES[playerRankScores[playerId]]})`}
+              {`${playerNames[playerId]} (rank ${VALUES[playerRankScores[playerId]]})`}
               {winningPlayerIds.indexOf(playerId) >= 0 ?
                 <span className='crown' /> : undefined
               }
