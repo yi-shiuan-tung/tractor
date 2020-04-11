@@ -37,7 +37,18 @@ ul {
     margin-bottom: 0;
 }
 
-i {
+.edit_name {
+    cursor: pointer;
+    width: 20px;
+    height: 16px;
+    background-image: url("./pencil.png");
+    background-size: cover;
+    display: inline-block;
+    margin-left: 5px;
+    position: relative;
+}
+
+.arrow {
     position: absolute;
     border: solid black;
     border-width: 0 3px 3px 0;

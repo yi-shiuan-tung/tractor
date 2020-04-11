@@ -21,6 +21,7 @@ export class Game extends React.Component {
     super(props);
     this.state = {
       // local state
+      isMyNameEditable: false,
       inputMyName: '',
       playerNames: {}, // {playerId: playerName}
       selectedCardIds: {}, // {cardId: boolean}
@@ -155,20 +156,6 @@ export class Game extends React.Component {
       <div>
         <div>
           <h3>Room Code: {roomCode}</h3>
-          {'Name:'}
-          <input
-            type='text'
-            value={inputMyName}
-            onChange={(e) => this.setState({inputMyName: e.target.value})} />
-          <button type='button' onClick={() => {
-            this.subSocket.push(
-                JSON.stringify({
-                  'SET_NAME': {'name': inputMyName.slice(0, 20)},
-                }),
-            );
-          }}>
-            {'Set my name'}
-          </button>
           <button type='button' onClick={() => {
             this.subSocket.push(JSON.stringify({'FORFEIT': {}}));
           }}>
@@ -257,6 +244,8 @@ export class Game extends React.Component {
 
   renderPlayerNames() {
     const {
+      isMyNameEditable,
+      inputMyName,
       playerNames,
       playerReadyForPlay,
       playerIds,
@@ -272,42 +261,71 @@ export class Game extends React.Component {
         <div className='player_list'>
           <div className='title'>Tractor</div>
           <ul>
-            {playerIds.map((playerId) => <li
-              key={playerId}
-              className={playerId === this.myId ? 'me' : ''}
-            >
-              <i
-                className={
-                  (playerId !== this.myId ||
-                  playerIds.indexOf(this.myId) === 0) ? 'hidden' : 'arrow up'
+            {playerIds.map((playerId) => {
+              const children = [];
+              if (playerId === this.myId) {
+                if (playerIds.indexOf(this.myId) !== 0) {
+                  children.push(<span
+                    className='arrow up'
+                    onClick={() => {
+                      const index = playerIds.indexOf(this.myId);
+                      [playerIds[index], playerIds[index - 1]] =
+                        [playerIds[index - 1], playerIds[index]];
+                      this.subSocket.push(
+                        JSON.stringify({ 'PLAYER_ORDER': { playerIds } }),
+                      );
+                    }} />);
                 }
-                onClick={() => {
-                  const index = playerIds.indexOf(this.myId);
-                  [playerIds[index], playerIds[index-1]] =
-                    [playerIds[index-1], playerIds[index]];
-                  this.subSocket.push(
-                      JSON.stringify({'PLAYER_ORDER': {playerIds}}),
-                  );
-                }}/>
-              <i
-                className={
-                  (playerId !== this.myId ||
-                  playerIds.indexOf(this.myId) === playerIds.length - 1) ?
-                  'hidden' : 'arrow down'
+                if (playerIds.indexOf(this.myId) !== playerIds.length - 1) {
+                  children.push(<span
+                    className='arrow down'
+                    onClick={() => {
+                      const index = playerIds.indexOf(this.myId);
+                      [playerIds[index], playerIds[index + 1]] =
+                        [playerIds[index + 1], playerIds[index]];
+                      this.subSocket.push(
+                        JSON.stringify({ 'PLAYER_ORDER': { playerIds } }),
+                      );
+                    }} />);
                 }
-                onClick={() => {
-                  const index = playerIds.indexOf(this.myId);
-                  [playerIds[index], playerIds[index+1]] =
-                    [playerIds[index+1], playerIds[index]];
-                  this.subSocket.push(
-                      JSON.stringify({'PLAYER_ORDER': {playerIds}}),
-                  );
-                }}/>
-              {`${playerNames[playerId]} (rank ${VALUES[playerRankScores[playerId]]})`}
-              {winningPlayerIds.indexOf(playerId) >= 0 ?
-                <span className='crown' /> : undefined
               }
-            </li>)}
+              if (playerId === this.myId && isMyNameEditable) {
+                const setName = () => {
+                  this.setState({ isMyNameEditable: false });
+                  this.subSocket.push(
+                    JSON.stringify({
+                      'SET_NAME': { 'name': inputMyName.slice(0, 20) },
+                    }),
+                  );
+                }
+                children.push(<input
+                  ref={e => e && e.focus()}
+                  type='text'
+                  value={inputMyName}
+                  onChange={e => this.setState({ inputMyName: e.target.value })}
+                  onKeyDown={e => e.which === 13 /* enter key */ && setName()}
+                  onBlur={setName}
+                />);
+              } else {
+                children.push(playerNames[playerId]);
+              }
+              if (playerId === this.myId && !isMyNameEditable) {
+                children.push(<a
+                  className='edit_name'
+                  onClick={() => {
+                    this.setState({ isMyNameEditable: true, inputMyName: playerNames[this.myId] });
+                  }}
+                />);
+              }
+              children.push(` (rank ${VALUES[playerRankScores[playerId]]})`);
+              if (playerId === this.myId) {
+                children.push(<span className='me'> (YOU)</span>);
+              }
+              if (winningPlayerIds.indexOf(playerId) >= 0) {
+                children.push(<span className='crown' />);
+              }
+              return <li key={playerId}>{children}</li>;
+            })}
           </ul>
           <div className='game_properties'>
             <div>
