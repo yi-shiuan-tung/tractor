@@ -117,8 +117,10 @@ public class Game {
      * The next player draws a card from the deck.
      */
     public synchronized Play draw() {
-        if (status != GameStatus.DRAW)
+        if (status == GameStatus.DRAW_KITTY)
             return null;
+        if (status != GameStatus.DRAW)
+            throw new IllegalStateException();
 
         String playerId = playerIds.get(currentPlayerIndex);
         int cardId = deck.poll();

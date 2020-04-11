@@ -36,8 +36,8 @@ import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
-import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
+import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
@@ -48,7 +48,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
-import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
 import io.github.ytung.tractor.api.Play;
 
 @ManagedService(path = "/tractor/{roomCode: [a-zA-Z][a-zA-Z_0-9]*}")
@@ -252,7 +251,6 @@ public class TractorRoom {
                 game.getCurrentPlayerIndex(),
                 game.getDeck(),
                 game.getPlayerHands()));
-        sendSync(resources.get(kitty.getPlayerId()), new YourKitty(game.getPlayerHands()));
     }
 
     private void scheduleFinishTrick(Broadcaster broadcaster) {

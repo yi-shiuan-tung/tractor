@@ -12,8 +12,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
-import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
+import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
@@ -26,7 +26,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
-import io.github.ytung.tractor.api.OutgoingMessage.YourKitty;
 import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.WRAPPER_OBJECT)
@@ -42,7 +41,6 @@ import lombok.Data;
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
     @JsonSubTypes.Type(value = DoneDealing.class, name = "DONE_DEALING"),
     @JsonSubTypes.Type(value = TakeKitty.class, name = "TAKE_KITTY"),
-    @JsonSubTypes.Type(value = YourKitty.class, name = "YOUR_KITTY"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
     @JsonSubTypes.Type(value = ReadyForPlay.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
@@ -132,12 +130,6 @@ public interface OutgoingMessage {
         private final GameStatus status;
         private final int currentPlayerIndex;
         private final Queue<Integer> deck;
-        private final Map<String, List<Integer>> playerHands;
-    }
-
-    @Data
-    public static class YourKitty implements OutgoingMessage {
-
         private final Map<String, List<Integer>> playerHands;
     }
 

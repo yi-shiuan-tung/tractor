@@ -24,7 +24,6 @@ export class Game extends React.Component {
       playerNames: {}, // {playerId: playerName}
       selectedCardIds: {}, // {cardId: boolean}
       notifications: {},
-      showKittyButton: false,
       showPreviousTrick: false,
       playerReadyForPlay: {}, // {playerId: boolean}
 
@@ -91,19 +90,13 @@ export class Game extends React.Component {
           } else if (json.TAKE_KITTY) {
             this.setState(json.TAKE_KITTY);
             const playerId = playerIds[json.TAKE_KITTY.currentPlayerIndex];
-            this.setNotification(
-                this.state.playerNames[playerId] +
-              ' is selecting cards for the kitty',
-            );
-          } else if (json.YOUR_KITTY) {
-            this.setState(json.YOUR_KITTY);
-            this.setNotification(`
-                Select ${kittySize} cards to put in the kitty`)
-            ;
-            this.setState({showKittyButton: true});
+            if (playerId === this.myId) {
+              this.setNotification(`Select ${kittySize} cards to put in the kitty`);
+            } else {
+              this.setNotification(`${playerNames[playerId]} is selecting cards for the kitty`);
+            }
           } else if (json.MAKE_KITTY) {
             this.setState(json.MAKE_KITTY);
-            this.setState({showKittyButton: false});
           } else if (json.PLAY) {
             this.setState(json.PLAY);
           } else if (json.FINISH_TRICK) {
