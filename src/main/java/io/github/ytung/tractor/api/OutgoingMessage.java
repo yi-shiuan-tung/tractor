@@ -3,6 +3,7 @@ package io.github.ytung.tractor.api;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -181,12 +182,15 @@ public interface OutgoingMessage {
         private final int roundNumber;
         private final int declarerPlayerIndex;
         private final Map<String, Card.Value> playerRankScores;
+        private final boolean doDeclarersWin;
+        private final Set<String> winningPlayerIds;
 
         private final GameStatus status;
         private final int currentPlayerIndex;
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
         private final Map<String, Integer> currentRoundScores;
+        private final Card currentTrump;
     }
 
     @Data

@@ -37,6 +37,7 @@ public class Game {
     private int roundNumber = 0;
     private int declarerPlayerIndex = 0;
     private Map<String, Card.Value> playerRankScores = new HashMap<>();
+    private boolean doDeclarersWin;
     private Set<String> winningPlayerIds = new HashSet<>();
 
     // round state
@@ -342,10 +343,12 @@ public class Game {
 
     private void roundEnd(boolean doDeclarersWin, int scoreIncrease) {
         roundNumber++;
+        this.doDeclarersWin = doDeclarersWin;
         do {
             // declarer goes to next person on the winning team
             declarerPlayerIndex = (declarerPlayerIndex + 1) % playerIds.size();
         } while (isDeclaringTeam.get(playerIds.get(declarerPlayerIndex)) != doDeclarersWin);
+        winningPlayerIds.clear();
         for (String playerId : playerIds)
             if (isDeclaringTeam.get(playerId) == doDeclarersWin) {
                 int newScore = playerRankScores.get(playerId).ordinal() + scoreIncrease;
@@ -353,8 +356,7 @@ public class Game {
                     playerRankScores.put(playerId, Card.Value.BIG_JOKER);
                 else
                     playerRankScores.put(playerId, Card.Value.values()[newScore]);
-                if (newScore > Card.Value.ACE.ordinal())
-                    winningPlayerIds.add(playerId);
+                winningPlayerIds.add(playerId);
             }
         status = GameStatus.START_ROUND;
     }

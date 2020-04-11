@@ -109,6 +109,15 @@ i {
     padding: 5px;
 }
 
+.game_area .crown {
+    width: 20px;
+    height: 16px;
+    background-image: url("./crown.png");
+    background-size: cover;
+    display: inline-block;
+    margin-left: 5px;
+}
+
 .game_area .my_area {
     z-index: 1;
 }

@@ -265,11 +265,14 @@ public class TractorRoom {
                     game.getRoundNumber(),
                     game.getDeclarerPlayerIndex(),
                     game.getPlayerRankScores(),
+                    game.isDoDeclarersWin(),
+                    game.getWinningPlayerIds(),
                     game.getStatus(),
                     game.getCurrentPlayerIndex(),
                     game.getPastTricks(),
                     game.getCurrentTrick(),
-                    game.getCurrentRoundScores()));
+                    game.getCurrentRoundScores(),
+                    game.getCurrentTrump()));
             }
         };
 

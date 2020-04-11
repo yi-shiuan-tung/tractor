@@ -31,6 +31,7 @@ export class Game extends React.Component {
             roundNumber: undefined, // integer
             declarerPlayerIndex: undefined, // integer
             playerRankScores: {}, // { playerId: cardValue }
+            winningPlayerIds: [], // PlayerId[]
             status: 'START_ROUND', // GameStatus
             currentPlayerIndex: undefined, // integer
             isDeclaringTeam: undefined, // { playerId: boolean }
@@ -92,7 +93,11 @@ export class Game extends React.Component {
             } else if (json.PLAY) {
                 this.setState(json.PLAY);
             } else if (json.FINISH_TRICK) {
-                this.setState(json.FINISH_TRICK);
+                const { doDeclarersWin, ...other } = json.FINISH_TRICK;
+                this.setState(other);
+                if (other.status === 'START_ROUND') {
+                    this.setNotification(doDeclarersWin ? "Declarers win!" : "Opponents win!");
+                }
             } else if (json.FORFEIT) {
                 const { playerId, ...other } = json.FORFEIT;
                 this.setNotification(`${playerNames[playerId]} forfeited.`);
@@ -177,12 +182,11 @@ export class Game extends React.Component {
             playerNames,
             playerIds,
             declarerPlayerIndex,
-            status,
             isDeclaringTeam,
             currentRoundScores,
             currentTrump,
         } = this.state;
-        if (status === 'START_ROUND') {
+        if (currentTrump === undefined) {
             return;
         }
         const declarer = playerIds[declarerPlayerIndex] === this.myId
@@ -226,7 +230,7 @@ export class Game extends React.Component {
     }
 
     renderPlayerNames() {
-        const { playerNames, playerIds, numDecks, playerRankScores, status, currentPlayerIndex } = this.state;
+        const { playerNames, playerIds, numDecks, playerRankScores, winningPlayerIds, status, currentPlayerIndex } = this.state;
         if (status === 'START_ROUND') {
             return (
                 <div className="player_list">
@@ -249,6 +253,7 @@ export class Game extends React.Component {
                                     this.subSocket.push(JSON.stringify({"PLAYER_ORDER": { playerIds}}))
                                 }}/>
                             {`${playerNames[playerId]} (${VALUES[playerRankScores[playerId]]})`}
+                            {winningPlayerIds.indexOf(playerId) >= 0 ? <span className="crown" /> : undefined}
                         </li>)}
                     </ul>
                     <div className="game_properties">
