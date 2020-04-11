@@ -52,7 +52,7 @@ export class Lobby extends React.Component {
             <input
               type='text'
               value={inputRoomCode}
-              onChange={(e) => this.setState({inputRoomCode: e.target.value})}
+              onChange={(e) => this.setState({inputRoomCode: e.target.value.toUpperCase()})}
               onKeyPress = {
                 (e) => {
                   if (e.nativeEvent.key == 'Enter') {

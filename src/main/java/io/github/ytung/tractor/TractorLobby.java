@@ -33,7 +33,7 @@ public class TractorLobby {
         }
 
         if (message instanceof JoinRoomRequest) {
-            String roomCode = ((JoinRoomRequest) message).getRoomCode().toUpperCase();
+            String roomCode = ((JoinRoomRequest) message).getRoomCode();
             if (roomCodes.containsKey(roomCode)) {
                 return new JoinRoom(roomCode);
             }
