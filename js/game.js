@@ -474,9 +474,10 @@ export class Game extends React.Component {
     const selectedCardIdsList = Object.entries(selectedCardIds)
         .filter(([_cardId, selected]) => selected)
         .map(([cardId, _selected]) => cardId);
+    const iAmReadyForPlay = playerReadyForPlay[this.myId];
     if ((status === 'DRAW' || status === 'DRAW_KITTY') &&
       selectedCardIdsList.length > 0 &&
-      !playerReadyForPlay[this.myId]) {
+      !iAmReadyForPlay) {
       return <div
         className='action_button game_action_button'
         onClick={() => {
@@ -494,15 +495,16 @@ export class Game extends React.Component {
     }
 
     if (status === 'DRAW_KITTY') {
+      const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
       return <div
-        className={playerReadyForPlay[this.myId] ?
-          'ready action_button game_action_button' :
-          'action_button game_action_button'}
+        className={iAmReadyForPlay ?
+          'action_button game_action_button' :
+          'gray action_button game_action_button'}
         onClick={() => {
-          this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {}}));
+          this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {ready: !iAmReadyForPlay}}));
         }}
       >
-        Ready
+        {`Ready (${numPlayersReadyForPlay}/${playerIds.length})`}
       </div>;
     }
     if (playerIds[currentPlayerIndex] !== this.myId) {

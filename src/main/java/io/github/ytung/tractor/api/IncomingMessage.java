@@ -86,6 +86,7 @@ public interface IncomingMessage {
     @NoArgsConstructor
     public static class ReadyForPlayRequest implements IncomingMessage {
 
+        private boolean ready;
     }
 
     @Data

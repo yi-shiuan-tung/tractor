@@ -170,10 +170,11 @@ public class TractorRoom {
         }
 
         if (message instanceof ReadyForPlayRequest) {
-            playerReadyForPlay.put(r.uuid(), !playerReadyForPlay.get(r.uuid()));
-
-            if (!playerReadyForPlay.containsValue(false))
+            playerReadyForPlay.put(r.uuid(), ((ReadyForPlayRequest) message).isReady());
+            if (!playerReadyForPlay.containsValue(false)) {
                 dealKitty(r.getBroadcaster());
+                playerReadyForPlay.replaceAll((k, v) -> v=false); // reset for next time
+            }
             return new ReadyForPlay(playerReadyForPlay);
         }
 
