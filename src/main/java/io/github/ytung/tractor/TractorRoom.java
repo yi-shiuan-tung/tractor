@@ -32,7 +32,6 @@ import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
-import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
@@ -71,7 +70,7 @@ public class TractorRoom {
         playerNames.put(r.uuid(), Names.generateRandomName());
         playerReadyForPlay.put(r.uuid(), false);
         game.addPlayer(r.uuid());
-        return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
+        return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames, playerReadyForPlay);
     }
 
     @Disconnect
@@ -97,7 +96,8 @@ public class TractorRoom {
             game.getPlayerIds(),
             game.getPlayerRankScores(),
             game.getKittySize(),
-            playerNames));
+            playerNames,
+            playerReadyForPlay));
         if (resources.isEmpty()) {
             TractorLobby.closeRoom(roomCode);
         }
@@ -111,41 +111,20 @@ public class TractorRoom {
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(r.uuid(), name);
-            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
+            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames, playerReadyForPlay);
         }
 
         if (message instanceof PlayerOrderRequest) {
-            if (game.getStatus() == GameStatus.START_ROUND) {
-                List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
-                game.setPlayerOrder(playerIds);
-                return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames);
-            }
+            List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
+            game.setPlayerOrder(playerIds);
+            playerReadyForPlay.replaceAll((k, v) -> v=false);
+            return new UpdatePlayers(game.getPlayerIds(), game.getPlayerRankScores(), game.getKittySize(), playerNames, playerReadyForPlay);
         }
 
         if (message instanceof NumDecksRequest) {
             game.setNumDecks(((NumDecksRequest) message).getNumDecks());
-            return new NumDecks(game.getNumDecks(), game.getKittySize());
-        }
-
-        if (message instanceof StartRoundRequest) {
-            game.startRound();
-            sendSync(r.getBroadcaster(), new StartRound(
-                game.getRoundNumber(),
-                game.getDeclarerPlayerIndex(),
-                game.getStatus(),
-                game.getCurrentPlayerIndex(),
-                game.getIsDeclaringTeam(),
-                game.getDeck(),
-                new HashMap<>(), // no cards are known at beginning
-                game.getPlayerHands(),
-                game.getDeclaredCards(),
-                game.getKitty(),
-                game.getPastTricks(),
-                game.getCurrentTrick(),
-                game.getCurrentRoundScores(),
-                game.getCurrentTrump()));
-            startDealing(r.getBroadcaster());
-            return null;
+            playerReadyForPlay.replaceAll((k, v) -> v=false);
+            return new NumDecks(game.getNumDecks(), game.getKittySize(), playerReadyForPlay);
         }
 
         if (message instanceof DeclareRequest) {
@@ -154,7 +133,6 @@ public class TractorRoom {
                 game.declare(r.uuid(), cardIds);
                 Map<Integer, Card> cardsById = game.getCardsById();
                 sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-                // reset all players to not ready
                 playerReadyForPlay.replaceAll((k, v) -> v=false);
                 return new Declare(
                     game.getDeclarerPlayerIndex(),
@@ -172,7 +150,12 @@ public class TractorRoom {
         if (message instanceof ReadyForPlayRequest) {
             playerReadyForPlay.put(r.uuid(), ((ReadyForPlayRequest) message).isReady());
             if (!playerReadyForPlay.containsValue(false)) {
-                dealKitty(r.getBroadcaster());
+                if (game.getStatus() == GameStatus.START_ROUND)
+                    startRound(r.getBroadcaster());
+                else if (game.getStatus() == GameStatus.DRAW_KITTY)
+                    dealKitty(r.getBroadcaster());
+                else
+                    throw new IllegalStateException();
                 playerReadyForPlay.replaceAll((k, v) -> v=false); // reset for next time
             }
             return new ReadyForPlay(playerReadyForPlay);
@@ -217,7 +200,23 @@ public class TractorRoom {
         throw new IllegalArgumentException("Invalid message.");
     }
 
-    private void startDealing(Broadcaster broadcaster) {
+    private void startRound(Broadcaster broadcaster) {
+        game.startRound();
+        sendSync(broadcaster, new StartRound(
+            game.getRoundNumber(),
+            game.getDeclarerPlayerIndex(),
+            game.getStatus(),
+            game.getCurrentPlayerIndex(),
+            game.getIsDeclaringTeam(),
+            game.getDeck(),
+            new HashMap<>(), // no cards are known at beginning
+            game.getPlayerHands(),
+            game.getDeclaredCards(),
+            game.getKitty(),
+            game.getPastTricks(),
+            game.getCurrentTrick(),
+            game.getCurrentRoundScores(),
+            game.getCurrentTrump()));
         Thread dealingThread = new Thread() {
             @Override
             public void run() {

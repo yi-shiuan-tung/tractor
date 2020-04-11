@@ -255,6 +255,7 @@ export class Game extends React.Component {
   renderPlayerNames() {
     const {
       playerNames,
+      playerReadyForPlay,
       playerIds,
       numDecks,
       playerRankScores,
@@ -263,6 +264,7 @@ export class Game extends React.Component {
       currentPlayerIndex,
     } = this.state;
     if (status === 'START_ROUND') {
+      const iAmReadyForPlay = playerReadyForPlay[this.myId];
       return (
         <div className='player_list'>
           <div className='title'>Tractor</div>
@@ -324,12 +326,14 @@ export class Game extends React.Component {
             </div>
           </div>
           <div
-            className='button primary start_game_button'
-            onClick={() =>
-              this.subSocket.push(JSON.stringify({'START_ROUND': {}}))
-            }
+            className={iAmReadyForPlay ?
+              'button primary start_game_button' :
+              'inactive button primary start_game_button'}
+            onClick={() => {
+              this.subSocket.push(JSON.stringify({ 'READY_FOR_PLAY': { ready: !iAmReadyForPlay } }));
+            }}
           >
-            {'Start game'}
+            {`Start round ${this.getNumPlayersReadyString()}`}
           </div>
         </div>
       );
@@ -495,16 +499,15 @@ export class Game extends React.Component {
     }
 
     if (status === 'DRAW_KITTY') {
-      const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
       return <div
         className={iAmReadyForPlay ?
           'action_button game_action_button' :
-          'gray action_button game_action_button'}
+          'inactive action_button game_action_button'}
         onClick={() => {
           this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {ready: !iAmReadyForPlay}}));
         }}
       >
-        {`Ready (${numPlayersReadyForPlay}/${playerIds.length})`}
+        {`Ready ${this.getNumPlayersReadyString()}`}
       </div>;
     }
     if (playerIds[currentPlayerIndex] !== this.myId) {
@@ -573,6 +576,12 @@ export class Game extends React.Component {
           return <Card key={cardId} {...input} />;
         });
     return <div>{cardImgs}</div>;
+  }
+
+  getNumPlayersReadyString() {
+    const { playerReadyForPlay, playerIds } = this.state;
+    const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
+    return `(${numPlayersReadyForPlay}/${playerIds.length})`;
   }
 }
 

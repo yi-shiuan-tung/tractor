@@ -251,10 +251,6 @@ i {
     background-color: green;
 }
 
-.gray {
-    background-color: gray;
-}
-
 .action_button:hover {
     height: 40px;
     line-height: 40px;
@@ -305,4 +301,12 @@ i {
 .button.primary:active {
   background-color: rgba(var(--button-primary-color), 1);
   transform: scale(0.99);
+}
+
+.button.inactive.inactive {
+    background-color: gray;
+}
+
+.button.inactive.inactive:hover {
+    background-color: rgba(128, 128, 128, 0.9);
 }

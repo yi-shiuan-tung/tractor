@@ -72,6 +72,8 @@ public class Game {
     }
 
     public synchronized void setPlayerOrder(List<String> newPlayerIds) {
+        if (status != GameStatus.START_ROUND)
+            throw new IllegalStateException();
         if (!new HashSet<>(playerIds).equals(new HashSet<>(newPlayerIds)))
             throw new IllegalStateException();
 

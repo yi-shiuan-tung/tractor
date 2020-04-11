@@ -76,6 +76,7 @@ public interface OutgoingMessage {
         private final Map<String, Card.Value> playerRankScores;
         private final int kittySize;
         private final Map<String, String> playerNames;
+        private final Map<String, Boolean> playerReadyForPlay;
     }
 
     @Data
@@ -83,6 +84,7 @@ public interface OutgoingMessage {
 
         private final int numDecks;
         private final int kittySize;
+        private final Map<String, Boolean> playerReadyForPlay;
     }
 
     @Data
