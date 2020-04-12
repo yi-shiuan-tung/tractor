@@ -127,6 +127,10 @@ ul {
     background-color: tan;
 }
 
+.game_area .friend_declaration {
+    margin-top: 10px;
+}
+
 .game_area .game_properties {
     margin: 40px;
 }
@@ -186,8 +190,8 @@ ul {
 }
 
 .game_area .current {
-    color: darkblue;
-    border: 1px solid black;
+    color: orange;
+    border: 1px solid orange;
     border-radius: 8px;
 }
 

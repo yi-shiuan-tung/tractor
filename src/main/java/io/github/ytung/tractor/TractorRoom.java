@@ -263,6 +263,7 @@ public class TractorRoom {
             game.getPlayerHands(),
             game.getDeclaredCards(),
             game.getKitty(),
+            game.getFindAFriendDeclaration(),
             game.getPastTricks(),
             game.getCurrentTrick(),
             game.getCurrentRoundScores(),

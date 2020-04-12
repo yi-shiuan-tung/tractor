@@ -1,5 +1,5 @@
 
-export const VALUES = Object.freeze({
+const VALUES = Object.freeze({
   'ACE': '1',
   'TWO': '2',
   'THREE': '3',

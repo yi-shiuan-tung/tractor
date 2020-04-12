@@ -106,6 +106,7 @@ public interface OutgoingMessage {
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
         private final List<Integer> kitty;
+        private final FindAFriendDeclaration findAFriendDeclaration;
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
         private final Map<String, Integer> currentRoundScores;
@@ -162,7 +163,7 @@ public interface OutgoingMessage {
     @Data
     public static class FindAFriendDeclarationMessage implements OutgoingMessage {
 
-        private final FindAFriendDeclaration declaration;
+        private final FindAFriendDeclaration findAFriendDeclaration;
     }
 
     @Data

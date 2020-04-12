@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ORDINALS, SUITS, VALUES } from './cards';
 
 export class FindAFriendPanel extends React.Component {
 
@@ -13,42 +14,35 @@ export class FindAFriendPanel extends React.Component {
 
     render() {
         // Janky rendering for now for testing. TODO make a real panel
-        const { findAFriend, status, setFindAFriendDeclaration } = this.props;
+        const { playerIds, findAFriend, declarerPlayerIndex, status, myId, setFindAFriendDeclaration } = this.props;
         const { ordinal, value, suit } = this.state;
-        if (!findAFriend || status !== 'MAKE_KITTY') {
+        if (!findAFriend || status !== 'MAKE_KITTY' || playerIds[declarerPlayerIndex] !== myId) {
             return <div />;
         }
         return (
             <div>
-                Find a friend declaration:
+                {"Find a friend declaration:"}
                 <select
                     id="find_a_friend_panel_select_1"
                     value={ordinal}
                     onChange={e => this.setState({ ordinal: e.target.value })}
                 >
-                    <option value="0">OTHER</option>
-                    <option value="1">FIRST</option>
-                    <option value="2">SECOND</option>
+                    {ORDINALS.map((ordinal, index) => <option value={`${index}`}>{ordinal}</option>)}
                 </select>
                 <select
                     id="find_a_friend_panel_select_2"
                     value={value}
                     onChange={e => this.setState({ value: e.target.value })}
                 >
-                    <option value="TWO">2</option>
-                    <option value="THREE">3</option>
-                    <option value="FOUR">4</option>
+                    {Object.entries(VALUES).map(([key, value]) => <option value={`${key}`}>{value}</option>)}
                 </select>
-                of
+                {"of"}
                 <select
                     id="find_a_friend_panel_select_3"
                     value={suit}
                     onChange={e => this.setState({ suit: e.target.value })}
                 >
-                    <option value="CLUB">clubs</option>
-                    <option value="DIAMOND">diamonds</option>
-                    <option value="HEART">hearts</option>
-                    <option value="SPADE">spades</option>
+                    {Object.entries(SUITS).map(([key, value]) => <option value={`${key}`}>{value}</option>)}
                 </select>
                 <button
                     type='button'

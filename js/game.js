@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {VALUES, getCardImageSrc, getFaceDownCardImageSrc} from './assets';
+import {getCardImageSrc, getFaceDownCardImageSrc} from './assets';
+import { ORDINALS, SUITS, VALUES } from './cards';
 import {setUpConnection} from './connection';
 import {LOCATION} from './consts';
 import './game.css';
@@ -48,6 +49,7 @@ export class Game extends React.Component {
       playerHands: undefined, // {playerId: cardId[]}
       declaredCards: undefined, // Play[]
       kitty: undefined, // Card[]
+      findAFriendDeclaration: undefined, // FindAFriendDeclaration
       pastTricks: undefined, // Trick[]
       currentTrick: undefined, // Trick
       currentRoundScores: undefined, // {playerId: integer}
@@ -100,6 +102,8 @@ export class Game extends React.Component {
             } else {
               this.setNotification(`${playerNames[playerId]} is selecting cards for the kitty`);
             }
+          } else if (json.FRIEND_DECLARE) {
+            this.setState(json.FRIEND_DECLARE);
           } else if (json.MAKE_KITTY) {
             this.setState(json.MAKE_KITTY);
           } else if (json.PLAY) {
@@ -112,6 +116,10 @@ export class Game extends React.Component {
                  doDeclarersWin ? 'Declarers win!' : 'Opponents win!',
               );
             }
+          } else if (json.FRIEND_JOINED) {
+            const {playerId, ...other} = json.FRIEND_JOINED;
+            this.setNotification(`${playerNames[playerId]} has joined the declaring team!`);
+            this.setState(other);
           } else if (json.FORFEIT) {
             const {playerId, ...other} = json.FORFEIT;
             this.setNotification(`${playerNames[playerId]} forfeited.`);
@@ -164,8 +172,11 @@ export class Game extends React.Component {
           </button>
         </div>
         <FindAFriendPanel
+          playerIds={this.state.playerIds}
           findAFriend={this.state.findAFriend}
+          declarerPlayerIndex={this.state.declarerPlayerIndex}
           status={this.state.status}
+          myId={this.myId}
           setFindAFriendDeclaration={declarations => this.subSocket.push(JSON.stringify({ 'FRIEND_DECLARE': { declaration: { declarations } } }))}
         />
         {this.renderGameArea()}
@@ -221,6 +232,24 @@ export class Game extends React.Component {
         <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
         <div>Declarer: {declarer}</div>
         <div>Opponent&apos;s points: {opponentsPoints}</div>
+        {this.maybeRenderFindAFriendDeclaration()}
+      </div>
+    );
+  }
+
+  maybeRenderFindAFriendDeclaration() {
+    const { findAFriendDeclaration } = this.state;
+    if (findAFriendDeclaration === undefined) {
+      return;
+    }
+    return (
+      <div className="friend_declaration">
+        <div>Friends:</div>
+        {findAFriendDeclaration.declarations.map((declaration, index) => {
+          return <div key={`declaration${index}`}>
+            {`${ORDINALS[declaration.ordinal]} ${VALUES[declaration.value]} of ${SUITS[declaration.suit]}`}
+          </div>;
+        })}
       </div>
     );
   }
