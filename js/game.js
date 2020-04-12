@@ -409,7 +409,7 @@ export class Game extends React.Component {
               }
               let playerInfo = undefined;
               if (isDeclaringTeam[playerId]) {
-                playerInfo = 'DECL.';
+                playerInfo = 'DECL. TEAM';
               } else if (findAFriend) {
                 const numPoints = currentRoundScores[playerId];
                 if (numPoints > 0) {
@@ -457,7 +457,7 @@ export class Game extends React.Component {
       }
     }
     if (status === 'PLAY' && playerId === this.myId) {
-      return <div className='notification'>{'Your turn'}</div>
+      return <div className='notification short'>{'Your turn'}</div>
     }
   }
 

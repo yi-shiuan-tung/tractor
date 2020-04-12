@@ -238,6 +238,11 @@ ul {
     background-color: orange;
 }
 
+.game_area .notification.short {
+    width: 100px;
+    margin-left: -50px;
+}
+
 .game_area img {
     position: absolute;
 }
