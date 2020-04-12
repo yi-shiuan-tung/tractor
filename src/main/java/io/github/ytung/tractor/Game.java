@@ -133,6 +133,7 @@ public class Game {
 
         for (String playerId : playerIds)
             playerHands.put(playerId, new ArrayList<>());
+        findAFriendDeclarationCounters = ArrayListMultimap.create();
     }
 
     /**
@@ -264,7 +265,6 @@ public class Game {
 
         findAFriendDeclaration = declarations;
 
-        findAFriendDeclarationCounters = ArrayListMultimap.create();
         for (Declaration declaration : declarations.getDeclarations()) {
             Card card = new Card(declaration.getValue(), declaration.getSuit());
             findAFriendDeclarationCounters.put(card, declaration.getOrdinal());
@@ -310,19 +310,21 @@ public class Game {
             if (count == 0)
                 continue;
 
+            findAFriendDeclarationCounters.remove(card, counter);
+
             // handle an OTHER declaration
             if (counter == 0 && !playerIds.get(declarerPlayerIndex).equals(playerId)) {
-                findAFriendDeclarationCounters.remove(card, counter);
                 didFriendJoin = true;
                 continue;
             }
 
             // handle normal declaration
             if (counter - count <= 0) {
-                findAFriendDeclarationCounters.remove(card, counter);
                 didFriendJoin = true;
                 continue;
             }
+
+            findAFriendDeclarationCounters.put(card, counter - count);
         }
         if (didFriendJoin)
             isDeclaringTeam.put(playerId, true);

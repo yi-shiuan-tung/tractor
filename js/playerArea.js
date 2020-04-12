@@ -28,6 +28,7 @@ export class PlayerArea extends React.Component {
       playerId,
       myId,
       distance,
+      shiftX = 0,
       isText,
       children,
     } = this.props;
@@ -36,7 +37,7 @@ export class PlayerArea extends React.Component {
     const myIndex = playerIds.indexOf(myId);
     const centerPoint = {
       x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 *
-        Math.PI / playerIds.length) * distance / 2),
+        Math.PI / playerIds.length) * distance / 2 * 0.9),
       y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 *
         Math.PI / playerIds.length) * distance / 2),
     };
@@ -72,7 +73,7 @@ export class PlayerArea extends React.Component {
         className='player_container my_area'
         style={{
           top: centerPoint.y,
-          left: centerPoint.x,
+          left: centerPoint.x + shiftX,
           transform,
         }}
         ref={ref}

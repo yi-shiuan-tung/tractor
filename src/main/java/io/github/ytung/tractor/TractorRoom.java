@@ -239,6 +239,8 @@ public class TractorRoom {
 
         if (message instanceof ForfeitRequest) {
             game.forfeitRound(r.uuid());
+            // game end, send kitty card info to all players
+            sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
             return new Forfeit(
                 r.uuid(),
                 game.getRoundNumber(),
@@ -325,7 +327,6 @@ public class TractorRoom {
                 if (game.getStatus() != GameStatus.PLAY)
                     // game end, send kitty card info to all players
                     sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
-
             }
         };
 

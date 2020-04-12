@@ -163,6 +163,7 @@ ul {
     font-size: 16px;
     padding: 5px;
     color: white;
+    white-space: nowrap;
 }
 
 .game_area .crown {
@@ -193,6 +194,13 @@ ul {
     color: orange;
     border: 1px solid orange;
     border-radius: 8px;
+}
+
+.game_area .declarer {
+    color: white;
+    position: relative;
+    bottom: 10px;
+    margin-left: 2px;
 }
 
 .game_area .start_action_button {

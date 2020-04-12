@@ -239,7 +239,7 @@ export class Game extends React.Component {
 
   maybeRenderFindAFriendDeclaration() {
     const { findAFriendDeclaration } = this.state;
-    if (findAFriendDeclaration === undefined) {
+    if (!findAFriendDeclaration) {
       return;
     }
     return (
@@ -290,6 +290,7 @@ export class Game extends React.Component {
       winningPlayerIds,
       status,
       currentPlayerIndex,
+      isDeclaringTeam,
     } = this.state;
     if (status === 'START_ROUND') {
       const iAmReadyForPlay = playerReadyForPlay[this.myId];
@@ -408,7 +409,6 @@ export class Game extends React.Component {
     } else {
       return <div>
         {playerIds
-            .filter((playerId) => playerId !== this.myId)
             .map((playerId) => {
               let className = 'player_name';
               if (status !== 'DRAW' &&
@@ -421,9 +421,13 @@ export class Game extends React.Component {
                 playerId={playerId}
                 myId={this.myId}
                 distance={0.91}
+                shiftX={playerId === this.myId ? 204 : 0}
                 isText={true}
               >
-                <div className={className}>{playerNames[playerId]}</div>
+                <div>
+                  <span className={className}>{playerNames[playerId]}</span>
+                  {isDeclaringTeam[playerId] ? <span className="declarer">DEF.</span> : undefined}
+                </div>
               </PlayerArea>;
             })}
       </div>;
@@ -494,7 +498,7 @@ export class Game extends React.Component {
   }
 
   renderCurrentTrick() {
-    const {showPreviousTrick, playerIds, pastTricks, currentTrick} = this.state;
+    const {showPreviousTrick, playerIds, status, pastTricks, currentTrick} = this.state;
     if (!currentTrick) {
       return;
     }
@@ -505,6 +509,9 @@ export class Game extends React.Component {
         myId={this.myId}
         renderCards={this.renderCards}
       />
+    }
+    if (status === 'START_ROUND') {
+      return;
     }
     return <Trick
       trick={currentTrick}
