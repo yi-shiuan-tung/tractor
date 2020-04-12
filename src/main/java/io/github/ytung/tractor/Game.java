@@ -361,7 +361,7 @@ public class Game {
             int roundScore = 0;
             for (String playerId : playerIds)
                 if (!isDeclaringTeam.get(playerId))
-                    roundScore += 4 * currentRoundScores.get(playerId);
+                    roundScore += currentRoundScores.get(playerId);
             boolean doDeclarersWin = roundScore < 40 * numDecks;
             int scoreIncrease = doDeclarersWin ? (40 * numDecks + 35 - roundScore) / 40 : (roundScore - 40 * numDecks) / 40;
             roundEnd(doDeclarersWin, scoreIncrease);
