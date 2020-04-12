@@ -648,6 +648,7 @@ export class Game extends React.Component {
       className='last_trick_button'
       onMouseDown={() => this.setState({showPreviousTrick: true})}
       onMouseUp={() => this.setState({showPreviousTrick: false})}
+      onMouseLeave={() => this.setState({showPreviousTrick: false})}
     />;
   }
 
