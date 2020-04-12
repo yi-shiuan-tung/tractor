@@ -358,7 +358,9 @@ public class Game {
                 if (!isDeclaringTeam.get(playerId))
                     roundScore += currentRoundScores.get(playerId);
             boolean doDeclarersWin = roundScore < 40 * numDecks;
-            int scoreIncrease = doDeclarersWin ? (40 * numDecks + 35 - roundScore) / 40 : (roundScore - 40 * numDecks) / 40;
+            int scoreIncrease = doDeclarersWin
+                    ? (roundScore == 0 ? 3 : 2 - roundScore / (20 * numDecks))
+                    : roundScore / (20 * numDecks) - 2;
             roundEnd(doDeclarersWin, scoreIncrease);
         }
     }
