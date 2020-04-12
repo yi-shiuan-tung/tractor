@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
-import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
@@ -41,7 +40,6 @@ import lombok.Data;
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
-    @JsonSubTypes.Type(value = DoneDealing.class, name = "DONE_DEALING"),
     @JsonSubTypes.Type(value = TakeKitty.class, name = "TAKE_KITTY"),
     @JsonSubTypes.Type(value = FindAFriendDeclarationMessage.class, name = "FRIEND_DECLARE"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
@@ -126,11 +124,6 @@ public interface OutgoingMessage {
         private final int currentPlayerIndex;
         private final Queue<Integer> deck;
         private final Map<String, List<Integer>> playerHands;
-    }
-
-    @Data
-    public static class DoneDealing implements OutgoingMessage {
-
     }
 
     @Data

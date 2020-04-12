@@ -86,22 +86,12 @@ export class Game extends React.Component {
             }});
           } else if (json.DRAW) {
             this.setState(json.DRAW);
-          } else if (json.DONE_DEALING) {
-            this.setNotification(
-                `Select card(s) to declare trump suit or press READY`,
-            );
           } else if (json.DECLARE) {
             this.setState(json.DECLARE);
           } else if (json.READY_FOR_PLAY) {
             this.setState(json.READY_FOR_PLAY);
           } else if (json.TAKE_KITTY) {
             this.setState(json.TAKE_KITTY);
-            const playerId = playerIds[json.TAKE_KITTY.currentPlayerIndex];
-            if (playerId === this.myId) {
-              this.setNotification(`Select ${kittySize} cards to put in the kitty`);
-            } else {
-              this.setNotification(`${playerNames[playerId]} is selecting cards for the kitty`);
-            }
           } else if (json.FRIEND_DECLARE) {
             this.setState(json.FRIEND_DECLARE);
           } else if (json.MAKE_KITTY) {
@@ -445,7 +435,18 @@ export class Game extends React.Component {
   }
 
   renderNotifications() {
-    const {notifications} = this.state;
+    const {playerNames, notifications, playerReadyForPlay, playerIds, kittySize, status, currentPlayerIndex} = this.state;
+    if (!playerReadyForPlay[this.myId] && status === 'DRAW_KITTY') {
+      return <div className='notification'>{"Select card(s) to declare trump suit or press READY"}</div>
+    }
+    if (status === 'MAKE_KITTY') {
+      const playerId = playerIds[currentPlayerIndex];
+      if (playerId === this.myId) {
+        return <div className='notification'>{`Select ${kittySize} cards to put in the kitty`}</div>
+      } else {
+        return <div className='notification'>{`${playerNames[playerId]} is selecting cards for the kitty`}</div>
+      }
+    }
     return Object.entries(notifications).map(([id, message]) =>
       <div key={id} className='notification'>{message}</div>,
     );

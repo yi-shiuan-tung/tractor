@@ -37,7 +37,6 @@ import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
-import io.github.ytung.tractor.api.OutgoingMessage.DoneDealing;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
@@ -284,9 +283,8 @@ public class TractorRoom {
                         game.getCurrentPlayerIndex(),
                         game.getDeck(),
                         game.getPlayerHands()));
-                    Uninterruptibles.sleepUninterruptibly((DEV_MODE ? 5 : 500) / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
+                    Uninterruptibles.sleepUninterruptibly((DEV_MODE ? 10 : 1000) / game.getPlayerIds().size(), TimeUnit.MILLISECONDS);
                 }
-                sendSync(broadcaster, new DoneDealing());
             }
         };
 
