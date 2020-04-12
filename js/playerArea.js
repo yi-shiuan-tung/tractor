@@ -75,6 +75,7 @@ export class PlayerArea extends React.Component {
           top: centerPoint.y,
           left: centerPoint.x + shiftX,
           transform,
+          zIndex: playerId === myId ? 1 : 0,
         }}
         ref={ref}
       >

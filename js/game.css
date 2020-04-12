@@ -92,7 +92,6 @@ ul {
     left: 50%;
     width: 600px;
     margin-left: -300px;
-    height: 460px;
     text-align: center;
     color: darkblue;
     border: 1px solid black;
@@ -250,6 +249,7 @@ ul {
 .game_area .start_game_button {
     width: 150px;
     margin: auto;
+    margin-bottom: 44px;
 }
 
 .game_area .game_action_button {
