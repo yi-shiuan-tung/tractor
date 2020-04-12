@@ -632,7 +632,8 @@ export class Game extends React.Component {
         className='view_kitty_button'
         onMouseDown={() => this.setState({showKitty: true})}
         onMouseUp={() => this.setState({showKitty: false})}
-      >View Kitty</div>
+        onMouseLeave={() => this.setState({showKitty: false})}
+     />
   }
 
   renderKittyCards() {

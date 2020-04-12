@@ -290,23 +290,18 @@ ul {
 
 .game_area .view_kitty_button {
     cursor: pointer;
-    text-align: center;
-    color: white;
-    font-size: 24px;
-    border: 1px solid black;
-    border-radius: 10px;
-    background-color: green;
     position: absolute;
-    bottom: 20px;
-    right: 100px;
+    bottom: 25px;
+    right: 116px;
     width: 84px;
     height: 64px;
-    padding: 8px;
+    background-image: url("./kitty.png");
+    background-size: cover;
 }
 
 .game_area .view_kitty_button:active {
-    bottom: 22px;
-    right: 102px;
+    bottom: 27px;
+    right: 118px;
     width: 80px;
     height: 60px;
 }
