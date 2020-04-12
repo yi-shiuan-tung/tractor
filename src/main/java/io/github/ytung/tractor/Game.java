@@ -311,20 +311,15 @@ public class Game {
             if (count == 0)
                 continue;
 
-            findAFriendDeclarationCounters.remove(card, counter);
-
-            // handle an OTHER declaration
-            if (counter == 0 && !playerIds.get(declarerPlayerIndex).equals(playerId)) {
-                didFriendJoin = true;
+            // ignore OTHER declaration if the declarer played the card
+            if (counter == 0 && playerIds.get(declarerPlayerIndex).equals(playerId))
                 continue;
-            }
 
-            // handle normal declaration
+            findAFriendDeclarationCounters.remove(card, counter);
             if (counter - count <= 0) {
                 didFriendJoin = true;
                 continue;
             }
-
             findAFriendDeclarationCounters.put(card, counter - count);
         }
         if (didFriendJoin)
