@@ -196,11 +196,12 @@ ul {
     border-radius: 8px;
 }
 
-.game_area .declarer {
+.game_area .player_info {
     color: white;
     position: relative;
     bottom: 10px;
     margin-left: 2px;
+    white-space: nowrap;
 }
 
 .game_area .start_action_button {

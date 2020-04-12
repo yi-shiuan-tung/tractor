@@ -291,6 +291,7 @@ export class Game extends React.Component {
       status,
       currentPlayerIndex,
       isDeclaringTeam,
+      currentRoundScores,
     } = this.state;
     if (status === 'START_ROUND') {
       const iAmReadyForPlay = playerReadyForPlay[this.myId];
@@ -415,6 +416,15 @@ export class Game extends React.Component {
                 playerId === playerIds[currentPlayerIndex]) {
                 className += ' current';
               }
+              let playerInfo = undefined;
+              if (isDeclaringTeam[playerId]) {
+                playerInfo = 'DECL.';
+              } else if (findAFriend) {
+                const numPoints = currentRoundScores[playerId];
+                if (numPoints > 0) {
+                  playerInfo = `${numPoints} pts.`
+                }
+              }
               return <PlayerArea
                 key={`playerArea${playerId}`}
                 playerIds={playerIds}
@@ -426,7 +436,7 @@ export class Game extends React.Component {
               >
                 <div>
                   <span className={className}>{playerNames[playerId]}</span>
-                  {isDeclaringTeam[playerId] ? <span className="declarer">DEF.</span> : undefined}
+                  {playerInfo ? <span className='player_info'>{playerInfo}</span> : undefined}
                 </div>
               </PlayerArea>;
             })}
