@@ -1,3 +1,4 @@
+import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import {getCardImageSrc, getFaceDownCardImageSrc} from './assets';
@@ -436,20 +437,28 @@ export class Game extends React.Component {
 
   renderNotifications() {
     const {playerNames, notifications, playerReadyForPlay, playerIds, kittySize, status, currentPlayerIndex} = this.state;
+    if (Object.entries(notifications).length > 0) {
+      return Object.entries(notifications).map(([id, message]) =>
+        <div key={id} className='notification warn'>{message}</div>,
+      );
+    }
+    if (status === 'DRAW') {
+      return <div className='notification'>{"Select one or more cards to declare them"}</div>
+    }
     if (!playerReadyForPlay[this.myId] && status === 'DRAW_KITTY') {
       return <div className='notification'>{"Select card(s) to declare trump suit or press READY"}</div>
     }
+    const playerId = playerIds[currentPlayerIndex];
     if (status === 'MAKE_KITTY') {
-      const playerId = playerIds[currentPlayerIndex];
       if (playerId === this.myId) {
         return <div className='notification'>{`Select ${kittySize} cards to put in the kitty`}</div>
       } else {
         return <div className='notification'>{`${playerNames[playerId]} is selecting cards for the kitty`}</div>
       }
     }
-    return Object.entries(notifications).map(([id, message]) =>
-      <div key={id} className='notification'>{message}</div>,
-    );
+    if (status === 'PLAY' && playerId === this.myId) {
+      return <div className='notification'>{'Your turn'}</div>
+    }
   }
 
   renderPlayerHands() {
@@ -536,6 +545,7 @@ export class Game extends React.Component {
     const {
       selectedCardIds,
       playerIds,
+      kittySize,
       currentPlayerIndex,
       status,
       declaredCards,
@@ -545,11 +555,21 @@ export class Game extends React.Component {
         .filter(([_cardId, selected]) => selected)
         .map(([cardId, _selected]) => cardId);
     const iAmReadyForPlay = playerReadyForPlay[this.myId];
-    if ((status === 'DRAW' || status === 'DRAW_KITTY') &&
-      selectedCardIdsList.length > 0 &&
-      !iAmReadyForPlay) {
+
+    if (status === 'DRAW_KITTY' && selectedCardIdsList.length === 0) {
       return <div
-        className='action_button game_action_button'
+        className={classNames('action_button', 'bottom_button', 'clickable', {'active': iAmReadyForPlay})}
+        onClick={() => {
+          this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {ready: !iAmReadyForPlay}}));
+        }}
+      >
+        {`Ready ${this.getNumPlayersReadyString()}`}
+      </div>;
+    }
+
+    if ((status === 'DRAW' || status === 'DRAW_KITTY') && !iAmReadyForPlay) {
+      return <div
+        className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length > 0})}
         onClick={() => {
           const cardIds = [...selectedCardIdsList];
           if (declaredCards.length > 0 &&
@@ -564,24 +584,13 @@ export class Game extends React.Component {
       </div>;
     }
 
-    if (status === 'DRAW_KITTY') {
-      return <div
-        className={iAmReadyForPlay ?
-          'button action_button game_action_button' :
-          'inactive button action_button game_action_button'}
-        onClick={() => {
-          this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {ready: !iAmReadyForPlay}}));
-        }}
-      >
-        {`Ready ${this.getNumPlayersReadyString()}`}
-      </div>;
-    }
     if (playerIds[currentPlayerIndex] !== this.myId) {
       return;
     }
+
     if (status === 'MAKE_KITTY') {
       return <div
-        className='action_button game_action_button'
+        className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length === kittySize})}
         onClick={() => {
           this.subSocket.push(
               JSON.stringify({'MAKE_KITTY': {cardIds: selectedCardIdsList}}),
@@ -589,12 +598,12 @@ export class Game extends React.Component {
           this.setState({selectedCardIds: {}});
         }}
       >
-        Make kitty
+        {'Make kitty'}
       </div>;
     }
     if (status === 'PLAY') {
       return <div
-        className='action_button game_action_button'
+        className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length > 0})}
         onClick={() => {
           this.subSocket.push(
               JSON.stringify({'PLAY': {cardIds: selectedCardIdsList}}),
@@ -602,7 +611,7 @@ export class Game extends React.Component {
           this.setState({selectedCardIds: {}});
         }}
       >
-        Play
+        {'Play'}
       </div>;
     }
   }

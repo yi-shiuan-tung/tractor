@@ -230,8 +230,12 @@ ul {
     font-size: 16px;
     border: 1px solid black;
     border-radius: 8px;
-    background-color: orange;
+    background-color: gray;
     z-index: 9999;
+}
+
+.game_area .notification.warn {
+    background-color: orange;
 }
 
 .game_area img {
@@ -252,7 +256,7 @@ ul {
     margin-bottom: 44px;
 }
 
-.game_area .game_action_button {
+.bottom_button {
     position: absolute;
     top: 750px;
     left: 50%;
@@ -260,7 +264,7 @@ ul {
     margin-left: -75px;
 }
 
-.game_area .game_action_button:hover {
+.bottom_button.clickable:hover {
     width: 154px;
     margin-left: -77px;
     top: 748px;
@@ -314,18 +318,28 @@ ul {
 }
 
 .action_button {
-    cursor: pointer;
+    cursor: not-allowed;
     height: 36px;
     line-height: 36px;
     text-align: center;
-    color: white;
+    color: darkgray;
     font-size: 24px;
     border: 1px solid black;
     border-radius: 10px;
+    background-color: gray;
+}
+
+.action_button.clickable {
+    cursor: pointer;
+    color: white;
+    background-color: gray;
+}
+
+.action_button.active.active {
     background-color: green;
 }
 
-.action_button:hover {
+.action_button.clickable:hover {
     height: 40px;
     line-height: 40px;
     font-size: 25px;
