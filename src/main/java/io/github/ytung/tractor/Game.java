@@ -272,6 +272,7 @@ public class Game {
     }
 
     public synchronized void makeKitty(String playerId, List<Integer> cardIds) throws InvalidKittyException {
+        sortCards(cardIds);
         Play play = new Play(playerId, cardIds);
         if (status != GameStatus.MAKE_KITTY)
             throw new InvalidKittyException("You cannot make kitty now");
