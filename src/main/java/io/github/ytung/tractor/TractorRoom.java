@@ -36,6 +36,7 @@ import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
+import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
@@ -98,19 +99,13 @@ public class TractorRoom {
         if (resources.remove(playerId) == null)
             return;
 
-        if (game.getStatus() != GameStatus.START_ROUND) {
-            game.forfeitRound(playerId);
-            sendSync(r.getResource().getBroadcaster(), new Forfeit(
-                playerId,
-                game.getRoundNumber(),
-                game.getDeclarerPlayerIndex(),
-                game.getPlayerRankScores(),
-                game.getStatus()));
-        }
+        if (game.getStatus() != GameStatus.START_ROUND)
+            forfeit(playerId, "disconnected", r.getResource().getBroadcaster());
 
         game.removePlayer(playerId);
         playerNames.remove(playerId);
         playerReadyForPlay.remove(playerId);
+
         sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(
             game.getPlayerIds(),
             game.getPlayerRankScores(),
@@ -218,8 +213,9 @@ public class TractorRoom {
 
         if (message instanceof PlayRequest) {
             List<Integer> cardIds = ((PlayRequest) message).getCardIds();
+            boolean  confirmDoesItFly = ((PlayRequest) message).isConfirmDoesItFly();
             try {
-                PlayResult result = game.play(r.uuid(), cardIds);
+                PlayResult result = game.play(r.uuid(), cardIds, confirmDoesItFly);
                 Map<Integer, Card> cardsById = game.getCardsById();
                 sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
                 sendSync(r.getBroadcaster(), new PlayMessage(
@@ -232,20 +228,18 @@ public class TractorRoom {
                     sendSync(r.getBroadcaster(), new FriendJoined(r.uuid(), game.getIsDeclaringTeam()));
             } catch (InvalidPlayException e) {
                 sendSync(r, new InvalidAction(e.getMessage()));
+            } catch (DoesNotFlyException e) {
+                if (confirmDoesItFly)
+                    forfeit(r.uuid(), "made an incorrect does-it-fly declaration", r.getBroadcaster());
+                else
+                    sendSync(r, new ConfirmDoesItFly(cardIds));
             }
             return null;
         }
 
         if (message instanceof ForfeitRequest) {
-            game.forfeitRound(r.uuid());
-            // game end, send kitty card info to all players
-            sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
-            return new Forfeit(
-                r.uuid(),
-                game.getRoundNumber(),
-                game.getDeclarerPlayerIndex(),
-                game.getPlayerRankScores(),
-                game.getStatus());
+            forfeit(r.uuid(), "forfeited", r.getBroadcaster());
+            return null;
         }
 
         throw new IllegalArgumentException("Invalid message.");
@@ -330,6 +324,19 @@ public class TractorRoom {
 
         finishTrickThread.setDaemon(true);
         finishTrickThread.start();
+    }
+
+    private void forfeit(String playerId, String message, Broadcaster broadcaster) {
+        game.forfeitRound(playerId);
+        // game end, send kitty card info to all players
+        sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
+        sendSync(broadcaster, new Forfeit(
+            playerId,
+            message,
+            game.getRoundNumber(),
+            game.getDeclarerPlayerIndex(),
+            game.getPlayerRankScores(),
+            game.getStatus()));
     }
 
     private void sendSync(AtmosphereResource resource, OutgoingMessage message) {

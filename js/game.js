@@ -32,6 +32,7 @@ export class Game extends React.Component {
       showPreviousTrick: false,
       showKitty: false,
       playerReadyForPlay: {}, // {playerId: boolean}
+      confirmDoesItFlyCards: undefined, // CardId[]?
 
       // game state
       playerIds: [], // PlayerId[]
@@ -64,7 +65,7 @@ export class Game extends React.Component {
         LOCATION + 'tractor/' + roomCode,
         (response) => this.myId = response.request.uuid,
         (response) => {
-          const {playerNames, playerIds, kittySize, cardsById} = this.state;
+          const {playerNames, cardsById} = this.state;
 
           const message = response.responseBody;
           console.log('Received message: ' + message);
@@ -107,13 +108,16 @@ export class Game extends React.Component {
                  doDeclarersWin ? 'Declarers win!' : 'Opponents win!',
               );
             }
+          } else if (json.CONFIRM_DOES_IT_FLY) {
+            const {cardIds} = json.CONFIRM_DOES_IT_FLY;
+            this.setState({confirmDoesItFlyCards: cardIds})
           } else if (json.FRIEND_JOINED) {
             const {playerId, ...other} = json.FRIEND_JOINED;
             this.setNotification(`${playerNames[playerId]} has joined the declaring team!`);
             this.setState(other);
           } else if (json.FORFEIT) {
-            const {playerId, ...other} = json.FORFEIT;
-            this.setNotification(`${playerNames[playerId]} forfeited.`);
+            const {playerId, message, ...other} = json.FORFEIT;
+            this.setNotification(`${playerNames[playerId]} ${message}.`);
             this.setState(other);
           } else if (json.INVALID_ACTION) {
             this.setNotification(json.INVALID_ACTION.message);
@@ -436,7 +440,36 @@ export class Game extends React.Component {
   }
 
   renderNotifications() {
-    const {playerNames, notifications, playerReadyForPlay, playerIds, kittySize, status, currentPlayerIndex} = this.state;
+    const {
+      playerNames,
+      notifications,
+      playerReadyForPlay,
+      confirmDoesItFlyCards,
+      playerIds,
+      kittySize,
+      status,
+      currentPlayerIndex,
+    } = this.state;
+    if (confirmDoesItFlyCards !== undefined) {
+      return (
+        <div className='confirm_does_it_fly'>
+          {'That is a special play. If it doesn\'t fly, you will forfeit the round.'}
+          <button
+            onClick={() => {
+              this.subSocket.push(JSON.stringify({ 'PLAY': { cardIds: confirmDoesItFlyCards, confirmDoesItFly: true } }));
+              this.setState({ confirmDoesItFlyCards: undefined });
+            }}
+          >
+            {'Confirm'}
+          </button>
+          <button
+            onClick={() => this.setState({ confirmDoesItFlyCards: undefined })}
+          >
+            {'Cancel'}
+          </button>
+        </div>
+      );
+    }
     if (Object.entries(notifications).length > 0) {
       return Object.entries(notifications).map(([id, message]) =>
         <div key={id} className='notification warn'>{message}</div>,

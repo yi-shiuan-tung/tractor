@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
+import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
@@ -46,6 +47,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = ReadyForPlay.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
+    @JsonSubTypes.Type(value = ConfirmDoesItFly.class, name = "CONFIRM_DOES_IT_FLY"),
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
     @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
@@ -194,6 +196,12 @@ public interface OutgoingMessage {
     }
 
     @Data
+    public static class ConfirmDoesItFly implements OutgoingMessage {
+
+        private final List<Integer> cardIds;
+    }
+
+    @Data
     public static class FriendJoined implements OutgoingMessage {
 
         private final String playerId;
@@ -204,6 +212,7 @@ public interface OutgoingMessage {
     public static class Forfeit implements OutgoingMessage {
 
         private final String playerId;
+        private final String message;
 
         private final int roundNumber;
         private final int declarerPlayerIndex;

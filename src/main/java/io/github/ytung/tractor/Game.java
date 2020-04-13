@@ -108,7 +108,7 @@ public class Game {
     public synchronized void setFindAFriend(boolean findAFriend) {
         if (status != GameStatus.START_ROUND)
             throw new IllegalStateException();
-        if (playerIds.size() < 4)
+        if (findAFriend && playerIds.size() < 4)
             throw new IllegalStateException();
 
         this.findAFriend = findAFriend;
@@ -292,11 +292,23 @@ public class Game {
 
     /**
      * The specified player makes the given play.
+     *
+     * If confirmDoesItFly is true, then the penalty will be paid if the play does not fly. If
+     * false, then the play will always fail if it is a possible does-it-fly play, regardless of
+     * whether the play is valid or not.
      */
-    public synchronized PlayResult play(String playerId, List<Integer> cardIds) throws InvalidPlayException {
+    public synchronized PlayResult play(String playerId, List<Integer> cardIds, boolean confirmDoesItFly)
+            throws InvalidPlayException, DoesNotFlyException {
         sortCards(cardIds);
         Play play = new Play(playerId, cardIds);
-        verifyCanPlay(play);
+
+        try {
+            verifyCanPlay(play, confirmDoesItFly);
+        } catch (DoesNotFlyException e) {
+            if (confirmDoesItFly)
+                forfeitRound(playerId);
+            throw e;
+        }
 
         playerHands.get(playerId).removeAll(cardIds);
         currentTrick.getPlays().add(play);
@@ -365,7 +377,7 @@ public class Game {
         }
     }
 
-    private void verifyCanPlay(Play play) throws InvalidPlayException {
+    private void verifyCanPlay(Play play, boolean confirmDoesItFly) throws InvalidPlayException, DoesNotFlyException {
         if (status != GameStatus.PLAY)
             throw new InvalidPlayException("You cannot make a play now.");
         if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
@@ -384,6 +396,9 @@ public class Game {
             if (profile.size() == 1)
                 return;
 
+            if (!confirmDoesItFly)
+                throw new DoesNotFlyException();
+
             // check to see if this is a does-it-fly play, and if so, whether it is valid
             for (Component component : profile)
                 for (String otherPlayerId : playerIds)
@@ -395,7 +410,7 @@ public class Game {
                             if (otherComponent.getShape().getWidth() >= component.getShape().getWidth()
                                     && otherComponent.getShape().getHeight() >= component.getShape().getHeight()
                                     && otherComponent.getMinRank() > component.getMinRank()) {
-                                throw new InvalidPlayException("That play does not fly.");
+                                throw new DoesNotFlyException();
                             }
                     }
         } else {
