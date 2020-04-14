@@ -18,10 +18,10 @@ import io.github.ytung.tractor.Game;
 import io.github.ytung.tractor.api.Card;
 import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.IncomingMessage;
+import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
+import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
-import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
-import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.Play;
 import io.github.ytung.tractor.api.Trick;
 import lombok.Data;
@@ -32,33 +32,90 @@ public class AiClient {
     private final String myId;
 
     public void processMessage(Game game, OutgoingMessage message, Consumer<IncomingMessage> send) {
-        if (message instanceof PlayMessage || message instanceof FinishTrick) {
-            if (game.getStatus() == GameStatus.PLAY
-                    && game.getCurrentPlayerIndex() != -1
-                    && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)) {
-                PlayRequest request = new PlayRequest();
-                request.setCardIds(new ArrayList<>(play(game)));
-                request.setConfirmDoesItFly(true);
+        if (game.getStatus() == GameStatus.DRAW) {
+            List<Integer> declaredCardIds = declare(game);
+            if (declaredCardIds != null) {
+                DeclareRequest request = new DeclareRequest();
+                request.setCardIds(new ArrayList<>(declaredCardIds));
                 send.accept(request);
             }
         }
+
+        if (game.getStatus() == GameStatus.MAKE_KITTY
+                && game.getCurrentPlayerIndex() != -1
+                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)) {
+            MakeKittyRequest request = new MakeKittyRequest();
+            request.setCardIds(new ArrayList<>(makeKitty(game)));
+            send.accept(request);
+        }
+
+        if (game.getStatus() == GameStatus.PLAY
+                && game.getCurrentPlayerIndex() != -1
+                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)) {
+            PlayRequest request = new PlayRequest();
+            request.setCardIds(new ArrayList<>(play(game)));
+            request.setConfirmDoesItFly(true);
+            send.accept(request);
+        }
+    }
+
+    private List<Integer> declare(Game game) {
+        Map<Integer, Card> cardsById = game.getCardsById();
+        List<Play> declaredCards = game.getDeclaredCards();
+        Card trump = game.getCurrentTrump();
+        List<Integer> myHand = game.getPlayerHands().get(myId);
+
+        if (!declaredCards.isEmpty())
+            return null;
+
+        Map<Grouping, List<Integer>> myHandByGrouping = Maps.toMap(Arrays.asList(Grouping.values()), grouping -> myHand.stream()
+            .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == grouping)
+            .collect(Collectors.toList()));
+
+        for (int cardId : myHand) {
+            Card card = cardsById.get(cardId);
+            if (card.getValue() == trump.getValue()) {
+                Grouping grouping = Cards.grouping(card, null);
+                if (myHandByGrouping.containsKey(grouping) && myHandByGrouping.get(grouping).size() >= 5)
+                    return Arrays.asList(cardId);
+            }
+        }
+        return null;
+    }
+
+    private List<Integer> makeKitty(Game game) {
+        Map<Integer, Card> cardsById = game.getCardsById();
+        Card trump = game.getCurrentTrump();
+        int kittySize = game.getKittySize();
+        List<Integer> myHand = game.getPlayerHands().get(myId);
+
+        List<Card> myCards = myHand.stream().map(cardsById::get).collect(Collectors.toList());
+        return myHand.stream()
+                .sorted(Comparator.comparing(cardId -> {
+                    Card card = cardsById.get(cardId);
+                    return Cards.rank(card, trump)
+                            + Collections.frequency(myCards, card) * 5
+                            + (Cards.grouping(card, trump) == Grouping.TRUMP ? 100 : 0);
+                }))
+                .limit(kittySize)
+                .collect(Collectors.toList());
     }
 
     private List<Integer> play(Game game) {
         Map<Integer, Card> cardsById = game.getCardsById();
         Trick currentTrick = game.getCurrentTrick();
-        Card currentTrump = game.getCurrentTrump();
+        Card trump = game.getCurrentTrump();
         List<Integer> myHand = game.getPlayerHands().get(myId);
 
         Map<Grouping, List<Integer>> myHandByGrouping = Maps.toMap(Arrays.asList(Grouping.values()), grouping -> myHand.stream()
-            .filter(cardId -> Cards.grouping(cardsById.get(cardId), currentTrump) == grouping)
+            .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == grouping)
             .collect(Collectors.toList()));
 
         if (currentTrick.getPlays().isEmpty()) {
             // Do I have aces?
             for (int cardId : myHand) {
                 Card card = cardsById.get(cardId);
-                if (card.getValue() == Card.Value.ACE && Cards.grouping(card, currentTrump) != Grouping.TRUMP)
+                if (card.getValue() == Card.Value.ACE && Cards.grouping(card, trump) != Grouping.TRUMP)
                     return Arrays.asList(cardId);
             }
 

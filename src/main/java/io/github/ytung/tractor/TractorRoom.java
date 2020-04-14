@@ -157,6 +157,8 @@ public class TractorRoom {
         }
 
         if (message instanceof AddAiRequest) {
+            if (aiClients.size() >= 5)
+                return;
             String aiPlayerId = UUID.randomUUID().toString();
             aiClients.put(aiPlayerId, new AiClient(aiPlayerId));
             playerNames.put(aiPlayerId, Names.generateRandomName());

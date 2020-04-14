@@ -19,8 +19,6 @@ export const HEIGHT = 800;
 export const CARD_WIDTH = 71;
 export const CARD_HEIGHT = 96;
 
-const ENABLE_ADD_AI = false;
-
 export class Game extends React.Component {
   constructor(props) {
     super(props);
@@ -187,9 +185,6 @@ export class Game extends React.Component {
 
   maybeRenderAddAiButton() {
     const { status } = this.state;
-    if (!ENABLE_ADD_AI) {
-      return;
-    }
     if (status !== 'START_ROUND') {
       return;
     }
@@ -197,7 +192,7 @@ export class Game extends React.Component {
       <button type='button' onClick={() => {
         this.subSocket.push(JSON.stringify({ 'ADD_AI': {} }));
       }}>
-        {'Add AI'}
+        {'Add AI (beta)'}
       </button>
     );
   }
