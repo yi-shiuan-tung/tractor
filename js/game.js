@@ -19,6 +19,8 @@ export const HEIGHT = 800;
 export const CARD_WIDTH = 71;
 export const CARD_HEIGHT = 96;
 
+const ENABLE_ADD_AI = false;
+
 export class Game extends React.Component {
   constructor(props) {
     super(props);
@@ -26,6 +28,7 @@ export class Game extends React.Component {
       // local state
       isMyNameEditable: false,
       inputMyName: '',
+      ais: [], // PlayerId[]
       playerNames: {}, // {playerId: playerName}
       selectedCardIds: {}, // {cardId: boolean}
       notifications: {},
@@ -77,6 +80,8 @@ export class Game extends React.Component {
             this.setState({playerNames});
           } else if (json.UPDATE_PLAYERS) {
             this.setState(json.UPDATE_PLAYERS);
+          } else if (json.UPDATE_AIS) {
+            this.setState(json.UPDATE_AIS);
           } else if (json.GAME_CONFIGURATION) {
             this.setState(json.GAME_CONFIGURATION);
           } else if (json.START_ROUND) {
@@ -165,6 +170,7 @@ export class Game extends React.Component {
           }}>
             {'Forfeit'}
           </button>
+          {this.maybeRenderAddAiButton()}
         </div>
         <FindAFriendPanel
           playerIds={this.state.playerIds}
@@ -176,6 +182,23 @@ export class Game extends React.Component {
         />
         {this.renderGameArea()}
       </div>
+    );
+  }
+
+  maybeRenderAddAiButton() {
+    const { status } = this.state;
+    if (!ENABLE_ADD_AI) {
+      return;
+    }
+    if (status !== 'START_ROUND') {
+      return;
+    }
+    return (
+      <button type='button' onClick={() => {
+        this.subSocket.push(JSON.stringify({ 'ADD_AI': {} }));
+      }}>
+        {'Add AI'}
+      </button>
     );
   }
 
@@ -276,6 +299,7 @@ export class Game extends React.Component {
     const {
       isMyNameEditable,
       inputMyName,
+      ais,
       playerNames,
       playerReadyForPlay,
       playerIds,
@@ -353,6 +377,9 @@ export class Game extends React.Component {
               children.push(` (rank ${VALUES[playerRankScores[playerId]]})`);
               if (playerId === this.myId) {
                 children.push(<span className='me'> (YOU)</span>);
+              }
+              if (ais.indexOf(playerId) >= 0) {
+                children.push(<span> (AI)</span>);
               }
               if (winningPlayerIds.indexOf(playerId) >= 0) {
                 children.push(<span className='crown' />);

@@ -4,6 +4,7 @@ package io.github.ytung.tractor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -21,10 +22,12 @@ import org.atmosphere.cpr.Broadcaster;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Uninterruptibles;
 
+import io.github.ytung.tractor.ai.AiClient;
 import io.github.ytung.tractor.api.Card;
 import io.github.ytung.tractor.api.FindAFriendDeclaration;
 import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.IncomingMessage;
+import io.github.ytung.tractor.api.IncomingMessage.AddAiRequest;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
@@ -50,6 +53,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.UpdateAis;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.Play;
 
@@ -67,6 +71,7 @@ public class TractorRoom {
     private static final boolean DEV_MODE = false;
 
     private final Map<String, AtmosphereResource> resources = new ConcurrentHashMap<>();
+    private final Map<String, AiClient> aiClients = new ConcurrentHashMap<>();
     private final Map<String, String> playerNames = new ConcurrentHashMap<>();
     private final Map<String, Boolean> playerReadyForPlay = new ConcurrentHashMap<>();
     private final Game game = new Game();
@@ -74,23 +79,22 @@ public class TractorRoom {
     @PathParam("roomCode")
     private String roomCode;
 
-    @Ready(encoders = {JacksonEncoder.class})
-    @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
-    public OutgoingMessage onReady(AtmosphereResource r) {
+    @Ready
+    public void onReady(AtmosphereResource r) {
         if (resources.containsKey(r.uuid()))
-            return null;
+            return;
 
         resources.put(r.uuid(), r);
         playerNames.put(r.uuid(), Names.generateRandomName());
         playerReadyForPlay.put(r.uuid(), false);
         game.addPlayer(r.uuid());
-        return new UpdatePlayers(
+        sendSync(r.getBroadcaster(), new UpdatePlayers(
             game.getPlayerIds(),
             game.getPlayerRankScores(),
             game.isFindAFriend(),
             game.getKittySize(),
             playerNames,
-            playerReadyForPlay);
+            playerReadyForPlay));
     }
 
     @Disconnect
@@ -118,96 +122,119 @@ public class TractorRoom {
         }
     }
 
-    @Message(encoders = {JacksonEncoder.class}, decoders = {JacksonDecoder.class})
+    @Message(decoders = {JacksonDecoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
-    public OutgoingMessage onMessage(AtmosphereResource r, IncomingMessage message) throws Exception {
+    public void onMessage(AtmosphereResource r, IncomingMessage message) throws Exception {
+        handleMessage(r.uuid(), r.getBroadcaster(), message);
+    }
+
+    private void handleMessage(String playerId, Broadcaster broadcaster, IncomingMessage message) {
         System.out.println(message);
 
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
-            playerNames.put(r.uuid(), name);
-            return new UpdatePlayers(
+            playerNames.put(playerId, name);
+            sendSync(broadcaster, new UpdatePlayers(
                 game.getPlayerIds(),
                 game.getPlayerRankScores(),
                 game.isFindAFriend(),
                 game.getKittySize(),
                 playerNames,
-                playerReadyForPlay);
+                playerReadyForPlay));
         }
 
         if (message instanceof PlayerOrderRequest) {
             List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
             game.setPlayerOrder(playerIds);
             playerReadyForPlay.replaceAll((k, v) -> v=false);
-            return new UpdatePlayers(
+            sendSync(broadcaster, new UpdatePlayers(
                 game.getPlayerIds(),
                 game.getPlayerRankScores(),
                 game.isFindAFriend(),
                 game.getKittySize(),
                 playerNames,
-                playerReadyForPlay);
+                playerReadyForPlay));
+        }
+
+        if (message instanceof AddAiRequest) {
+            String aiPlayerId = UUID.randomUUID().toString();
+            aiClients.put(aiPlayerId, new AiClient(aiPlayerId));
+            playerNames.put(aiPlayerId, Names.generateRandomName());
+            game.addPlayer(aiPlayerId);
+            sendSync(broadcaster, new UpdateAis(
+                game.getPlayerIds(),
+                game.getPlayerRankScores(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerNames,
+                aiClients.keySet()));
         }
 
         if (message instanceof GameConfigurationRequest) {
             game.setNumDecks(((GameConfigurationRequest) message).getNumDecks());
             game.setFindAFriend(((GameConfigurationRequest) message).isFindAFriend());
             playerReadyForPlay.replaceAll((k, v) -> v=false);
-            return new GameConfiguration(game.getNumDecks(), game.isFindAFriend(), game.getKittySize(), playerReadyForPlay);
+            sendSync(broadcaster, new GameConfiguration(
+                game.getNumDecks(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerReadyForPlay));
         }
 
         if (message instanceof DeclareRequest) {
             List<Integer> cardIds = ((DeclareRequest) message).getCardIds();
             try {
-                game.declare(r.uuid(), cardIds);
+                game.declare(playerId, cardIds);
                 Map<Integer, Card> cardsById = game.getCardsById();
-                sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
+                sendSync(broadcaster, new CardInfo(Maps.toMap(cardIds, cardsById::get)));
                 playerReadyForPlay.replaceAll((k, v) -> v=false);
-                return new Declare(
+                sendSync(broadcaster, new Declare(
                     game.getDeclarerPlayerIndex(),
                     game.getIsDeclaringTeam(),
                     game.getPlayerHands(),
                     game.getDeclaredCards(),
                     game.getCurrentTrump(),
-                    playerReadyForPlay);
+                    playerReadyForPlay));
             } catch (InvalidDeclareException e) {
-                sendSync(r, new InvalidAction(e.getMessage()));
-                return null;
+                sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
             }
         }
 
         if (message instanceof ReadyForPlayRequest) {
-            playerReadyForPlay.put(r.uuid(), ((ReadyForPlayRequest) message).isReady());
+            playerReadyForPlay.put(playerId, ((ReadyForPlayRequest) message).isReady());
             if (!playerReadyForPlay.containsValue(false) || DEV_MODE) {
                 if (game.getStatus() == GameStatus.START_ROUND)
-                    startRound(r.getBroadcaster());
+                    startRound(broadcaster);
                 else if (game.getStatus() == GameStatus.DRAW_KITTY)
-                    dealKitty(r.getBroadcaster());
+                    dealKitty(broadcaster);
                 else
                     throw new IllegalStateException();
                 playerReadyForPlay.replaceAll((k, v) -> v=false); // reset for next time
             }
-            return new ReadyForPlay(playerReadyForPlay);
+            sendSync(broadcaster, new ReadyForPlay(playerReadyForPlay));
         }
 
         if (message instanceof FindAFriendDeclarationRequest) {
             FindAFriendDeclaration declaration = ((FindAFriendDeclarationRequest) message).getDeclaration();
             try {
-                game.makeFindAFriendDeclaration(r.uuid(), declaration);
-                return new FindAFriendDeclarationMessage(declaration);
+                game.makeFindAFriendDeclaration(playerId, declaration);
+                sendSync(broadcaster, new FindAFriendDeclarationMessage(declaration));
             } catch (InvalidFindAFriendDeclarationException e) {
-                sendSync(resources.get(r.uuid()), new InvalidAction(e.getMessage()));
-                return null;
+                sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
             }
         }
 
         if (message instanceof MakeKittyRequest) {
             List<Integer> cardIds = ((MakeKittyRequest) message).getCardIds();
             try {
-                game.makeKitty(r.uuid(), cardIds);
-                return new MakeKitty(game.getStatus(), game.getKitty(), game.getPlayerHands(), game.getCurrentTrick());
+                game.makeKitty(playerId, cardIds);
+                sendSync(broadcaster, new MakeKitty(
+                    game.getStatus(),
+                    game.getKitty(),
+                    game.getPlayerHands(),
+                    game.getCurrentTrick()));
             } catch (InvalidKittyException e) {
-                sendSync(resources.get(r.uuid()), new InvalidAction(e.getMessage()));
-                return null;
+                sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
             }
         }
 
@@ -215,34 +242,30 @@ public class TractorRoom {
             List<Integer> cardIds = ((PlayRequest) message).getCardIds();
             boolean  confirmDoesItFly = ((PlayRequest) message).isConfirmDoesItFly();
             try {
-                PlayResult result = game.play(r.uuid(), cardIds, confirmDoesItFly);
+                PlayResult result = game.play(playerId, cardIds, confirmDoesItFly);
                 Map<Integer, Card> cardsById = game.getCardsById();
-                sendSync(r.getBroadcaster(), new CardInfo(Maps.toMap(cardIds, cardsById::get)));
-                sendSync(r.getBroadcaster(), new PlayMessage(
+                sendSync(broadcaster, new CardInfo(Maps.toMap(cardIds, cardsById::get)));
+                sendSync(broadcaster, new PlayMessage(
                     game.getCurrentPlayerIndex(),
                     game.getPlayerHands(),
                     game.getCurrentTrick()));
                 if (result.isTrickComplete())
-                    scheduleFinishTrick(r.getBroadcaster());
+                    scheduleFinishTrick(broadcaster);
                 if (result.isDidFriendJoin())
-                    sendSync(r.getBroadcaster(), new FriendJoined(r.uuid(), game.getIsDeclaringTeam()));
+                    sendSync(broadcaster, new FriendJoined(playerId, game.getIsDeclaringTeam()));
             } catch (InvalidPlayException e) {
-                sendSync(r, new InvalidAction(e.getMessage()));
+                sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
             } catch (DoesNotFlyException e) {
                 if (confirmDoesItFly)
-                    forfeit(r.uuid(), "made an incorrect does-it-fly declaration", r.getBroadcaster());
+                    forfeit(playerId, "made an incorrect does-it-fly declaration", broadcaster);
                 else
-                    sendSync(r, new ConfirmDoesItFly(cardIds));
+                    sendSync(playerId, broadcaster, new ConfirmDoesItFly(cardIds));
             }
-            return null;
         }
 
         if (message instanceof ForfeitRequest) {
-            forfeit(r.uuid(), "forfeited", r.getBroadcaster());
-            return null;
+            forfeit(playerId, "forfeited", broadcaster);
         }
-
-        throw new IllegalArgumentException("Invalid message.");
     }
 
     private void startRound(Broadcaster broadcaster) {
@@ -271,7 +294,7 @@ public class TractorRoom {
                     Play draw = game.draw();
                     if (draw == null)
                         break;
-                    sendSync(resources.get(draw.getPlayerId()), new CardInfo(Maps.toMap(draw.getCardIds(), cardsById::get)));
+                    sendSync(draw.getPlayerId(), broadcaster, new CardInfo(Maps.toMap(draw.getCardIds(), cardsById::get)));
                     sendSync(broadcaster, new Draw(
                         game.getStatus(),
                         game.getCurrentPlayerIndex(),
@@ -290,7 +313,7 @@ public class TractorRoom {
         Play kitty = game.takeKitty();
         if (kitty == null)
             return;
-        sendSync(resources.get(kitty.getPlayerId()), new CardInfo(Maps.toMap(kitty.getCardIds(), game.getCardsById()::get)));
+        sendSync(kitty.getPlayerId(), broadcaster, new CardInfo(Maps.toMap(kitty.getCardIds(), game.getCardsById()::get)));
         sendSync(broadcaster, new TakeKitty(
                 game.getStatus(),
                 game.getCurrentPlayerIndex(),
@@ -339,8 +362,13 @@ public class TractorRoom {
             game.getStatus()));
     }
 
-    private void sendSync(AtmosphereResource resource, OutgoingMessage message) {
-        resource.write(JacksonEncoder.INSTANCE.encode(message));
+    private void sendSync(String playerId, Broadcaster broadcaster, OutgoingMessage message) {
+        if (resources.containsKey(playerId))
+            resources.get(playerId).write(JacksonEncoder.INSTANCE.encode(message));
+        else if (aiClients.containsKey(playerId))
+            aiClients.get(playerId).processMessage(game, message, inputMessage -> handleMessage(playerId, broadcaster, inputMessage));
+        else
+            throw new IllegalStateException();
     }
 
     private void sendSync(Broadcaster broadcaster, OutgoingMessage message) {
@@ -349,5 +377,8 @@ public class TractorRoom {
         } catch (ExecutionException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
+        aiClients.forEach((playerId, aiClient) -> {
+            aiClient.processMessage(game, message, inputMessage -> handleMessage(playerId, broadcaster, inputMessage));
+        });
     }
 }

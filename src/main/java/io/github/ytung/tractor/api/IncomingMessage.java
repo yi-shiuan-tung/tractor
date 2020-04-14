@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
+import io.github.ytung.tractor.api.IncomingMessage.AddAiRequest;
 import io.github.ytung.tractor.api.IncomingMessage.CreateRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
@@ -27,6 +28,7 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = JoinRoomRequest.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = SetNameRequest.class, name = "SET_NAME"),
     @JsonSubTypes.Type(value = PlayerOrderRequest.class, name = "PLAYER_ORDER"),
+    @JsonSubTypes.Type(value = AddAiRequest.class, name = "ADD_AI"),
     @JsonSubTypes.Type(value = GameConfigurationRequest.class, name = "GAME_CONFIGURATION"),
     @JsonSubTypes.Type(value = StartRoundRequest.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = DeclareRequest.class, name = "DECLARE"),
@@ -63,6 +65,12 @@ public interface IncomingMessage {
     public static class PlayerOrderRequest implements IncomingMessage {
 
         private List<String> playerIds;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class AddAiRequest implements IncomingMessage {
+
     }
 
     @Data

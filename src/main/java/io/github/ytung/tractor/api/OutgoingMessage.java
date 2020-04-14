@@ -26,6 +26,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
+import io.github.ytung.tractor.api.OutgoingMessage.UpdateAis;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
 import lombok.Data;
@@ -36,6 +37,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = Welcome.class, name = "WELCOME"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
+    @JsonSubTypes.Type(value = UpdateAis.class, name = "UPDATE_AIS"),
     @JsonSubTypes.Type(value = GameConfiguration.class, name = "GAME_CONFIGURATION"),
     @JsonSubTypes.Type(value = StartRound.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
@@ -82,6 +84,17 @@ public interface OutgoingMessage {
         private final int kittySize;
         private final Map<String, String> playerNames;
         private final Map<String, Boolean> playerReadyForPlay;
+    }
+
+    @Data
+    public static class UpdateAis implements OutgoingMessage {
+
+        private final List<String> playerIds;
+        private final Map<String, Card.Value> playerRankScores;
+        private final boolean findAFriend;
+        private final int kittySize;
+        private final Map<String, String> playerNames;
+        private final Set<String> ais;
     }
 
     @Data
