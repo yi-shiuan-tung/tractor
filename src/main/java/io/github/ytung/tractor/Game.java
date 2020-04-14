@@ -18,6 +18,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Streams;
 
 import io.github.ytung.tractor.Cards.Grouping;
 import io.github.ytung.tractor.api.Card;
@@ -524,7 +525,7 @@ public class Game {
         return true;
     }
 
-    private Grouping getGrouping(List<Integer> cardIds) {
+    public Grouping getGrouping(List<Integer> cardIds) {
         Set<Grouping> groupings = cardIds.stream()
             .map(cardsById::get)
             .map(card -> Cards.grouping(card, getCurrentTrump()))
@@ -532,7 +533,7 @@ public class Game {
         return groupings.size() == 1 ? Iterables.getOnlyElement(groupings) : null;
     }
 
-    private List<Component> getProfile(List<Integer> cardIds) {
+    public List<Component> getProfile(List<Integer> cardIds) {
         if (getGrouping(cardIds) == null)
             return new ArrayList<>();
 
@@ -546,7 +547,8 @@ public class Game {
                 return new Component(
                     new Shape(Collections.frequency(cards, card), 1),
                     Cards.rank(card, trump),
-                    Cards.rank(card, trump));
+                    Cards.rank(card, trump),
+                    cardIds.stream().filter(cardId -> cardsById.get(cardId).equals(card)).collect(Collectors.toList()));
             })
             .collect(Collectors.toList());
 
@@ -566,7 +568,8 @@ public class Game {
                     profile.set(i, new Component(
                         new Shape(component1.shape.width, component1.shape.height + component2.shape.height),
                         component2.minRank,
-                        component1.maxRank));
+                        component1.maxRank,
+                        Streams.concat(component1.cardIds.stream(), component2.cardIds.stream()).collect(Collectors.toList())));
                     profile.remove(j);
                     return true;
                 }
