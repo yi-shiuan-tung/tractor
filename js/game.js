@@ -685,8 +685,7 @@ export class Game extends React.Component {
   renderViewKittyButton() {
      return <div
         className='view_kitty_button'
-        onMouseDown={() => this.setState({showKitty: true})}
-        onMouseUp={() => this.setState({showKitty: false})}
+        onMouseEnter={() => this.setState({showKitty: true})}
         onMouseLeave={() => this.setState({showKitty: false})}
      />
   }
@@ -712,8 +711,7 @@ export class Game extends React.Component {
     }
     return <div
       className='last_trick_button'
-      onMouseDown={() => this.setState({showPreviousTrick: true})}
-      onMouseUp={() => this.setState({showPreviousTrick: false})}
+      onMouseEnter={() => this.setState({showPreviousTrick: true})}
       onMouseLeave={() => this.setState({showPreviousTrick: false})}
     />;
   }

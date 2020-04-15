@@ -310,7 +310,7 @@ ul {
     background-size: cover;
 }
 
-.game_area .last_trick_button:active {
+.game_area .last_trick_button:hover {
     bottom: 22px;
     right: 22px;
     width: 60px;
@@ -328,7 +328,7 @@ ul {
     background-size: cover;
 }
 
-.game_area .view_kitty_button:active {
+.game_area .view_kitty_button:hover {
     bottom: 27px;
     right: 118px;
     width: 80px;
