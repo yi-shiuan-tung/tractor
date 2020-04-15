@@ -434,7 +434,7 @@ public class Game {
                 Shape handShape = handComponent.getShape();
                 boolean isCapturedByStartingPlay = getProfile(startingPlay.getCardIds()).stream()
                     .map(Component::getShape)
-                    .anyMatch(shape -> shape.getWidth() >= handShape.getWidth() && shape.getHeight() >= handShape.getHeight());
+                    .anyMatch(shape -> shape.getWidth() >= handShape.getWidth());
                 boolean inPlay = getProfile(play.getCardIds()).contains(handComponent);
                 // Suppose the starting player played pairs. If you have any pairs (isCapturedByStartingPlay), but you didn't play it
                 // (!inPlay), then look at how many cards you played are worse than it (numFreeCardsInPlay). If there are at least as many
@@ -442,12 +442,10 @@ public class Game {
                 if (isCapturedByStartingPlay && !inPlay) {
                     int numFreeCardsInPlay = getProfile(play.getCardIds()).stream()
                         .map(Component::getShape)
-                        .filter(shape -> shape.getWidth() <= handShape.getWidth()
-                                && shape.getHeight() <= handShape.getHeight()
-                                && shape.getWidth() + shape.getHeight() < handShape.getWidth() + handShape.getHeight())
+                        .filter(shape -> shape.getWidth() < handShape.getWidth())
                         .mapToInt(shape -> shape.getWidth() * shape.getHeight())
                         .sum();
-                    if (numFreeCardsInPlay >= handShape.getWidth() * handShape.getHeight())
+                    if (numFreeCardsInPlay >= handShape.getWidth())
                         throw new InvalidPlayException("You must play pairs before singles, etc.");
                 }
             }
