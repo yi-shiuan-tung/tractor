@@ -6,6 +6,9 @@ import { ORDINALS, SUITS, VALUES } from './cards';
 import {setUpConnection} from './connection';
 import {LOCATION} from './consts';
 import './game.css';
+import gameStart from './audio/game_start.mp3';
+import yourTurn from './audio/your_turn.mp3';
+import gameOver from './audio/game_over.mp3';
 
 import Card from './components/Card';
 import {PlayerArea} from './playerArea';
@@ -34,6 +37,7 @@ export class Game extends React.Component {
       showKitty: false,
       playerReadyForPlay: {}, // {playerId: boolean}
       confirmDoesItFlyCards: undefined, // CardId[]?
+      soundOn: true,
 
       // game state
       playerIds: [], // PlayerId[]
@@ -66,7 +70,7 @@ export class Game extends React.Component {
         LOCATION + 'tractor/' + roomCode,
         (response) => this.myId = response.request.uuid,
         (response) => {
-          const {playerNames, cardsById} = this.state;
+          const {playerNames, playerIds, status, cardsById} = this.state;
 
           const message = response.responseBody;
           console.log('Received message: ' + message);
@@ -84,6 +88,7 @@ export class Game extends React.Component {
             this.setState(json.GAME_CONFIGURATION);
           } else if (json.START_ROUND) {
             this.setState(json.START_ROUND);
+            this.playAudio(gameStart);
           } else if (json.CARD_INFO) {
             this.setState({cardsById: {
               ...cardsById,
@@ -103,6 +108,9 @@ export class Game extends React.Component {
             this.setState(json.MAKE_KITTY);
           } else if (json.PLAY) {
             this.setState(json.PLAY);
+            if (status === 'PLAY' && playerIds[json.PLAY.currentPlayerIndex] === this.myId) {
+              this.playAudio(yourTurn);
+            }
           } else if (json.FINISH_TRICK) {
             const {doDeclarersWin, ...other} = json.FINISH_TRICK;
             this.setState(other);
@@ -110,6 +118,9 @@ export class Game extends React.Component {
               this.setNotification(
                  doDeclarersWin ? 'Declarers win!' : 'Opponents win!',
               );
+              this.playAudio(gameOver);
+            } else if (other.status === 'PLAY' && playerIds[other.currentPlayerIndex] === this.myId) {
+              this.playAudio(yourTurn);
             }
           } else if (json.CONFIRM_DOES_IT_FLY) {
             const {cardIds} = json.CONFIRM_DOES_IT_FLY;
@@ -132,6 +143,15 @@ export class Game extends React.Component {
 
   componentWillUnmount() {
     this.subSocket.disconnect();
+  }
+
+  playAudio(audio) {
+    const { soundOn } = this.state;
+    this.audio = new Audio(audio);
+    this.audio.currentTime = 0;
+    if (soundOn) {
+      this.audio.play();
+    }
   }
 
   setNotification(message) {
@@ -210,6 +230,7 @@ export class Game extends React.Component {
         {this.renderPlayerHands()}
         {this.renderDeclaredCards()}
         {this.renderCurrentTrick()}
+        {this.renderSettings()}
         {this.renderActionButton()}
         {this.renderKitty()}
         {this.renderLastTrickButton()}
@@ -594,6 +615,21 @@ export class Game extends React.Component {
       myId={this.myId}
       renderCards={this.renderCards}
     />
+  }
+
+  renderSettings() {
+    const { soundOn } = this.state;
+    return (
+      <div
+        className={classNames('settings', soundOn ? 'sound_on' : 'sound_off')}
+        onClick={() => {
+          if (soundOn) {
+            this.audio && this.audio.pause();
+          }
+          this.setState({soundOn: !soundOn});
+        }}
+      />
+    );
   }
 
   renderActionButton() {

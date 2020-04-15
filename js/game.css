@@ -203,6 +203,26 @@ ul {
     white-space: nowrap;
 }
 
+.game_area .settings {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    padding: 16px;
+    border: 1px solid black;
+    border-radius: 2px;
+    background-color: tan;
+}
+
+.game_area .settings.sound_on {
+    background-image: url("./sound_on.png");
+    background-size: cover;
+}
+
+.game_area .settings.sound_off {
+    background-image: url("./sound_off.png");
+    background-size: cover;
+}
+
 .game_area .start_action_button {
     position: absolute;
     width: 200px;

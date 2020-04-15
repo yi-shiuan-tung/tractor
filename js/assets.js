@@ -36,7 +36,7 @@ function getImageName(card) {
   }
 }
 
-export function getFaceDownCardImageSrc(card) {
+export function getFaceDownCardImageSrc() {
   return getImageSrc('b1fv');
 }
 

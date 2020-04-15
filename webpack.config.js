@@ -28,7 +28,7 @@ const common = {
           ],
       },
       {
-        test: /\.(png|ttf)$/,
+        test: /\.(mp3|png|ttf)$/,
         use: [
           'file-loader',
         ],
