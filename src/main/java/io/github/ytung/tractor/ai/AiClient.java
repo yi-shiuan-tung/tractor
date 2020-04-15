@@ -128,7 +128,7 @@ public class AiClient {
                         int rank = component.getMaxRank();
                         if (rank > bestPairRank) {
                             bestPairRank = rank;
-                            bestPair = component.getCardIds();
+                            bestPair = new ArrayList<>(component.getCardIds());
                         }
                     }
             if (bestPair != null)

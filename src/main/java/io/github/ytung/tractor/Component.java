@@ -1,6 +1,6 @@
 package io.github.ytung.tractor;
 
-import java.util.List;
+import java.util.Set;
 
 import lombok.Data;
 
@@ -16,5 +16,5 @@ public final class Component {
     final Shape shape;
     final int minRank;
     final int maxRank;
-    final List<Integer> cardIds;
+    final Set<Integer> cardIds;
 }

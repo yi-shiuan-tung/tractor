@@ -546,7 +546,7 @@ public class Game {
                     new Shape(Collections.frequency(cards, card), 1),
                     Cards.rank(card, trump),
                     Cards.rank(card, trump),
-                    cardIds.stream().filter(cardId -> cardsById.get(cardId).equals(card)).collect(Collectors.toList()));
+                    cardIds.stream().filter(cardId -> cardsById.get(cardId).equals(card)).collect(Collectors.toSet()));
             })
             .collect(Collectors.toList());
 
@@ -567,7 +567,7 @@ public class Game {
                         new Shape(component1.shape.width, component1.shape.height + component2.shape.height),
                         component2.minRank,
                         component1.maxRank,
-                        Streams.concat(component1.cardIds.stream(), component2.cardIds.stream()).collect(Collectors.toList())));
+                        Streams.concat(component1.cardIds.stream(), component2.cardIds.stream()).collect(Collectors.toSet())));
                     profile.remove(j);
                     return true;
                 }
