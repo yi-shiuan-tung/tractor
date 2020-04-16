@@ -171,6 +171,7 @@ public interface OutgoingMessage {
     @Data
     public static class FindAFriendDeclarationMessage implements OutgoingMessage {
 
+        private final GameStatus status;
         private final FindAFriendDeclaration findAFriendDeclaration;
     }
 

@@ -5,56 +5,87 @@ export class FindAFriendPanel extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            ordinal: 1,
-            value: 'TWO',
-            suit: 'CLUB',
+        this.state = this.getState(this.props.numFriends);
+    }
+
+    componentDidUpdate(prevProps) {
+        const { numFriends } = this.props;
+        if (numFriends !== prevProps.numFriends) {
+            this.setState(this.getState(numFriends));
         }
     }
 
-    render() {
-        // Janky rendering for now for testing. TODO make a real panel
-        const { playerIds, findAFriend, declarerPlayerIndex, status, myId, setFindAFriendDeclaration } = this.props;
-        const { ordinal, value, suit } = this.state;
-        if (!findAFriend || status !== 'MAKE_KITTY' || playerIds[declarerPlayerIndex] !== myId) {
-            return <div />;
+    getState(numFriends) {
+        const state = {};
+        for (let i = 0; i < numFriends; i++) {
+            state[i] = {
+                ordinal: 1,
+                value: 'ACE',
+                suit: Object.keys(SUITS)[i],
+            };
         }
+        return state;
+    }
+
+    render() {
+        const { numFriends, setFindAFriendDeclaration } = this.props;
         return (
-            <div>
-                {"Find a friend declaration:"}
-                <select
-                    id="find_a_friend_panel_select_1"
-                    value={ordinal}
-                    onChange={e => this.setState({ ordinal: e.target.value })}
-                >
-                    {ORDINALS.map((ordinal, index) => <option value={`${index}`}>{ordinal}</option>)}
-                </select>
-                <select
-                    id="find_a_friend_panel_select_2"
-                    value={value}
-                    onChange={e => this.setState({ value: e.target.value })}
-                >
-                    {Object.entries(VALUES).map(([key, value]) => <option value={`${key}`}>{value}</option>)}
-                </select>
-                {"of"}
-                <select
-                    id="find_a_friend_panel_select_3"
-                    value={suit}
-                    onChange={e => this.setState({ suit: e.target.value })}
-                >
-                    {Object.entries(SUITS).map(([key, value]) => <option value={`${key}`}>{value}</option>)}
-                </select>
+            <div className="find_a_friend_panel">
+                <h3>Declare your friends</h3>
+                {Array.from({length: numFriends}, (_, i) => this.renderRow(this.state[i], i))}
                 <button
-                    type='button'
-                    onClick={() => setFindAFriendDeclaration([{
-                        ordinal,
-                        value,
-                        suit,
-                    }])}
+                    className='make_friend_button'
+                    onClick={() => setFindAFriendDeclaration(Array.from({length: numFriends}, (_, i) => {
+                        const declaration = this.state[i];
+                        return {
+                            ...declaration,
+                            suit: declaration.value.endsWith('JOKER') ? 'JOKER' : declaration.suit,
+                        };
+                    }))}
                 >
                     {"Submit"}
                 </button>
             </div>
+        )
+    }
+
+    renderRow({ ordinal, value, suit }, index) {
+        return (
+            <div key={index} className="friend_row">
+                <div>{`Friend ${index + 1}`}</div>
+                <select
+                    value={ordinal}
+                    onChange={e => this.setState({ [index]: { ordinal: e.target.value, value, suit } })}
+                >
+                    {ORDINALS.map((ordinal, index) => <option key={index} value={`${index}`}>{ordinal}</option>)}
+                </select>
+                <select
+                    value={value}
+                    onChange={e => this.setState({ [index]: { ordinal, value: e.target.value, suit } })}
+                >
+                    {Object.entries(VALUES).map(([key, value]) => <option key={key} value={`${key}`}>{value}</option>)}
+                    <option key='SMALL_JOKER' value={'SMALL_JOKER'}>{'Small joker'}</option>
+                    <option key='BIG_JOKER' value={'BIG_JOKER'}>{'Big joker'}</option>
+                </select>
+                {this.maybeRenderSuit({ordinal, value, suit}, index)}
+            </div>
+        );
+    }
+
+    maybeRenderSuit({ ordinal, value, suit }, index) {
+        if (value.endsWith('JOKER')) {
+            return;
+        }
+        return (
+            <span>
+                {"of"}
+                <select
+                    value={suit}
+                    onChange={e => this.setState({ [index]: { ordinal, value, suit: e.target.value } })}
+                >
+                    {Object.entries(SUITS).map(([key, value]) => <option key={key} value={`${key}`}>{value}</option>)}
+                </select>
+            </span>
         )
     }
 }

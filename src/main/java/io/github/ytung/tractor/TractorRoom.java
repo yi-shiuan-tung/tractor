@@ -220,7 +220,7 @@ public class TractorRoom {
             FindAFriendDeclaration declaration = ((FindAFriendDeclarationRequest) message).getDeclaration();
             try {
                 game.makeFindAFriendDeclaration(playerId, declaration);
-                sendSync(broadcaster, new FindAFriendDeclarationMessage(declaration));
+                sendSync(broadcaster, new FindAFriendDeclarationMessage(game.getStatus(), game.getFindAFriendDeclaration()));
             } catch (InvalidFindAFriendDeclarationException e) {
                 sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
             }

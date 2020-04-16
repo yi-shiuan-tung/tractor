@@ -191,14 +191,6 @@ export class Game extends React.Component {
           </button>
           {this.maybeRenderAddAiButton()}
         </div>
-        <FindAFriendPanel
-          playerIds={this.state.playerIds}
-          findAFriend={this.state.findAFriend}
-          declarerPlayerIndex={this.state.declarerPlayerIndex}
-          status={this.state.status}
-          myId={this.myId}
-          setFindAFriendDeclaration={declarations => this.subSocket.push(JSON.stringify({ 'FRIEND_DECLARE': { declaration: { declarations } } }))}
-        />
         {this.renderGameArea()}
       </div>
     );
@@ -228,6 +220,7 @@ export class Game extends React.Component {
         {this.renderGameInfo()}
         {this.renderPlayerNames()}
         {this.renderNotifications()}
+        {this.maybeRenderFindAFriendPanel()}
         {this.renderPlayerHands()}
         {this.renderDeclaredCards()}
         {this.renderCurrentTrick()}
@@ -538,6 +531,18 @@ export class Game extends React.Component {
     }
   }
 
+  maybeRenderFindAFriendPanel() {
+    const { playerIds, findAFriend, declarerPlayerIndex, status, findAFriendDeclaration } = this.state;
+    if (findAFriend && status === 'MAKE_KITTY' && playerIds[declarerPlayerIndex] === this.myId && !findAFriendDeclaration) {
+      return (
+        <FindAFriendPanel
+          numFriends={Math.floor(playerIds.length / 2 - 1)}
+          setFindAFriendDeclaration={declarations => this.subSocket.push(JSON.stringify({ 'FRIEND_DECLARE': { declaration: { declarations } } }))}
+        />
+      );
+    }
+  }
+
   renderPlayerHands() {
     const {status, playerIds, playerHands, declaredCards} = this.state;
     if (status === 'START_ROUND') {
@@ -640,6 +645,7 @@ export class Game extends React.Component {
       currentPlayerIndex,
       status,
       declaredCards,
+      kitty,
       playerReadyForPlay,
     } = this.state;
     const selectedCardIdsList = Object.entries(selectedCardIds)
@@ -679,7 +685,7 @@ export class Game extends React.Component {
       return;
     }
 
-    if (status === 'MAKE_KITTY') {
+    if (status === 'MAKE_KITTY' && kitty.length === 0) {
       return <div
         className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length === kittySize})}
         onClick={() => {

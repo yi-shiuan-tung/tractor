@@ -43,7 +43,8 @@ public class AiClient {
 
         if (game.getStatus() == GameStatus.MAKE_KITTY
                 && game.getCurrentPlayerIndex() != -1
-                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)) {
+                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)
+                && game.getKitty().isEmpty()) {
             MakeKittyRequest request = new MakeKittyRequest();
             request.setCardIds(new ArrayList<>(makeKitty(game)));
             send.accept(request);
