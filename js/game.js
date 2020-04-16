@@ -37,7 +37,7 @@ export class Game extends React.Component {
       showKitty: false,
       playerReadyForPlay: {}, // {playerId: boolean}
       confirmDoesItFlyCards: undefined, // CardId[]?
-      soundOn: true,
+      soundVolume: 3,
 
       // game state
       playerIds: [], // PlayerId[]
@@ -66,6 +66,7 @@ export class Game extends React.Component {
 
   componentDidMount() {
     const {roomCode} = this.props;
+    this.audio = new Audio();
     this.subSocket = setUpConnection(
         LOCATION + 'tractor/' + roomCode,
         (response) => this.myId = response.request.uuid,
@@ -146,10 +147,10 @@ export class Game extends React.Component {
   }
 
   playAudio(audio) {
-    const { soundOn } = this.state;
-    this.audio = new Audio(audio);
-    this.audio.currentTime = 0;
-    if (soundOn) {
+    const { soundVolume } = this.state;
+    if (soundVolume > 0) {
+      this.audio.src = audio;
+      this.audio.currentTime = 0;
       this.audio.play();
     }
   }
@@ -618,15 +619,14 @@ export class Game extends React.Component {
   }
 
   renderSettings() {
-    const { soundOn } = this.state;
+    const { soundVolume } = this.state;
     return (
       <div
-        className={classNames('settings', soundOn ? 'sound_on' : 'sound_off')}
+        className={classNames('settings', `sound${soundVolume}`)}
         onClick={() => {
-          if (soundOn) {
-            this.audio && this.audio.pause();
-          }
-          this.setState({soundOn: !soundOn});
+          const newSoundVolume = (soundVolume + 1) % 4;
+          this.audio.volume = newSoundVolume / 3;
+          this.setState({soundVolume: newSoundVolume});
         }}
       />
     );
