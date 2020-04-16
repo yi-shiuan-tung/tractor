@@ -519,10 +519,10 @@ export class Game extends React.Component {
       );
     }
     if (status === 'DRAW') {
-      return <div className='notification'>{"Select one or more cards to declare them"}</div>
+      return <div className='notification'>{"Select one or more cards to declare"}</div>
     }
     if (!playerReadyForPlay[this.myId] && status === 'DRAW_KITTY') {
-      return <div className='notification'>{"Select card(s) to declare trump suit or press READY"}</div>
+      return <div className='notification'>{"Select card(s) to declare, or press Ready"}</div>
     }
     const playerId = playerIds[currentPlayerIndex];
     if (status === 'MAKE_KITTY') {
