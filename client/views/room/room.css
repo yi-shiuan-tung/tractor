@@ -49,21 +49,6 @@ ul {
     color: yellow;
 }
 
-.game_area .round_info {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 16px;
-    color: darkblue;
-    border: 1px solid black;
-    border-radius: 16px;
-    background-color: tan;
-}
-
-.game_area .friend_declaration {
-    margin-top: 10px;
-}
-
 .game_area .game_info {
     position: absolute;
     top: 20px;

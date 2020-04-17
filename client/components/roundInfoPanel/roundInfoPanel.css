@@ -1,0 +1,14 @@
+.round_info_panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 16px;
+    color: darkblue;
+    border: 1px solid black;
+    border-radius: 16px;
+    background-color: tan;
+}
+
+.round_info_panel .friend_declaration {
+    margin-top: 10px;
+}

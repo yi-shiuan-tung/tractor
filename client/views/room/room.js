@@ -1,7 +1,7 @@
 import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
+import { VALUES } from '../../lib/cards';
 import {setUpConnection} from '../../providers/connection';
 import {LOCATION} from '../../lib/consts';
 import './room.css';
@@ -14,6 +14,7 @@ import { Trick } from '../../components/trick/trick';
 import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
 import { RoundStartPanel } from '../../components/roundStartPanel';
 import { Cards } from '../../components/cards';
+import { RoundInfoPanel } from '../../components/roundInfoPanel/roundInfoPanel';
 
 
 export const WIDTH = 1200;
@@ -233,48 +234,20 @@ export class Game extends React.Component {
       playerIds,
       declarerPlayerIndex,
       isDeclaringTeam,
+      findAFriendDeclaration,
       currentRoundScores,
       currentTrump,
     } = this.state;
-    if (currentTrump === undefined) {
-      return;
-    }
-    const declarer = playerIds[declarerPlayerIndex] === this.myId ?
-        <span className='me'>{'You'}</span>:
-        playerNames[playerIds[declarerPlayerIndex]];
-    const trumpSuit = currentTrump.suit === 'JOKER' ?
-        'NO TRUMP' : currentTrump.suit + 'S';
-    let opponentsPoints = 0;
-    playerIds.forEach((playerId) => {
-      if (!isDeclaringTeam[playerId]) {
-        opponentsPoints += currentRoundScores[playerId];
-      }
-    });
-    return (
-      <div className='round_info'>
-        <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
-        <div>Declarer: {declarer}</div>
-        <div>Opponent&apos;s points: {opponentsPoints}</div>
-        {this.maybeRenderFindAFriendDeclaration()}
-      </div>
-    );
-  }
-
-  maybeRenderFindAFriendDeclaration() {
-    const { findAFriendDeclaration } = this.state;
-    if (!findAFriendDeclaration) {
-      return;
-    }
-    return (
-      <div className="friend_declaration">
-        <div>Friends:</div>
-        {findAFriendDeclaration.declarations.map((declaration, index) => {
-          return <div key={`declaration${index}`}>
-            {`${ORDINALS[declaration.ordinal]} ${VALUES[declaration.value]} of ${SUITS[declaration.suit]}`}
-          </div>;
-        })}
-      </div>
-    );
+    return <RoundInfoPanel
+      playerNames={playerNames}
+      playerIds={playerIds}
+      declarerPlayerIndex={declarerPlayerIndex}
+      isDeclaringTeam={isDeclaringTeam}
+      findAFriendDeclaration={findAFriendDeclaration}
+      currentRoundScores={currentRoundScores}
+      currentTrump={currentTrump}
+      myId={this.myId}
+    />;
   }
 
   renderGameInfo() {
