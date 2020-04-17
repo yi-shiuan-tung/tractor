@@ -1,7 +1,6 @@
 import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {getCardImageSrc, getFaceDownCardImageSrc} from '../../lib/cardImages';
 import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
 import {setUpConnection} from '../../providers/connection';
 import {LOCATION} from '../../lib/consts';
@@ -10,18 +9,15 @@ import gameStart from '../../assets/audio/game_start.mp3';
 import yourTurn from '../../assets/audio/your_turn.mp3';
 import gameOver from '../../assets/audio/game_over.mp3';
 
-import Card from '../../components/Card';
 import {PlayerArea} from '../../components/playerArea';
 import { Trick } from '../../components/trick/trick';
 import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
 import { RoundStartPanel } from '../../components/roundStartPanel';
+import { Cards } from '../../components/cards';
 
 
 export const WIDTH = 1200;
 export const HEIGHT = 800;
-
-export const CARD_WIDTH = 71;
-export const CARD_HEIGHT = 96;
 
 export class Game extends React.Component {
   constructor(props) {
@@ -440,7 +436,7 @@ export class Game extends React.Component {
   }
 
   renderPlayerHands() {
-    const {status, playerIds, playerHands, declaredCards} = this.state;
+    const {selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
     if (status === 'START_ROUND') {
       return;
     }
@@ -461,18 +457,26 @@ export class Game extends React.Component {
           myId={this.myId}
           distance={0.6}
         >
-          {this.renderCards(nonDeclaredCards, {
-            interCardDistance: playerId === this.myId ? 15 : 9,
-            faceUp: playerId === this.myId,
-            canSelect: playerId === this.myId,
-          })}
+          <Cards
+            cardIds={nonDeclaredCards}
+            selectedCardIds={selectedCardIds}
+            cardsById={cardsById}
+            interCardDistance={playerId === this.myId ? 15 : 9}
+            faceUp={playerId === this.myId}
+            selectCards={playerId === this.myId ? cardId => this.setState({
+              selectedCardIds: {
+                ...selectedCardIds,
+                [cardId]: !selectedCardIds[cardId],
+              },
+            }) : undefined}
+          />
         </PlayerArea>
       );
     });
   }
 
   renderDeclaredCards() {
-    const {playerIds, status, declaredCards} = this.state;
+    const {playerIds, status, cardsById, declaredCards} = this.state;
     if (status === 'START_ROUND' ||
       status === 'PLAY' ||
       declaredCards.length === 0) {
@@ -486,17 +490,18 @@ export class Game extends React.Component {
         myId={this.myId}
         distance={0.3}
       >
-        {this.renderCards(latestDeclaredCards.cardIds, {
-          interCardDistance: 15,
-          faceUp: true,
-          canSelect: false,
-        })}
+        <Cards
+          cardIds={latestDeclaredCards.cardIds}
+          cardsById={cardsById}
+          interCardDistance={15}
+          faceUp={true}
+        />
       </PlayerArea>
     </div>;
   }
 
   renderCurrentTrick() {
-    const {showPreviousTrick, playerIds, status, pastTricks, currentTrick} = this.state;
+    const {showPreviousTrick, playerIds, status, cardsById, pastTricks, currentTrick} = this.state;
     if (!currentTrick) {
       return;
     }
@@ -504,8 +509,8 @@ export class Game extends React.Component {
       return <Trick
         trick={pastTricks[pastTricks.length - 1]}
         playerIds={playerIds}
+        cardsById={cardsById}
         myId={this.myId}
-        renderCards={this.renderCards}
       />
     }
     if (status === 'START_ROUND') {
@@ -514,8 +519,8 @@ export class Game extends React.Component {
     return <Trick
       trick={currentTrick}
       playerIds={playerIds}
+      cardsById={cardsById}
       myId={this.myId}
-      renderCards={this.renderCards}
     />
   }
 
@@ -629,16 +634,16 @@ export class Game extends React.Component {
   }
 
   renderKittyCards() {
-    const {kitty, showKitty} = this.state;
+    const { cardsById, kitty, showKitty } = this.state;
 
     if (showKitty) {
-      return <div className='kitty'>
-        {this.renderCards(kitty, {
-          interCardDistance: 15,
-          faceUp: true,
-          canSelect: false,
-        })}
-      </div>
+      return <Cards
+        className='kitty'
+        cardIds={kitty}
+        cardsById={cardsById}
+        interCardDistance={15}
+        faceUp={true}
+      />;
     }
   }
 
@@ -652,31 +657,6 @@ export class Game extends React.Component {
       onMouseEnter={() => this.setState({showPreviousTrick: true})}
       onMouseLeave={() => this.setState({showPreviousTrick: false})}
     />;
-  }
-
-  renderCards = (cardIds, args) => {
-    const {interCardDistance, faceUp, canSelect} = args;
-    const {selectedCardIds, cardsById} = this.state;
-
-    const totalWidth = CARD_WIDTH + interCardDistance * (cardIds.length - 1);
-    const cardImgs = cardIds
-        .map((cardId, index) => {
-          const x = -totalWidth / 2 + interCardDistance * index;
-          const y = selectedCardIds[cardId] ? -20 : 0;
-          const src = faceUp ?
-            getCardImageSrc(cardsById[cardId]) : getFaceDownCardImageSrc();
-          const onClick = canSelect ? () => this.setState({
-            selectedCardIds: {
-              ...selectedCardIds,
-              [cardId]: !selectedCardIds[cardId],
-            },
-          }) : undefined;
-          const input = {
-            x, y, src, onClick,
-          };
-          return <Card key={cardId} {...input} />;
-        });
-    return <div>{cardImgs}</div>;
   }
 
   getNumPlayersReadyString() {

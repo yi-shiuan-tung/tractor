@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { PlayerArea } from '../playerArea';
 import './trick.css';
+import { Cards } from '../cards';
 
 /**
  * Renders one trick (a set of cards from each player, and a crown over the
@@ -13,7 +14,7 @@ export class Trick extends React.Component {
     }
 
     render() {
-        const { trick, playerIds, myId, renderCards } = this.props;
+        const { trick, playerIds, cardsById, myId } = this.props;
         return (
             <span className="trick">
                 {trick.plays.map(({ playerId, cardIds }) => {
@@ -24,11 +25,12 @@ export class Trick extends React.Component {
                         myId={myId}
                         distance={0.2}
                     >
-                        {renderCards(cardIds, {
-                            interCardDistance: 15,
-                            faceUp: true,
-                            canSelect: false,
-                        })}
+                        <Cards
+                            cardIds={cardIds}
+                            cardsById={cardsById}
+                            interCardDistance={15}
+                            faceUp={true}
+                        />
                         {playerId === trick.winningPlayerId ? <span className="winner" /> : undefined}
                     </PlayerArea>
                 })}
