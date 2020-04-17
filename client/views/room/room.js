@@ -17,6 +17,7 @@ import { RoundInfoPanel } from '../../components/roundInfoPanel/roundInfoPanel';
 import { ConfirmationPanel } from '../../components/confirmationPanel/confirmationPanel';
 import { SettingsPanel } from '../../components/settingsPanel/settingsPanel';
 import { GameInfoPanel } from '../../components/gameInfoPanel/gameInfoPanel';
+import { ActionButton } from '../../components/actionButton/actionButton';
 
 
 export const WIDTH = 1200;
@@ -504,33 +505,33 @@ export class Game extends React.Component {
         .filter(([_cardId, selected]) => selected)
         .map(([cardId, _selected]) => cardId);
     const iAmReadyForPlay = playerReadyForPlay[this.myId];
+    const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
 
     if (status === 'DRAW_KITTY' && selectedCardIdsList.length === 0) {
-      return <div
-        className={classNames('action_button', 'bottom_button', 'clickable', {'active': iAmReadyForPlay})}
-        onClick={() => {
-          this.subSocket.push(JSON.stringify({'READY_FOR_PLAY': {ready: !iAmReadyForPlay}}));
-        }}
-      >
-        {`Ready ${this.getNumPlayersReadyString()}`}
-      </div>;
+      return <ActionButton
+        text={`Ready (${numPlayersReadyForPlay}/${playerIds.length})`}
+        active={!iAmReadyForPlay}
+        onClick={() => this.subSocket.push(JSON.stringify({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } }))}
+      />;
     }
 
     if ((status === 'DRAW' || status === 'DRAW_KITTY') && !iAmReadyForPlay) {
-      return <div
-        className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length > 0})}
+      return <ActionButton
+        text='Declare'
+        active={selectedCardIdsList.length > 0}
         onClick={() => {
           const cardIds = [...selectedCardIdsList];
+
+          // if you currently declared cards already, add them as well
           if (declaredCards.length > 0 &&
             declaredCards[declaredCards.length - 1].playerId === this.myId) {
             cardIds.push(...declaredCards[declaredCards.length - 1].cardIds);
           }
+
           this.subSocket.push(JSON.stringify({'DECLARE': {cardIds}}));
           this.setState({selectedCardIds: {}});
         }}
-      >
-        {'Declare'}
-      </div>;
+      />;
     }
 
     if (playerIds[currentPlayerIndex] !== this.myId) {
@@ -538,30 +539,24 @@ export class Game extends React.Component {
     }
 
     if (status === 'MAKE_KITTY' && kitty.length === 0) {
-      return <div
-        className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length === kittySize})}
+      return <ActionButton
+        text='Make kitty'
+        active={selectedCardIdsList.length === kittySize}
         onClick={() => {
-          this.subSocket.push(
-              JSON.stringify({'MAKE_KITTY': {cardIds: selectedCardIdsList}}),
-          );
+          this.subSocket.push(JSON.stringify({'MAKE_KITTY': {cardIds: selectedCardIdsList}}));
           this.setState({selectedCardIds: {}});
         }}
-      >
-        {'Make kitty'}
-      </div>;
+      />;
     }
     if (status === 'PLAY') {
-      return <div
-        className={classNames('action_button', 'bottom_button', {'clickable active': selectedCardIdsList.length > 0})}
+      return <ActionButton
+        text='Play'
+        active={selectedCardIdsList.length > 0}
         onClick={() => {
-          this.subSocket.push(
-              JSON.stringify({'PLAY': {cardIds: selectedCardIdsList}}),
-          );
+          this.subSocket.push(JSON.stringify({'PLAY': {cardIds: selectedCardIdsList}}));
           this.setState({selectedCardIds: {}});
         }}
-      >
-        {'Play'}
-      </div>;
+      />;
     }
   }
 
@@ -608,12 +603,6 @@ export class Game extends React.Component {
       onMouseEnter={() => this.setState({showPreviousTrick: true})}
       onMouseLeave={() => this.setState({showPreviousTrick: false})}
     />;
-  }
-
-  getNumPlayersReadyString() {
-    const { playerReadyForPlay, playerIds } = this.state;
-    const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
-    return `(${numPlayersReadyForPlay}/${playerIds.length})`;
   }
 }
 

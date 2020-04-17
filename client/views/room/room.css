@@ -70,20 +70,6 @@ ul {
     white-space: nowrap;
 }
 
-.game_area .start_action_button {
-    position: absolute;
-    width: 200px;
-    left: 50%;
-    margin-left: -100px;
-    bottom: 44px;
-}
-
-.game_area .start_action_button:hover {
-    width: 204px;
-    margin-left: -102px;
-    bottom: 42px;
-}
-
 .game_area .notification {
     position: absolute;
     top: 390px;
@@ -117,20 +103,6 @@ ul {
 
 .hidden {
     display: none;
-}
-
-.bottom_button {
-    position: absolute;
-    top: 750px;
-    left: 50%;
-    width: 150px;
-    margin-left: -75px;
-}
-
-.bottom_button.clickable:hover {
-    width: 154px;
-    margin-left: -77px;
-    top: 748px;
 }
 
 .game_area .last_trick_button {
@@ -173,34 +145,6 @@ ul {
     position: absolute;
     bottom: 200px;
     right: 150px;
-}
-
-.action_button {
-    cursor: not-allowed;
-    height: 36px;
-    line-height: 36px;
-    text-align: center;
-    color: darkgray;
-    font-size: 24px;
-    border: 1px solid black;
-    border-radius: 10px;
-    background-color: gray;
-}
-
-.action_button.clickable {
-    cursor: pointer;
-    color: white;
-    background-color: gray;
-}
-
-.action_button.active.active {
-    background-color: green;
-}
-
-.action_button.clickable:hover {
-    height: 40px;
-    line-height: 40px;
-    font-size: 25px;
 }
 
 .lobbyContainer {
