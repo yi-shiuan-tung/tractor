@@ -15,6 +15,7 @@ import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendP
 import { RoundStartPanel } from '../../components/roundStartPanel';
 import { Cards } from '../../components/cards';
 import { RoundInfoPanel } from '../../components/roundInfoPanel/roundInfoPanel';
+import { ConfirmationPanel } from '../../components/confirmationPanel/confirmationPanel';
 
 
 export const WIDTH = 1200;
@@ -353,24 +354,14 @@ export class Game extends React.Component {
       currentPlayerIndex,
     } = this.state;
     if (confirmDoesItFlyCards !== undefined) {
-      return (
-        <div className='confirm_does_it_fly'>
-          {'That is a special play. If it doesn\'t fly, you will forfeit the round.'}
-          <button
-            onClick={() => {
-              this.subSocket.push(JSON.stringify({ 'PLAY': { cardIds: confirmDoesItFlyCards, confirmDoesItFly: true } }));
-              this.setState({ confirmDoesItFlyCards: undefined });
-            }}
-          >
-            {'Confirm'}
-          </button>
-          <button
-            onClick={() => this.setState({ confirmDoesItFlyCards: undefined })}
-          >
-            {'Cancel'}
-          </button>
-        </div>
-      );
+      return <ConfirmationPanel
+        message={'That is a special play. If it doesn\'t fly, you will forfeit the round.'}
+        confirm={() => {
+          this.subSocket.push(JSON.stringify({ 'PLAY': { cardIds: confirmDoesItFlyCards, confirmDoesItFly: true } }));
+          this.setState({ confirmDoesItFlyCards: undefined });
+        }}
+        cancel={() => this.setState({ confirmDoesItFlyCards: undefined })}
+      />;
     }
     if (Object.entries(notifications).length > 0) {
       return Object.entries(notifications).map(([id, message]) =>

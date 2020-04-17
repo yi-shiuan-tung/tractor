@@ -156,30 +156,6 @@ ul {
     margin-left: -50px;
 }
 
-.game_area .confirm_does_it_fly {
-    width: 160px;
-    height: 100px;
-    background-color: orange;
-    margin-left: -100px;
-    top: 330px;
-    left: 50%;
-    position: absolute;
-    padding: 20px;
-    border: 1px solid black;
-    border-radius: 10px;
-}
-
-.game_area .confirm_does_it_fly button {
-    width: 70px;
-    height: 30px;
-    margin: 10px 5px 0 5px;
-}
-
-.game_area .confirm_does_it_fly button:hover {
-    cursor: pointer;
-    background-color: lightgray;
-}
-
 .game_area img {
     position: absolute;
 }

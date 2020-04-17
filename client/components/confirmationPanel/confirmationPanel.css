@@ -1,0 +1,23 @@
+.confirmation_panel {
+    width: 160px;
+    height: 100px;
+    background-color: orange;
+    margin-left: -100px;
+    top: 330px;
+    left: 50%;
+    position: absolute;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.confirmation_panel button {
+    width: 70px;
+    height: 30px;
+    margin: 10px 5px 0 5px;
+}
+
+.confirmation_panel button:hover {
+    cursor: pointer;
+    background-color: lightgray;
+}
