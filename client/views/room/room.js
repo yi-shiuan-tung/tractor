@@ -16,6 +16,7 @@ import { RoundStartPanel } from '../../components/roundStartPanel';
 import { Cards } from '../../components/cards';
 import { RoundInfoPanel } from '../../components/roundInfoPanel/roundInfoPanel';
 import { ConfirmationPanel } from '../../components/confirmationPanel/confirmationPanel';
+import { SettingsPanel } from '../../components/settingsPanel/settingsPanel';
 
 
 export const WIDTH = 1200;
@@ -490,16 +491,11 @@ export class Game extends React.Component {
 
   renderSettings() {
     const { soundVolume } = this.state;
-    return (
-      <div
-        className={classNames('settings', `sound${soundVolume}`)}
-        onClick={() => {
-          const newSoundVolume = (soundVolume + 1) % 4;
-          this.audio.volume = newSoundVolume / 3;
-          this.setState({soundVolume: newSoundVolume});
-        }}
-      />
-    );
+    return <SettingsPanel
+      soundVolume={soundVolume}
+      audio={this.audio}
+      setSoundVolume={soundVolume => this.setState({ soundVolume })}
+    />;
   }
 
   renderActionButton() {

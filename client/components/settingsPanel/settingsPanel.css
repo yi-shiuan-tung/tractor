@@ -1,0 +1,29 @@
+.settings_panel {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    padding: 16px;
+    border: 1px solid black;
+    border-radius: 2px;
+    background-color: tan;
+}
+
+.settings_panel.sound3 {
+    background-image: url("../../assets/images/sound3.png");
+    background-size: cover;
+}
+
+.settings_panel.sound2 {
+    background-image: url("../../assets/images/sound2.png");
+    background-size: cover;
+}
+
+.settings_panel.sound1 {
+    background-image: url("../../assets/images/sound1.png");
+    background-size: cover;
+}
+
+.settings_panel.sound0 {
+    background-image: url("../../assets/images/sound0.png");
+    background-size: cover;
+}
