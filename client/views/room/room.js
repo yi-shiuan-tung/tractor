@@ -1,7 +1,6 @@
 import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import { VALUES } from '../../lib/cards';
 import {setUpConnection} from '../../providers/connection';
 import {LOCATION} from '../../lib/consts';
 import './room.css';
@@ -17,6 +16,7 @@ import { Cards } from '../../components/cards';
 import { RoundInfoPanel } from '../../components/roundInfoPanel/roundInfoPanel';
 import { ConfirmationPanel } from '../../components/confirmationPanel/confirmationPanel';
 import { SettingsPanel } from '../../components/settingsPanel/settingsPanel';
+import { GameInfoPanel } from '../../components/gameInfoPanel/gameInfoPanel';
 
 
 export const WIDTH = 1200;
@@ -255,24 +255,15 @@ export class Game extends React.Component {
   renderGameInfo() {
     const {playerNames, playerIds, playerRankScores, status} = this.state;
     if (status === 'START_ROUND') {
-      return;
+      return; // all info is already shown in the round start panel
     }
-    return (
-      <div className='game_info'>
-        <div>Player scores:</div>
-        <ul>
-          {playerIds.map((playerId) => {
-            const name = playerId === this.myId ?
-                <span className='me'>{'You'}</span> : playerNames[playerId];
-            return <li
-              key={playerId}
-            >
-              {name}{`: ${VALUES[playerRankScores[playerId]]}`}
-            </li>;
-          })}
-        </ul>
-      </div>
-    );
+    return <GameInfoPanel
+      playerNames={playerNames}
+      playerIds={playerIds}
+      playerRankScores={playerRankScores}
+      status={status}
+      myId={this.myId}
+    />;
   }
 
   renderPlayerNames() {

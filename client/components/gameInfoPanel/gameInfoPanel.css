@@ -1,0 +1,14 @@
+.game_info_panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 16px;
+    color: darkblue;
+    border: 1px solid black;
+    border-radius: 16px;
+    background-color: tan;
+}
+
+.game_info_panel li {
+    margin-top: 4px;
+}

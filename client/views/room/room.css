@@ -49,21 +49,6 @@ ul {
     color: yellow;
 }
 
-.game_area .game_info {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 16px;
-    color: darkblue;
-    border: 1px solid black;
-    border-radius: 16px;
-    background-color: tan;
-}
-
-.game_area .game_info li {
-    margin-top: 4px;
-}
-
 .game_area .player_name {
     font-size: 16px;
     padding: 5px;
