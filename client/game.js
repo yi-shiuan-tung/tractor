@@ -13,7 +13,7 @@ import gameOver from './assets/audio/game_over.mp3';
 import Card from './components/Card';
 import {PlayerArea} from './playerArea';
 import { Trick } from './trick';
-import { FindAFriendPanel } from './findAFriendPanel';
+import { FindAFriendPanel } from './components/findAFriendPanel/findAFriendPanel';
 
 
 export const WIDTH = 1200;

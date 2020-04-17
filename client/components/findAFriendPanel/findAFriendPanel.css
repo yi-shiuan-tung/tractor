@@ -1,0 +1,31 @@
+.find_a_friend_panel {
+    width: 300px;
+    background-color: orange;
+    margin-left: -160px;
+    top: 250px;
+    left: 50%;
+    position: absolute;
+    padding: 0 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+    z-index: 3;
+}
+
+.find_a_friend_panel h3 {
+    font-size: 18px;
+    margin: 18px 0;
+}
+
+.find_a_friend_panel .friend_row {
+    margin-bottom: 4px;
+}
+
+.find_a_friend_panel select {
+    height: 26px;
+    margin: 4px;
+}
+
+.find_a_friend_panel .make_friend_button {
+    height: 26px;
+    margin: 9px 0 18px 0;
+}
