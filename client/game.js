@@ -6,9 +6,9 @@ import { ORDINALS, SUITS, VALUES } from './cards';
 import {setUpConnection} from './connection';
 import {LOCATION} from './consts';
 import './game.css';
-import gameStart from './audio/game_start.mp3';
-import yourTurn from './audio/your_turn.mp3';
-import gameOver from './audio/game_over.mp3';
+import gameStart from './assets/audio/game_start.mp3';
+import yourTurn from './assets/audio/your_turn.mp3';
+import gameOver from './assets/audio/game_over.mp3';
 
 import Card from './components/Card';
 import {PlayerArea} from './playerArea';

@@ -6,24 +6,24 @@
 
 @font-face {
     font-family: 'Game';
-    src: url('./fonts/game.ttf');
+    src: url('./assets/fonts/game.ttf');
 }
 
 @font-face {
     font-family: 'Play';
-    src: url('./fonts/Play/Play-Regular.ttf');
+    src: url('./assets/fonts/Play/Play-Regular.ttf');
     font-weight: normal;
 }
 
 @font-face {
     font-family: 'Play';
-    src: url('./fonts/Play/Play-Bold.ttf');
+    src: url('./assets/fonts/Play/Play-Bold.ttf');
     font-weight: bold;
 }
 
 @font-face {
     font-family: 'Montserrat';
-    src: url('./fonts/Montserrat/Montserrat-Regular.ttf');
+    src: url('./assets/fonts/Montserrat/Montserrat-Regular.ttf');
     font-weight: normal;
 }
 
@@ -41,7 +41,7 @@ ul {
     cursor: pointer;
     width: 20px;
     height: 16px;
-    background-image: url("./pencil.png");
+    background-image: url("./assets/images/pencil.png");
     background-size: cover;
     display: inline-block;
     margin-left: 5px;
@@ -166,7 +166,7 @@ ul {
 .game_area .crown {
     width: 20px;
     height: 16px;
-    background-image: url("./crown.png");
+    background-image: url("./assets/images/crown.png");
     background-size: cover;
     display: inline-block;
     margin-left: 5px;
@@ -176,7 +176,7 @@ ul {
     position: absolute;
     width: 48px;
     height: 48px;
-    background-image: url("./crown.png");
+    background-image: url("./assets/images/crown.png");
     background-size: cover;
     display: inline-block;
     left: -24px;
@@ -212,22 +212,22 @@ ul {
 }
 
 .game_area .settings.sound3 {
-    background-image: url("./sound3.png");
+    background-image: url("./assets/images/sound3.png");
     background-size: cover;
 }
 
 .game_area .settings.sound2 {
-    background-image: url("./sound2.png");
+    background-image: url("./assets/images/sound2.png");
     background-size: cover;
 }
 
 .game_area .settings.sound1 {
-    background-image: url("./sound1.png");
+    background-image: url("./assets/images/sound1.png");
     background-size: cover;
 }
 
 .game_area .settings.sound0 {
-    background-image: url("./sound0.png");
+    background-image: url("./assets/images/sound0.png");
     background-size: cover;
 }
 
@@ -335,7 +335,7 @@ ul {
     right: 20px;
     width: 64px;
     height: 80px;
-    background-image: url("./last_trick.png");
+    background-image: url("./assets/images/last_trick.png");
     background-size: cover;
 }
 
@@ -353,7 +353,7 @@ ul {
     right: 116px;
     width: 84px;
     height: 64px;
-    background-image: url("./kitty.png");
+    background-image: url("./assets/images/kitty.png");
     background-size: cover;
 }
 
