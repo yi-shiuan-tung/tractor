@@ -1,11 +1,20 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {WIDTH, HEIGHT} from './views/room';
+import {WIDTH, HEIGHT} from '../../views/room';
+import './playerArea.css';
 
 /*
- * Renders the given children in front of the given player (under the correct
- * orientation). The distance is a number from 0 (in the middle) to 1 (very
- * close to the player)
+ * A higher order component that takes the given children and applies a rotation
+ * to it so that it appears in front of a particular player.
+ * 
+ * Specify a distance from the center, normalized from 0 (in the middle) to 1
+ * (very close to the player).
+ * 
+ * If isText=true, then the text may be rotated an extra 180° so that it faces
+ * the player.
+ * 
+ * The children can also be shifted left or right (from the player's
+ * perspective) using shiftX.
  */
 export class PlayerArea extends React.Component {
   constructor(props) {
@@ -70,7 +79,7 @@ export class PlayerArea extends React.Component {
     return (
       <div
         key={playerId}
-        className='player_container my_area'
+        className='player_area'
         style={{
           top: centerPoint.y,
           left: centerPoint.x + shiftX,

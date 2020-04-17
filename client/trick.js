@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {PlayerArea} from './playerArea';
+import {PlayerArea} from './components/playerArea';
 
 export class Trick extends React.Component {
 

@@ -183,10 +183,6 @@ ul {
     bottom: 0px;
 }
 
-.game_area .my_area {
-    z-index: 1;
-}
-
 .game_area .current {
     color: orange;
     border: 1px solid orange;
@@ -297,10 +293,6 @@ ul {
 }
 
 .game_area img {
-    position: absolute;
-}
-
-.game_area .player_container {
     position: absolute;
 }
 

@@ -11,7 +11,7 @@ import yourTurn from '../../assets/audio/your_turn.mp3';
 import gameOver from '../../assets/audio/game_over.mp3';
 
 import Card from '../../components/Card';
-import {PlayerArea} from '../../playerArea';
+import {PlayerArea} from '../../components/playerArea';
 import { Trick } from '../../trick';
 import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
 
