@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import * as React from 'react';
 import {getCardImageSrc, getFaceDownCardImageSrc} from './assets';
 import { ORDINALS, SUITS, VALUES } from './cards';
-import {setUpConnection} from './connection';
+import {setUpConnection} from './providers/connection';
 import {LOCATION} from './consts';
 import './game.css';
 import gameStart from './assets/audio/game_start.mp3';

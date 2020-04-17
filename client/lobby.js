@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {setUpConnection} from './connection';
+import {setUpConnection} from './providers/connection';
 import {LOCATION} from './consts';
 
 export class Lobby extends React.Component {
