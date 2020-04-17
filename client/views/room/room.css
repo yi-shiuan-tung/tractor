@@ -6,10 +6,6 @@
     background-color: #2c4d32;
 }
 
-.game_area .me {
-    color: yellow;
-}
-
 .game_area .notification {
     position: absolute;
     top: 390px;
@@ -53,28 +49,4 @@
     right: 22px;
     width: 60px;
     height: 76px;
-}
-
-.game_area .view_kitty_button {
-    cursor: pointer;
-    position: absolute;
-    bottom: 25px;
-    right: 116px;
-    width: 84px;
-    height: 64px;
-    background-image: url("../../assets/images/kitty.png");
-    background-size: cover;
-}
-
-.game_area .view_kitty_button:hover {
-    bottom: 27px;
-    right: 118px;
-    width: 80px;
-    height: 60px;
-}
-
-.game_area .kitty {
-    position: absolute;
-    bottom: 200px;
-    right: 150px;
 }

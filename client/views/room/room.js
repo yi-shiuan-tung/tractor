@@ -18,6 +18,7 @@ import { SettingsPanel } from '../../components/settingsPanel';
 import { GameInfoPanel } from '../../components/gameInfoPanel';
 import { ActionButton } from '../../components/actionButton';
 import { PlayerNametag } from '../../components/playerNametag';
+import { Kitty } from '../../components/kitty';
 
 
 export const WIDTH = 1200;
@@ -33,7 +34,6 @@ export class Game extends React.Component {
       selectedCardIds: {}, // {cardId: boolean}
       notifications: {},
       showPreviousTrick: false,
-      showKitty: false,
       playerReadyForPlay: {}, // {playerId: boolean}
       confirmDoesItFlyCards: undefined, // CardId[]?
       soundVolume: 3,
@@ -390,6 +390,7 @@ export class Game extends React.Component {
       return;
     }
     return playerIds.map((playerId) => {
+
       const nonDeclaredCards = playerHands[playerId]
       // If not playing tricks, declared cards should be shown in front,
       // not in hand
@@ -553,36 +554,16 @@ export class Game extends React.Component {
   }
 
   renderKitty() {
-    const {status, kitty, playerIds, declarerPlayerIndex} = this.state;
+    const { playerIds, declarerPlayerIndex, status, cardsById, kitty } = this.state;
 
-    if ((status === 'START_ROUND' || playerIds[declarerPlayerIndex] === this.myId) && kitty && kitty.length !== 0) {
-      return <div>
-        {this.renderKittyCards()}
-        {this.renderViewKittyButton()}
-      </div>
-    }
-  }
-
-  renderViewKittyButton() {
-     return <div
-        className='view_kitty_button'
-        onMouseEnter={() => this.setState({showKitty: true})}
-        onMouseLeave={() => this.setState({showKitty: false})}
-     />
-  }
-
-  renderKittyCards() {
-    const { cardsById, kitty, showKitty } = this.state;
-
-    if (showKitty) {
-      return <Cards
-        className='kitty'
-        cardIds={kitty}
-        cardsById={cardsById}
-        interCardDistance={15}
-        faceUp={true}
-      />;
-    }
+    return <Kitty
+      playerIds={playerIds}
+      declarerPlayerIndex={declarerPlayerIndex}
+      status={status}
+      cardsById={cardsById}
+      kitty={kitty}
+      myId={this.myId}
+    />;
   }
 
   renderLastTrickButton() {
