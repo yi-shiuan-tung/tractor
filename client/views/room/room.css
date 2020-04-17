@@ -172,17 +172,6 @@ ul {
     margin-left: 5px;
 }
 
-.game_area .big_crown {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    background-image: url("../../assets/images/crown.png");
-    background-size: cover;
-    display: inline-block;
-    left: -24px;
-    bottom: 0px;
-}
-
 .game_area .current {
     color: orange;
     border: 1px solid orange;

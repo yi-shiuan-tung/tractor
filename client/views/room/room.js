@@ -12,7 +12,7 @@ import gameOver from '../../assets/audio/game_over.mp3';
 
 import Card from '../../components/Card';
 import {PlayerArea} from '../../components/playerArea';
-import { Trick } from '../../trick';
+import { Trick } from '../../components/trick/trick';
 import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
 
 
