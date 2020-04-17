@@ -1,6 +1,20 @@
 import atmosphere from 'atmosphere.js';
 
-export const setUpConnection = function(url, onOpen, onMessage) {
+/**
+ * Opens a websocket connection to the server using JSON-serialized messages.
+ *
+ * @param {*} url The url to connect to. The scheme will be replaced with ws://.
+ * @param {*} onMyId A callback that takes a single parameter, the client's
+ * unique identifier. Called once.
+ * @param {*} onMessage A callback that takes a single parameter, the
+ * JSON-deserialized object sent from the server. Called once for each message.
+ *
+ * @returns an object containing two fields:
+ * send: a function that accepts any object, and will send the
+ * JSON-serialized object to the server.
+ * disconnect: a nullary function to call to disconnect to the server.
+ */
+export const setUpConnection = function(url, onMyId, onMessage) {
   let subSocket;
   const request = {
     url: url,
@@ -10,7 +24,9 @@ export const setUpConnection = function(url, onOpen, onMessage) {
     fallbackTransport: 'long-polling',
   };
 
-  request.onOpen = onOpen;
+  if (onMyId) {
+    request.onOpen = response => onMyId(response.request.uuid);
+  }
 
   request.onClientTimeout = function(r) {
     subSocket.push(
@@ -36,7 +52,17 @@ export const setUpConnection = function(url, onOpen, onMessage) {
 
   request.onError = console.error;
 
-  request.onMessage = onMessage;
+  request.onMessage = response => {
+    const responseBody = response.responseBody;
+    console.log('Received response: ' + responseBody);
+    const message = JSON.parse(responseBody);
+    onMessage(message);
+  };
 
-  return atmosphere.subscribe(request);
+  const subscribe = atmosphere.subscribe(request);
+
+  return {
+    send: message => subscribe.push(JSON.stringify(message)),
+    disconnect: subscribe.disconnect,
+  };
 };

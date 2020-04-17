@@ -14,34 +14,27 @@ export class Lobby extends React.Component {
 
   componentDidMount() {
     const {joinRoom} = this.props;
-    this.subSocket = setUpConnection(
+    this.connection = setUpConnection(
         LOCATION + 'tractor',
         undefined,
-        (response) => {
-          const message = response.responseBody;
-          console.log('Received message: ' + message);
-
-          const json = JSON.parse(message);
-
+        json => {
           if (json.CREATE_ROOM || json.JOIN_ROOM) {
             const roomCode = json.CREATE_ROOM ?
             json.CREATE_ROOM.roomCode : json.JOIN_ROOM.roomCode;
             joinRoom(roomCode);
           } else {
-            console.log('Unhandled message: ' + JSON.stringify(json));
+            console.error('Unhandled message: ' + JSON.stringify(json));
           }
         });
   }
 
   componentWillUnmount() {
-    this.subSocket.disconnect();
+    this.connection.disconnect();
   }
 
     connectToRoom = () => {
       const {inputRoomCode} = this.state;
-      this.subSocket.push(
-          JSON.stringify({'JOIN_ROOM': {'roomCode': inputRoomCode}}),
-      );
+      this.connection.send({ JOIN_ROOM: { roomCode: inputRoomCode } });
     }
 
     render() {
@@ -72,9 +65,7 @@ export class Lobby extends React.Component {
           </div>
           <div
             className='button primary'
-            onClick={() => {
-              this.subSocket.push(JSON.stringify({'CREATE_ROOM': {}}));
-            }}
+            onClick={() => this.connection.send({ CREATE_ROOM: {}})}
           >
             Create new game
           </div>

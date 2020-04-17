@@ -65,16 +65,11 @@ export class Game extends React.Component {
   componentDidMount() {
     const {roomCode} = this.props;
     this.audio = new Audio();
-    this.subSocket = setUpConnection(
+    this.connection = setUpConnection(
         LOCATION + 'tractor/' + roomCode,
-        (response) => this.myId = response.request.uuid,
-        (response) => {
+        myId => this.myId = myId,
+        json => {
           const {playerNames, playerIds, status, cardsById} = this.state;
-
-          const message = response.responseBody;
-          console.log('Received message: ' + message);
-
-          const json = JSON.parse(message);
 
           if (json.WELCOME) {
             const {playerNames} = json.WELCOME;
@@ -135,13 +130,13 @@ export class Game extends React.Component {
           } else if (json.INVALID_ACTION) {
             this.setNotification(json.INVALID_ACTION.message);
           } else {
-            console.log('Unhandled message: ' + JSON.stringify(json));
+            console.error('Unhandled message: ' + JSON.stringify(json));
           }
         });
   }
 
   componentWillUnmount() {
-    this.subSocket.disconnect();
+    this.connection.disconnect();
   }
 
   playAudio(audio) {
@@ -182,9 +177,7 @@ export class Game extends React.Component {
       <div>
         <div>
           <h3>Room Code: {roomCode}</h3>
-          <button type='button' onClick={() => {
-            this.subSocket.push(JSON.stringify({'FORFEIT': {}}));
-          }}>
+          <button type='button' onClick={() => this.connection.send({ FORFEIT: {} })}>
             {'Forfeit'}
           </button>
           {this.maybeRenderAddAiButton()}
@@ -200,9 +193,7 @@ export class Game extends React.Component {
       return;
     }
     return (
-      <button type='button' onClick={() => {
-        this.subSocket.push(JSON.stringify({ 'ADD_AI': {} }));
-      }}>
+      <button type='button' onClick={() => this.connection.send({ ADD_AI: {} })}>
         {'Add AI (beta)'}
       </button>
     );
@@ -292,10 +283,10 @@ export class Game extends React.Component {
         findAFriend={findAFriend}
         playerRankScores={playerRankScores}
         winningPlayerIds={winningPlayerIds}
-        setPlayerOrder={playerIds => this.subSocket.push(JSON.stringify({ PLAYER_ORDER: { playerIds }}))}
-        setName={name => this.subSocket.push(JSON.stringify({ SET_NAME: { name }}))}
-        setGameConfiguration={gameConfiguration => this.subSocket.push(JSON.stringify({ GAME_CONFIGURATION: gameConfiguration }))}
-        setReadyForPlay={ready => this.subSocket.push(JSON.stringify({ READY_FOR_PLAY: { ready }}))}
+        setPlayerOrder={playerIds => this.connection.send({ PLAYER_ORDER: { playerIds }})}
+        setName={name => this.connection.send({ SET_NAME: { name }})}
+        setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
+        setReadyForPlay={ready => this.connection.send({ READY_FOR_PLAY: { ready }})}
       />;
     } else {
       return <div>
@@ -349,7 +340,7 @@ export class Game extends React.Component {
       return <ConfirmationPanel
         message={'That is a special play. If it doesn\'t fly, you will forfeit the round.'}
         confirm={() => {
-          this.subSocket.push(JSON.stringify({ 'PLAY': { cardIds: confirmDoesItFlyCards, confirmDoesItFly: true } }));
+          this.connection.send({ PLAY: { cardIds: confirmDoesItFlyCards, confirmDoesItFly: true } });
           this.setState({ confirmDoesItFlyCards: undefined });
         }}
         cancel={() => this.setState({ confirmDoesItFlyCards: undefined })}
@@ -385,7 +376,7 @@ export class Game extends React.Component {
       return (
         <FindAFriendPanel
           numFriends={Math.floor(playerIds.length / 2 - 1)}
-          setFindAFriendDeclaration={declarations => this.subSocket.push(JSON.stringify({ 'FRIEND_DECLARE': { declaration: { declarations } } }))}
+          setFindAFriendDeclaration={declarations => this.connection.send({ FRIEND_DECLARE: { declaration: { declarations } } })}
         />
       );
     }
@@ -510,7 +501,7 @@ export class Game extends React.Component {
       return <ActionButton
         text={`Ready (${numPlayersReadyForPlay}/${playerIds.length})`}
         active={!iAmReadyForPlay}
-        onClick={() => this.subSocket.push(JSON.stringify({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } }))}
+        onClick={() => this.connection.send({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } })}
       />;
     }
 
@@ -527,7 +518,7 @@ export class Game extends React.Component {
             cardIds.push(...declaredCards[declaredCards.length - 1].cardIds);
           }
 
-          this.subSocket.push(JSON.stringify({'DECLARE': {cardIds}}));
+          this.connection.send({ DECLARE: { cardIds } });
           this.setState({selectedCardIds: {}});
         }}
       />;
@@ -542,7 +533,7 @@ export class Game extends React.Component {
         text='Make kitty'
         active={selectedCardIdsList.length === kittySize}
         onClick={() => {
-          this.subSocket.push(JSON.stringify({'MAKE_KITTY': {cardIds: selectedCardIdsList}}));
+          this.connection.send({ MAKE_KITTY: { cardIds: selectedCardIdsList } });
           this.setState({selectedCardIds: {}});
         }}
       />;
@@ -552,7 +543,7 @@ export class Game extends React.Component {
         text='Play'
         active={selectedCardIdsList.length > 0}
         onClick={() => {
-          this.subSocket.push(JSON.stringify({'PLAY': {cardIds: selectedCardIdsList}}));
+          this.connection.send({ PLAY: { cardIds: selectedCardIdsList } });
           this.setState({selectedCardIds: {}});
         }}
       />;
