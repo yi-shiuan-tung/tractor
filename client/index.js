@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {Lobby} from './lobby';
-import {Game} from './game';
+import {Lobby} from './views/lobby';
+import {Game} from './views/room';
 
 class App extends React.Component {
   constructor(props) {

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {WIDTH, HEIGHT} from './game';
+import {WIDTH, HEIGHT} from './views/room';
 
 /*
  * Renders the given children in front of the given player (under the correct

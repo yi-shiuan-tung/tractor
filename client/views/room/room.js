@@ -1,19 +1,19 @@
 import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {getCardImageSrc, getFaceDownCardImageSrc} from './lib/cardImages';
-import { ORDINALS, SUITS, VALUES } from './lib/cards';
-import {setUpConnection} from './providers/connection';
-import {LOCATION} from './lib/consts';
-import './game.css';
-import gameStart from './assets/audio/game_start.mp3';
-import yourTurn from './assets/audio/your_turn.mp3';
-import gameOver from './assets/audio/game_over.mp3';
+import {getCardImageSrc, getFaceDownCardImageSrc} from '../../lib/cardImages';
+import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
+import {setUpConnection} from '../../providers/connection';
+import {LOCATION} from '../../lib/consts';
+import './room.css';
+import gameStart from '../../assets/audio/game_start.mp3';
+import yourTurn from '../../assets/audio/your_turn.mp3';
+import gameOver from '../../assets/audio/game_over.mp3';
 
-import Card from './components/Card';
-import {PlayerArea} from './playerArea';
-import { Trick } from './trick';
-import { FindAFriendPanel } from './components/findAFriendPanel/findAFriendPanel';
+import Card from '../../components/Card';
+import {PlayerArea} from '../../playerArea';
+import { Trick } from '../../trick';
+import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
 
 
 export const WIDTH = 1200;
