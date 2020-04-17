@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ORDINALS, SUITS, VALUES } from '../../cards';
+import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
 import "./FindAFriendPanel.css";
 
 export class FindAFriendPanel extends React.Component {

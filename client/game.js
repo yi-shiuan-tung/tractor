@@ -1,10 +1,10 @@
 import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {getCardImageSrc, getFaceDownCardImageSrc} from './assets';
-import { ORDINALS, SUITS, VALUES } from './cards';
+import {getCardImageSrc, getFaceDownCardImageSrc} from './lib/cardImages';
+import { ORDINALS, SUITS, VALUES } from './lib/cards';
 import {setUpConnection} from './providers/connection';
-import {LOCATION} from './consts';
+import {LOCATION} from './lib/consts';
 import './game.css';
 import gameStart from './assets/audio/game_start.mp3';
 import yourTurn from './assets/audio/your_turn.mp3';
