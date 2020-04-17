@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {setUpConnection} from '../../providers/connection';
+import {setUpConnection} from '../../lib/connection';
 import {LOCATION} from '../../lib/consts';
 import './lobby.css';
 
