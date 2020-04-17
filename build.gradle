@@ -47,7 +47,7 @@ build.mustRunAfter clean
 shadowJar.mustRunAfter build
 
 npm_run_build {
-    inputs.files fileTree('js')
+    inputs.files fileTree('client')
 
     inputs.file 'package.json'
     inputs.file 'package-lock.json'

@@ -3,7 +3,7 @@ const path = require('path');
 const TARGET = process.env.npm_lifecycle_event;
 
 const common = {
-  entry: './js/index.js',
+  entry: './client/index.js',
   mode: 'development',
   output: {
     filename: 'bundle.js',
@@ -13,7 +13,7 @@ const common = {
     rules: [
       {
         test: /.js$/,
-        include: [path.resolve(__dirname, 'js')],
+        include: [path.resolve(__dirname, 'client')],
         loader: 'babel-loader',
         options: {
           plugins: ['syntax-dynamic-import', '@babel/plugin-proposal-class-properties'],
@@ -40,7 +40,7 @@ const common = {
 if (TARGET === 'start' || !TARGET) {
   module.exports = Object.assign({}, common, {
     devServer: {
-      contentBase: path.join(__dirname, 'js'),
+      contentBase: path.join(__dirname, 'client'),
       port: 3000,
       proxy: {
         '/': {
