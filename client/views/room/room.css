@@ -4,6 +4,8 @@
     border: 1px solid black;
     margin: auto;
     background-color: #2c4d32;
+    width: 1200px;
+    height: 800px;
 }
 
 .game_area .notification {

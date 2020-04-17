@@ -1,28 +1,24 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
+import { getAudio } from '../../lib/audio';
 import {setUpConnection} from '../../lib/connection';
 import {LOCATION} from '../../lib/consts';
 import './room.css';
-import gameStart from '../../assets/audio/game_start.mp3';
-import yourTurn from '../../assets/audio/your_turn.mp3';
-import gameOver from '../../assets/audio/game_over.mp3';
 
-import {PlayerArea} from '../../components/playerArea';
-import { Trick } from '../../components/trick';
-import { FindAFriendPanel } from '../../components/findAFriendPanel';
-import { RoundStartPanel } from '../../components/roundStartPanel';
-import { Cards } from '../../components/cards';
-import { RoundInfoPanel } from '../../components/roundInfoPanel';
-import { ConfirmationPanel } from '../../components/confirmationPanel';
-import { SettingsPanel } from '../../components/settingsPanel';
-import { GameInfoPanel } from '../../components/gameInfoPanel';
-import { ActionButton } from '../../components/actionButton';
-import { PlayerNametag } from '../../components/playerNametag';
-import { Kitty } from '../../components/kitty';
-
-
-export const WIDTH = 1200;
-export const HEIGHT = 800;
+import {
+  ActionButton,
+  Cards,
+  ConfirmationPanel,
+  FindAFriendPanel,
+  GameInfoPanel,
+  Kitty,
+  PlayerArea,
+  PlayerNametag,
+  RoundInfoPanel,
+  RoundStartPanel,
+  SettingsPanel,
+  Trick,
+} from '../../components';
 
 export class Game extends React.Component {
   constructor(props) {
@@ -65,7 +61,7 @@ export class Game extends React.Component {
 
   componentDidMount() {
     const {roomCode} = this.props;
-    this.audio = new Audio();
+    this.audio = getAudio();
     this.connection = setUpConnection(
         LOCATION + 'tractor/' + roomCode,
         myId => this.myId = myId,
@@ -83,7 +79,7 @@ export class Game extends React.Component {
             this.setState(json.GAME_CONFIGURATION);
           } else if (json.START_ROUND) {
             this.setState(json.START_ROUND);
-            this.playAudio(gameStart);
+            this.audio.playGameStart();
           } else if (json.CARD_INFO) {
             this.setState({cardsById: {
               ...cardsById,
@@ -104,7 +100,7 @@ export class Game extends React.Component {
           } else if (json.PLAY) {
             this.setState(json.PLAY);
             if (status === 'PLAY' && playerIds[json.PLAY.currentPlayerIndex] === this.myId) {
-              this.playAudio(yourTurn);
+              this.audio.playYourTurn();
             }
           } else if (json.FINISH_TRICK) {
             const {doDeclarersWin, ...other} = json.FINISH_TRICK;
@@ -113,9 +109,9 @@ export class Game extends React.Component {
               this.setNotification(
                  doDeclarersWin ? 'Declarers win!' : 'Opponents win!',
               );
-              this.playAudio(gameOver);
+              this.audio.playGameOver();
             } else if (other.status === 'PLAY' && playerIds[other.currentPlayerIndex] === this.myId) {
-              this.playAudio(yourTurn);
+              this.audio.playYourTurn();
             }
           } else if (json.CONFIRM_DOES_IT_FLY) {
             const {cardIds} = json.CONFIRM_DOES_IT_FLY;
@@ -138,15 +134,6 @@ export class Game extends React.Component {
 
   componentWillUnmount() {
     this.connection.disconnect();
-  }
-
-  playAudio(audio) {
-    const { soundVolume } = this.state;
-    if (soundVolume > 0) {
-      this.audio.src = audio;
-      this.audio.currentTime = 0;
-      this.audio.play();
-    }
   }
 
   setNotification(message) {
@@ -202,16 +189,13 @@ export class Game extends React.Component {
 
   renderGameArea() {
     return (
-      <div
-        className='game_area'
-        style={{width: `${WIDTH}px`, height: `${HEIGHT}px`}}
-      >
+      <div className='game_area'>
         {this.renderRoundStartPanel()}
         {this.renderRoundInfo()}
         {this.renderGameInfo()}
         {this.renderPlayerNames()}
         {this.renderNotifications()}
-        {this.maybeRenderFindAFriendPanel()}
+        {this.renderFindAFriendPanel()}
         {this.renderPlayerHands()}
         {this.renderDeclaredCards()}
         {this.renderCurrentTrick()}
@@ -372,12 +356,12 @@ export class Game extends React.Component {
     }
   }
 
-  maybeRenderFindAFriendPanel() {
+  renderFindAFriendPanel() {
     const { playerIds, findAFriend, declarerPlayerIndex, status, findAFriendDeclaration } = this.state;
     if (findAFriend && status === 'MAKE_KITTY' && playerIds[declarerPlayerIndex] === this.myId && !findAFriendDeclaration) {
       return (
         <FindAFriendPanel
-          numFriends={Math.floor(playerIds.length / 2 - 1)}
+          playerIds={playerIds}
           setFindAFriendDeclaration={declarations => this.connection.send({ FRIEND_DECLARE: { declaration: { declarations } } })}
         />
       );
@@ -411,7 +395,6 @@ export class Game extends React.Component {
             cardIds={nonDeclaredCards}
             selectedCardIds={selectedCardIds}
             cardsById={cardsById}
-            interCardDistance={playerId === this.myId ? 15 : 9}
             faceUp={playerId === this.myId}
             selectCards={playerId === this.myId ? cardId => this.setState({
               selectedCardIds: {
@@ -443,7 +426,6 @@ export class Game extends React.Component {
         <Cards
           cardIds={latestDeclaredCards.cardIds}
           cardsById={cardsById}
-          interCardDistance={15}
           faceUp={true}
         />
       </PlayerArea>
@@ -478,8 +460,10 @@ export class Game extends React.Component {
     const { soundVolume } = this.state;
     return <SettingsPanel
       soundVolume={soundVolume}
-      audio={this.audio}
-      setSoundVolume={soundVolume => this.setState({ soundVolume })}
+      setSoundVolume={soundVolume => {
+        this.audio.setVolume(soundVolume);
+        this.setState({ soundVolume });
+      }}
     />;
   }
 

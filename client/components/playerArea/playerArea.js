@@ -1,11 +1,14 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
-import {WIDTH, HEIGHT} from '../../views/room';
 import './playerArea.css';
+
+// dimensions of game area
+export const WIDTH = 1200;
+export const HEIGHT = 800;
 
 /*
  * A higher order component that takes the given children and applies a rotation
- * to it so that it appears in front of a particular player.
+ * to it so that the children appear in front of a particular player.
  * 
  * Specify a distance from the center, normalized from 0 (in the middle) to 1
  * (very close to the player).

@@ -13,12 +13,12 @@ export class Cards extends React.Component {
             cardIds,
             selectedCardIds,
             cardsById,
-            interCardDistance,
-            faceUp,
-            selectCards,
+            faceUp, // boolean
+            selectCards, // cardId -> void
             ...otherProps
         } = this.props;
 
+        const interCardDistance = faceUp ? 15 : 9;
         const totalWidth = CARD_WIDTH + interCardDistance * (cardIds.length - 1);
         const cardImgs = cardIds
             .map((cardId, index) => {

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import './kitty.css';
 import { Cards } from '../cards';
+import './kitty.css';
 
 /**
  * Render a "view kitty button" (if you have access to it), and if hovering
@@ -53,7 +53,6 @@ export class Kitty extends React.Component {
                 className='kitty_cards'
                 cardIds={kitty}
                 cardsById={cardsById}
-                interCardDistance={15}
                 faceUp={true}
             />;
         }

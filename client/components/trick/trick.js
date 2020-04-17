@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { Cards } from '../cards';
 import { PlayerArea } from '../playerArea';
 import './trick.css';
-import { Cards } from '../cards';
 
 /**
  * Renders one trick (a set of cards from each player, and a crown over the
@@ -28,7 +28,6 @@ export class Trick extends React.Component {
                         <Cards
                             cardIds={cardIds}
                             cardsById={cardsById}
-                            interCardDistance={15}
                             faceUp={true}
                         />
                         {playerId === trick.winningPlayerId ? <span className="winner" /> : undefined}

@@ -26,25 +26,17 @@ Go to http://localhost:8080.
 
 ## Development
 
-### Eclipse
+### Backend
 
-Run the following and then import the project in Eclipse:
+The backend is a Java Dropwizard server. The files are in the standard Gradle Java layout, with production files in `src/main/java`. Assets are served from `src/main/resources/assets`. The in-game communications are JSON-serialized messages sent to and received from clients via websocket using the Atmosphere framework.
 
-    ./gradlew eclipse
-
-Then start `TractorServer.java` in Eclipse.
-
-### IntelliJ
-
-Run:
-
-    ./gradlew idea
-
-And then open the generated `.ipr` file.
+Run either `./gradlew eclipse` or `./gradlew idea` to setup the project in Eclipse or IntelliJ (respectively), and then run the entry point, `TractorServer.java`.
 
 ### Frontend
 
-First start the dev server:
+The frontend is a single-page React app in plain Javascript. The assets live in `client/assets`, self-contained React components live in `client/components`, library code (no React) live in `client/lib`, and the top-level view components live in `client/views`.
+
+To start the dev server, run:
 
     npm install
     npm run start

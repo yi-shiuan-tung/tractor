@@ -2,34 +2,26 @@ import * as React from 'react';
 import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
 import "./FindAFriendPanel.css";
 
+/**
+ * Renders a panel to allow the declarer to select N friends.
+ */
 export class FindAFriendPanel extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = this.getState(this.props.numFriends);
+        this.state = this.getState(this.props.playerIds);
     }
 
     componentDidUpdate(prevProps) {
-        const { numFriends } = this.props;
-        if (numFriends !== prevProps.numFriends) {
-            this.setState(this.getState(numFriends));
+        const { playerIds } = this.props;
+        if (playerIds !== prevProps.playerIds) {
+            this.setState(this.getState(playerIds));
         }
-    }
-
-    getState(numFriends) {
-        const state = {};
-        for (let i = 0; i < numFriends; i++) {
-            state[i] = {
-                ordinal: 1,
-                value: 'ACE',
-                suit: Object.keys(SUITS)[i],
-            };
-        }
-        return state;
     }
 
     render() {
-        const { numFriends, setFindAFriendDeclaration } = this.props;
+        const { playerIds, setFindAFriendDeclaration } = this.props;
+        const numFriends = this.getNumFriends(playerIds);
         return (
             <div className="find_a_friend_panel">
                 <h3>Declare your friends</h3>
@@ -88,5 +80,21 @@ export class FindAFriendPanel extends React.Component {
                 </select>
             </span>
         )
+    }
+
+    getState(playerIds) {
+        const state = {};
+        for (let i = 0; i < this.getNumFriends(playerIds); i++) {
+            state[i] = {
+                ordinal: 1,
+                value: 'ACE',
+                suit: Object.keys(SUITS)[i],
+            };
+        }
+        return state;
+    }
+
+    getNumFriends(playerIds) {
+        return Math.floor(playerIds.length / 2 - 1);
     }
 }

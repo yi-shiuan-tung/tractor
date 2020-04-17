@@ -31,10 +31,10 @@ export class RoundStartPanel extends React.Component {
             findAFriend,
             playerRankScores,
             winningPlayerIds,
-            setPlayerOrder,
-            setName,
-            setGameConfiguration,
-            setReadyForPlay,
+            setPlayerOrder, // PlayerId[] => void
+            setName, // string => void
+            setGameConfiguration, // { numDecks, findAFriend } => void
+            setReadyForPlay, // boolean => void
         } = this.props;
         const { inputMyName, isMyNameEditable } = this.state;
 
