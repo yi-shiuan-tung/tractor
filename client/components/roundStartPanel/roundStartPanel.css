@@ -1,0 +1,123 @@
+.round_start_panel {
+    position: absolute;
+    padding-top: 44px;
+    top: 150px;
+    left: 50%;
+    width: 600px;
+    margin-left: -300px;
+    text-align: center;
+    color: darkblue;
+    border: 1px solid black;
+    border-radius: 16px;
+    background-color: tan;
+}
+
+.round_start_panel li {
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+
+.round_start_panel .title {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 44px;
+    margin-bottom: 40px;
+}
+
+.round_start_panel .arrow {
+    position: absolute;
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+}
+
+.round_start_panel .arrow:hover {
+    border: solid #D3D3D3;
+    border-width: 0 3px 3px 0;
+}
+
+.round_start_panel .up {
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+    margin-bottom: 8px;
+    margin-left: -15px;
+}
+
+.round_start_panel .down {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    margin-top: 8px;
+    margin-left: -15px;
+}
+
+.round_start_panel .edit_name {
+    cursor: pointer;
+    width: 20px;
+    height: 16px;
+    background-image: url("../../assets/images/pencil.png");
+    background-size: cover;
+    display: inline-block;
+    margin-left: 5px;
+    position: relative;
+}
+
+.round_start_panel .crown {
+    width: 20px;
+    height: 16px;
+    background-image: url("../../assets/images/crown.png");
+    background-size: cover;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.round_start_panel .game_properties {
+    margin: 40px;
+}
+
+.round_start_panel .game_properties div {
+    margin-bottom: 10px;
+}
+
+.round_start_panel .game_properties input[type=checkbox] {
+    width: 18px;
+    height: 18px;
+}
+
+.round_start_panel .start_game_button {
+    width: 150px;
+    margin: auto;
+    margin-bottom: 44px;
+}
+
+.button {
+  border: black solid 1px;
+  border-radius: 10px;
+  font-family: "Play";
+}
+
+.button.primary {
+  cursor: pointer;
+  padding: var(--spacing-med);
+  text-align: center;
+  color: white;
+  font-size: var(--font-size-action);
+  background-color: rgba(var(--button-primary-color), 0.8);
+}
+
+.button.primary:hover {
+  background-color: rgba(var(--button-primary-color), 0.9);
+}
+
+.button.primary:active {
+  background-color: rgba(var(--button-primary-color), 1);
+  transform: scale(0.99);
+}
+
+.button.inactive.inactive {
+    background-color: gray;
+}
+
+.button.inactive.inactive:hover {
+    background-color: rgba(128, 128, 128, 0.9);
+}

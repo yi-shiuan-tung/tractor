@@ -14,6 +14,7 @@ import Card from '../../components/Card';
 import {PlayerArea} from '../../components/playerArea';
 import { Trick } from '../../components/trick/trick';
 import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
+import { RoundStartPanel } from '../../components/roundStartPanel';
 
 
 export const WIDTH = 1200;
@@ -27,8 +28,6 @@ export class Game extends React.Component {
     super(props);
     this.state = {
       // local state
-      isMyNameEditable: false,
-      inputMyName: '',
       ais: [], // PlayerId[]
       playerNames: {}, // {playerId: playerName}
       selectedCardIds: {}, // {cardId: boolean}
@@ -307,8 +306,6 @@ export class Game extends React.Component {
 
   renderPlayerNames() {
     const {
-      isMyNameEditable,
-      inputMyName,
       ais,
       playerNames,
       playerReadyForPlay,
@@ -323,122 +320,21 @@ export class Game extends React.Component {
       currentRoundScores,
     } = this.state;
     if (status === 'START_ROUND') {
-      const iAmReadyForPlay = playerReadyForPlay[this.myId];
-      return (
-        <div className='player_list'>
-          <div className='title'>Tractor</div>
-          <ul>
-            {playerIds.map((playerId) => {
-              const children = [];
-              if (playerId === this.myId) {
-                if (playerIds.indexOf(this.myId) !== 0) {
-                  children.push(<span
-                    className='arrow up'
-                    onClick={() => {
-                      const index = playerIds.indexOf(this.myId);
-                      [playerIds[index], playerIds[index - 1]] =
-                        [playerIds[index - 1], playerIds[index]];
-                      this.subSocket.push(
-                        JSON.stringify({ 'PLAYER_ORDER': { playerIds } }),
-                      );
-                    }} />);
-                }
-                if (playerIds.indexOf(this.myId) !== playerIds.length - 1) {
-                  children.push(<span
-                    className='arrow down'
-                    onClick={() => {
-                      const index = playerIds.indexOf(this.myId);
-                      [playerIds[index], playerIds[index + 1]] =
-                        [playerIds[index + 1], playerIds[index]];
-                      this.subSocket.push(
-                        JSON.stringify({ 'PLAYER_ORDER': { playerIds } }),
-                      );
-                    }} />);
-                }
-              }
-              if (playerId === this.myId && isMyNameEditable) {
-                const setName = () => {
-                  this.setState({ isMyNameEditable: false });
-                  this.subSocket.push(
-                    JSON.stringify({
-                      'SET_NAME': { 'name': inputMyName.slice(0, 20) },
-                    }),
-                  );
-                }
-                children.push(<input
-                  ref={e => e && e.focus()}
-                  type='text'
-                  value={inputMyName}
-                  onChange={e => this.setState({ inputMyName: e.target.value })}
-                  onKeyDown={e => e.which === 13 /* enter key */ && setName()}
-                  onBlur={setName}
-                />);
-              } else {
-                children.push(playerNames[playerId]);
-              }
-              if (playerId === this.myId && !isMyNameEditable) {
-                children.push(<a
-                  className='edit_name'
-                  onClick={() => {
-                    this.setState({ isMyNameEditable: true, inputMyName: playerNames[this.myId] });
-                  }}
-                />);
-              }
-              children.push(` (rank ${VALUES[playerRankScores[playerId]]})`);
-              if (playerId === this.myId) {
-                children.push(<span className='me'> (YOU)</span>);
-              }
-              if (ais.indexOf(playerId) >= 0) {
-                children.push(<span> (AI)</span>);
-              }
-              if (winningPlayerIds.indexOf(playerId) >= 0) {
-                children.push(<span className='crown' />);
-              }
-              return <li key={playerId}>{children}</li>;
-            })}
-          </ul>
-          <div className='game_properties'>
-            <div>
-              <i
-                className={numDecks < 10 ? 'arrow up' : 'hidden'}
-                onClick={() =>
-                  this.subSocket.push(
-                      JSON.stringify({'GAME_CONFIGURATION': {numDecks: numDecks + 1, findAFriend}}),
-                  )}
-              />
-              <i
-                className={numDecks > 1 ? 'arrow down' : 'hidden'}
-                onClick={() =>
-                  this.subSocket.push(
-                      JSON.stringify({'GAME_CONFIGURATION': {numDecks: numDecks - 1, findAFriend}}),
-                  )}
-              />
-              {`${numDecks} ${numDecks > 1 ? 'decks' : 'deck'}`}
-            </div>
-            <div className={playerIds.length >= 4 ? '' : 'hidden'}>
-              <input
-                type="checkbox"
-                checked={findAFriend}
-                onChange={() =>
-                  this.subSocket.push(
-                      JSON.stringify({'GAME_CONFIGURATION': {numDecks, findAFriend: !findAFriend}}),
-                  )}
-              />
-              {"Find a friend mode"}
-            </div>
-          </div>
-          <div
-            className={iAmReadyForPlay ?
-              'button primary start_game_button' :
-              'inactive button primary start_game_button'}
-            onClick={() => {
-              this.subSocket.push(JSON.stringify({ 'READY_FOR_PLAY': { ready: !iAmReadyForPlay } }));
-            }}
-          >
-            {`Start round ${this.getNumPlayersReadyString()}`}
-          </div>
-        </div>
-      );
+      return <RoundStartPanel
+        ais={ais}
+        playerNames={playerNames}
+        playerReadyForPlay={playerReadyForPlay}
+        playerIds={playerIds}
+        myId={this.myId}
+        numDecks={numDecks}
+        findAFriend={findAFriend}
+        playerRankScores={playerRankScores}
+        winningPlayerIds={winningPlayerIds}
+        setPlayerOrder={playerIds => this.subSocket.push(JSON.stringify({ PLAYER_ORDER: { playerIds }}))}
+        setName={name => this.subSocket.push(JSON.stringify({ SET_NAME: { name }}))}
+        setGameConfiguration={gameConfiguration => this.subSocket.push(JSON.stringify({ GAME_CONFIGURATION: gameConfiguration }))}
+        setReadyForPlay={ready => this.subSocket.push(JSON.stringify({ READY_FOR_PLAY: { ready }}))}
+      />;
     } else {
       return <div>
         {playerIds
