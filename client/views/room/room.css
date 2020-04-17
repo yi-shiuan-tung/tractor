@@ -1,42 +1,3 @@
-:root {
-  --font-size-action: 18px;
-  --button-primary-color: 0, 100, 25;
-  --spacing-med: 12px;
-}
-
-@font-face {
-    font-family: 'Game';
-    src: url('../../assets/fonts/game.ttf');
-}
-
-@font-face {
-    font-family: 'Play';
-    src: url('../../assets/fonts/Play/Play-Regular.ttf');
-    font-weight: normal;
-}
-
-@font-face {
-    font-family: 'Play';
-    src: url('../../assets/fonts/Play/Play-Bold.ttf');
-    font-weight: bold;
-}
-
-@font-face {
-    font-family: 'Montserrat';
-    src: url('../../assets/fonts/Montserrat/Montserrat-Regular.ttf');
-    font-weight: normal;
-}
-
-html {
-  font-family: "Montserrat";
-}
-
-ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin-bottom: 0;
-}
-
 .game_area {
     font-family: 'Play';
     position: relative;
@@ -97,14 +58,6 @@ ul {
     margin-left: -50px;
 }
 
-.game_area img {
-    position: absolute;
-}
-
-.hidden {
-    display: none;
-}
-
 .game_area .last_trick_button {
     cursor: pointer;
     position: absolute;
@@ -145,26 +98,4 @@ ul {
     position: absolute;
     bottom: 200px;
     right: 150px;
-}
-
-.lobbyContainer {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-#joinContainer {
-  margin-bottom: calc(2 * var(--spacing-med));
-  display: flex;
-  flex-wrap: wrap;
-}
-
-#joinContainer input {
-  font-family: "Montserrat";
-  font-size: var(--font-size-action);
-  margin-right: var(--spacing-med);
-  text-align: center;
 }

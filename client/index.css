@@ -1,0 +1,40 @@
+/* Global CSS styling */
+
+:root {
+  --font-size-action: 18px;
+  --button-primary-color: 0, 100, 25;
+  --spacing-med: 12px;
+}
+
+@font-face {
+    font-family: 'Game';
+    src: url('./assets/fonts/game.ttf');
+}
+
+@font-face {
+    font-family: 'Play';
+    src: url('./assets/fonts/Play/Play-Regular.ttf');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Play';
+    src: url('./assets/fonts/Play/Play-Bold.ttf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./assets/fonts/Montserrat/Montserrat-Regular.ttf');
+    font-weight: normal;
+}
+
+html {
+  font-family: "Montserrat";
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}

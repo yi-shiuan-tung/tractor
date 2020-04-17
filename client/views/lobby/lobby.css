@@ -1,0 +1,21 @@
+.lobbyContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#joinContainer {
+  margin-bottom: calc(2 * var(--spacing-med));
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#joinContainer input {
+  font-family: "Montserrat";
+  font-size: var(--font-size-action);
+  margin-right: var(--spacing-med);
+  text-align: center;
+}

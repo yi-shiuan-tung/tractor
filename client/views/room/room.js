@@ -1,4 +1,3 @@
-import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import {setUpConnection} from '../../providers/connection';
@@ -9,15 +8,15 @@ import yourTurn from '../../assets/audio/your_turn.mp3';
 import gameOver from '../../assets/audio/game_over.mp3';
 
 import {PlayerArea} from '../../components/playerArea';
-import { Trick } from '../../components/trick/trick';
-import { FindAFriendPanel } from '../../components/findAFriendPanel/findAFriendPanel';
+import { Trick } from '../../components/trick';
+import { FindAFriendPanel } from '../../components/findAFriendPanel';
 import { RoundStartPanel } from '../../components/roundStartPanel';
 import { Cards } from '../../components/cards';
-import { RoundInfoPanel } from '../../components/roundInfoPanel/roundInfoPanel';
-import { ConfirmationPanel } from '../../components/confirmationPanel/confirmationPanel';
-import { SettingsPanel } from '../../components/settingsPanel/settingsPanel';
-import { GameInfoPanel } from '../../components/gameInfoPanel/gameInfoPanel';
-import { ActionButton } from '../../components/actionButton/actionButton';
+import { RoundInfoPanel } from '../../components/roundInfoPanel';
+import { ConfirmationPanel } from '../../components/confirmationPanel';
+import { SettingsPanel } from '../../components/settingsPanel';
+import { GameInfoPanel } from '../../components/gameInfoPanel';
+import { ActionButton } from '../../components/actionButton';
 
 
 export const WIDTH = 1200;

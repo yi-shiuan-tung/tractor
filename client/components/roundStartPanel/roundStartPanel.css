@@ -51,6 +51,10 @@
     margin-left: -15px;
 }
 
+.round_start_panel .hidden {
+    display: none;
+}
+
 .round_start_panel .edit_name {
     cursor: pointer;
     width: 20px;

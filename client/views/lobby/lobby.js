@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import * as React from 'react';
 import {setUpConnection} from '../../providers/connection';
 import {LOCATION} from '../../lib/consts';
+import './lobby.css';
 
 export class Lobby extends React.Component {
   constructor(props) {

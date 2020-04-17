@@ -32,6 +32,7 @@ export class Cards extends React.Component {
                         key={cardId}
                         style={
                             {
+                                position: 'absolute',
                                 top: `${y}px`,
                                 left: `${x}px`,
                             }
