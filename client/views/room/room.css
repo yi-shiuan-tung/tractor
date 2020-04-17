@@ -10,27 +10,6 @@
     color: yellow;
 }
 
-.game_area .player_name {
-    font-size: 16px;
-    padding: 5px;
-    color: white;
-    white-space: nowrap;
-}
-
-.game_area .current {
-    color: orange;
-    border: 1px solid orange;
-    border-radius: 8px;
-}
-
-.game_area .player_info {
-    color: white;
-    position: relative;
-    bottom: 10px;
-    margin-left: 2px;
-    white-space: nowrap;
-}
-
 .game_area .notification {
     position: absolute;
     top: 390px;

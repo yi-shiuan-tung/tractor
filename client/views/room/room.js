@@ -17,6 +17,7 @@ import { ConfirmationPanel } from '../../components/confirmationPanel';
 import { SettingsPanel } from '../../components/settingsPanel';
 import { GameInfoPanel } from '../../components/gameInfoPanel';
 import { ActionButton } from '../../components/actionButton';
+import { PlayerNametag } from '../../components/playerNametag';
 
 
 export const WIDTH = 1200;
@@ -205,6 +206,7 @@ export class Game extends React.Component {
         className='game_area'
         style={{width: `${WIDTH}px`, height: `${HEIGHT}px`}}
       >
+        {this.renderRoundStartPanel()}
         {this.renderRoundInfo()}
         {this.renderGameInfo()}
         {this.renderPlayerNames()}
@@ -219,6 +221,37 @@ export class Game extends React.Component {
         {this.renderLastTrickButton()}
       </div>
     );
+  }
+
+  renderRoundStartPanel() {
+    const {
+      ais,
+      playerNames,
+      playerReadyForPlay,
+      playerIds,
+      numDecks,
+      findAFriend,
+      playerRankScores,
+      winningPlayerIds,
+      status,
+    } = this.state;
+    if (status === 'START_ROUND') {
+      return <RoundStartPanel
+        ais={ais}
+        playerNames={playerNames}
+        playerReadyForPlay={playerReadyForPlay}
+        playerIds={playerIds}
+        myId={this.myId}
+        numDecks={numDecks}
+        findAFriend={findAFriend}
+        playerRankScores={playerRankScores}
+        winningPlayerIds={winningPlayerIds}
+        setPlayerOrder={playerIds => this.connection.send({ PLAYER_ORDER: { playerIds }})}
+        setName={name => this.connection.send({ SET_NAME: { name }})}
+        setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
+        setReadyForPlay={ready => this.connection.send({ READY_FOR_PLAY: { ready }})}
+      />;
+    }
   }
 
   renderRoundInfo() {
@@ -259,70 +292,39 @@ export class Game extends React.Component {
 
   renderPlayerNames() {
     const {
-      ais,
       playerNames,
-      playerReadyForPlay,
       playerIds,
-      numDecks,
       findAFriend,
-      playerRankScores,
-      winningPlayerIds,
       status,
       currentPlayerIndex,
       isDeclaringTeam,
       currentRoundScores,
     } = this.state;
     if (status === 'START_ROUND') {
-      return <RoundStartPanel
-        ais={ais}
-        playerNames={playerNames}
-        playerReadyForPlay={playerReadyForPlay}
-        playerIds={playerIds}
-        myId={this.myId}
-        numDecks={numDecks}
-        findAFriend={findAFriend}
-        playerRankScores={playerRankScores}
-        winningPlayerIds={winningPlayerIds}
-        setPlayerOrder={playerIds => this.connection.send({ PLAYER_ORDER: { playerIds }})}
-        setName={name => this.connection.send({ SET_NAME: { name }})}
-        setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
-        setReadyForPlay={ready => this.connection.send({ READY_FOR_PLAY: { ready }})}
-      />;
-    } else {
-      return <div>
-        {playerIds
-            .map((playerId) => {
-              let className = 'player_name';
-              if (status !== 'DRAW' &&
-                playerId === playerIds[currentPlayerIndex]) {
-                className += ' current';
-              }
-              let playerInfo = undefined;
-              if (isDeclaringTeam[playerId]) {
-                playerInfo = 'DECL. TEAM';
-              } else if (findAFriend) {
-                const numPoints = currentRoundScores[playerId];
-                if (numPoints > 0) {
-                  playerInfo = `${numPoints} pts.`
-                }
-              }
-              return <PlayerArea
-                key={`playerArea${playerId}`}
-                playerIds={playerIds}
-                playerId={playerId}
-                myId={this.myId}
-                distance={0.91}
-                shiftX={playerId === this.myId ? 204 : 0}
-                isText={true}
-              >
-                <div>
-                  <span className={className}>{playerNames[playerId]}</span>
-                  {playerInfo ? <span className='player_info'>{playerInfo}</span> : undefined}
-                </div>
-              </PlayerArea>;
-            })}
-      </div>;
+      return;
     }
+    return playerIds.map(playerId => {
+      return <PlayerArea
+        key={`playerName${playerId}`}
+        playerIds={playerIds}
+        playerId={playerId}
+        myId={this.myId}
+        distance={0.91}
+        shiftX={playerId === this.myId ? 204 : 0}
+        isText={true}
+      >
+        <PlayerNametag
+          playerId={playerId}
+          playerNames={playerNames}
+          playerIds={playerIds}
+          findAFriend={findAFriend}
+          status={status}
+          currentPlayerIndex={currentPlayerIndex}
+          isDeclaringTeam={isDeclaringTeam}
+          currentRoundScores={currentRoundScores}
+        />
+      </PlayerArea>;
+    });
   }
 
   renderNotifications() {

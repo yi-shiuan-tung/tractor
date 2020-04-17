@@ -1,0 +1,20 @@
+.player_nametag .name {
+    font-size: 16px;
+    padding: 5px;
+    color: white;
+    white-space: nowrap;
+}
+
+.player_nametag .current {
+    color: orange;
+    border: 1px solid orange;
+    border-radius: 8px;
+}
+
+.player_nametag .player_info {
+    color: white;
+    position: relative;
+    bottom: 10px;
+    margin-left: 2px;
+    white-space: nowrap;
+}
