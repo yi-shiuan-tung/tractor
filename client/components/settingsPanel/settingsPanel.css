@@ -25,6 +25,12 @@
     background-image: url("../../assets/images/forfeit.png");
 }
 
+.settings_panel .leave_room {
+    bottom: 20px;
+    left: 100px;
+    background-image: url("../../assets/images/leave_room.png");
+}
+
 .settings_panel .undo {
     bottom: 20px;
     left: 100px;

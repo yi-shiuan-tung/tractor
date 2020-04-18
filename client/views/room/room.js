@@ -459,9 +459,11 @@ export class Game extends React.Component {
   }
 
   renderSettings() {
-    const { soundVolume, currentTrick } = this.state;
+    const { leaveRoom } = this.props;
+    const { soundVolume, status, currentTrick } = this.state;
     return <SettingsPanel
       soundVolume={soundVolume}
+      status={status}
       currentTrick={currentTrick}
       myId={this.myId}
       setSoundVolume={soundVolume => {
@@ -469,6 +471,7 @@ export class Game extends React.Component {
         this.setState({ soundVolume });
       }}
       forfeit={() => this.connection.send({ FORFEIT: {} })}
+      leaveRoom={leaveRoom}
       takeBack={() => this.connection.send({ TAKE_BACK: {} })}
     />;
   }
