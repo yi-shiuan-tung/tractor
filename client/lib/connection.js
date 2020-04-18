@@ -4,8 +4,6 @@ import atmosphere from 'atmosphere.js';
  * Opens a websocket connection to the server using JSON-serialized messages.
  *
  * @param {*} url The url to connect to. The scheme will be replaced with ws://.
- * @param {*} onMyId A callback that takes a single parameter, the client's
- * unique identifier. Called once.
  * @param {*} onMessage A callback that takes a single parameter, the
  * JSON-deserialized object sent from the server. Called once for each message.
  *
@@ -14,7 +12,7 @@ import atmosphere from 'atmosphere.js';
  * JSON-serialized object to the server.
  * disconnect: a nullary function to call to disconnect to the server.
  */
-export const setUpConnection = function(url, onMyId, onMessage) {
+export const setUpConnection = function(url, onMessage) {
   let subSocket;
   const request = {
     url: url,
@@ -23,10 +21,6 @@ export const setUpConnection = function(url, onMyId, onMessage) {
     transport: 'websocket',
     fallbackTransport: 'long-polling',
   };
-
-  if (onMyId) {
-    request.onOpen = response => onMyId(response.request.uuid);
-  }
 
   request.onClientTimeout = function(r) {
     subSocket.push(

@@ -2,7 +2,6 @@
 package io.github.ytung.tractor;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.atmosphere.config.service.DeliverTo;
 import org.atmosphere.config.service.Disconnect;
@@ -21,6 +21,8 @@ import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.Broadcaster;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -40,12 +42,14 @@ import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
+import io.github.ytung.tractor.api.IncomingMessage.RejoinRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
+import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
@@ -57,6 +61,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
+import io.github.ytung.tractor.api.OutgoingMessage.Rejoin;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
@@ -77,8 +82,11 @@ public class TractorRoom {
      */
     private static final boolean DEV_MODE = false;
 
-    private final Map<String, AtmosphereResource> resources = new ConcurrentHashMap<>();
-    private final Map<String, AiClient> aiClients = new ConcurrentHashMap<>();
+    private final Set<AtmosphereResource> resources = ConcurrentHashMap.newKeySet();
+
+    private final BiMap<String, AtmosphereResource> humanControllers = Maps.synchronizedBiMap(HashBiMap.create());
+    private final Map<String, AiClient> aiControllers = new ConcurrentHashMap<>();
+
     private final Map<String, String> playerNames = new ConcurrentHashMap<>();
     private final Map<String, Boolean> playerReadyForPlay = new ConcurrentHashMap<>();
     private final Game game = new Game();
@@ -88,23 +96,26 @@ public class TractorRoom {
 
     @Ready
     public void onReady(AtmosphereResource r) {
-        if (resources.containsKey(r.uuid()))
-            return;
+        resources.add(r);
 
-        resources.put(r.uuid(), r);
-        playerNames.put(r.uuid(), Names.generateRandomName());
-        if (game.getStatus() == GameStatus.START_ROUND) {
-            playerReadyForPlay.put(r.uuid(), false);
-            game.addPlayer(r.uuid());
+        Set<String> unmappedPlayerIds = game.getPlayerIds().stream()
+            .filter(playerId -> !humanControllers.containsKey(playerId) && !aiControllers.containsKey(playerId))
+            .collect(Collectors.toSet());
+        String myPlayerId = null;
+
+        if (unmappedPlayerIds.isEmpty() && game.getStatus() == GameStatus.START_ROUND) {
+            addHumanController(r);
+            myPlayerId = r.uuid();
+            sendSync(r.getBroadcaster(), new UpdatePlayers(
+                game.getPlayerIds(),
+                game.getPlayerRankScores(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerNames,
+                playerReadyForPlay));
         }
-        sendSync(r.getBroadcaster(), new UpdatePlayers(
-            game.getPlayerIds(),
-            game.getPlayerRankScores(),
-            game.isFindAFriend(),
-            game.getKittySize(),
-            playerNames,
-            playerReadyForPlay));
-        sendSync(r.uuid(), r.getBroadcaster(), new FullRoomState(
+
+        r.write(JacksonEncoder.INSTANCE.encode(new FullRoomState(
             game.getPlayerIds(),
             game.getNumDecks(),
             game.isFindAFriend(),
@@ -126,44 +137,65 @@ public class TractorRoom {
             game.getCurrentRoundScores(),
             game.getCurrentTrump(),
             game.getKittySize(),
+            humanControllers.keySet(),
+            aiControllers.keySet(),
             playerNames,
             playerReadyForPlay,
-            aiClients.keySet()));
+            myPlayerId)));
     }
 
     @Disconnect
     public void onDisconnect(AtmosphereResourceEvent r) {
-        String playerId = r.getResource().uuid();
-        if (resources.remove(playerId) == null)
+        resources.remove(r.getResource());
+
+        String playerId = humanControllers.inverse().get(r.getResource());
+        if (playerId == null)
             return;
 
+        humanControllers.remove(playerId);
+
         if (game.getStatus() != GameStatus.START_ROUND)
-            forfeit(playerId, "disconnected", r.getResource().getBroadcaster());
+            sendSync(r.broadcaster(), new DisconnectMessage(playerId));
 
-        game.removePlayer(playerId);
-        playerNames.remove(playerId);
-        playerReadyForPlay.remove(playerId);
-
-        sendSync(r.getResource().getBroadcaster(), new UpdatePlayers(
-            game.getPlayerIds(),
-            game.getPlayerRankScores(),
-            game.isFindAFriend(),
-            game.getKittySize(),
-            playerNames,
-            playerReadyForPlay));
-        if (resources.isEmpty()) {
+        if (resources.isEmpty())
             TractorLobby.closeRoom(roomCode);
-        }
     }
 
     @Message(decoders = {JacksonDecoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public void onMessage(AtmosphereResource r, IncomingMessage message) throws Exception {
-        handleMessage(r.uuid(), r.getBroadcaster(), message);
+        System.out.println(message);
+
+        if (message instanceof RejoinRequest) {
+            String playerId = ((RejoinRequest) message).getPlayerId();
+            if (game.getPlayerIds().contains(playerId)
+                    && !humanControllers.containsKey(playerId)
+                    && !humanControllers.containsValue(r)
+                    && !aiControllers.containsKey(playerId)) {
+                humanControllers.put(playerId, r);
+                sendSync(playerId, r.getBroadcaster(), new CardInfo(game.getPrivateCards(playerId)));
+                sendSync(playerId, r.getBroadcaster(), new Rejoin(playerId));
+            } else {
+                if (game.getStatus() == GameStatus.START_ROUND) {
+                    addHumanController(r);
+                    sendSync(r.getBroadcaster(), new UpdatePlayers(
+                        game.getPlayerIds(),
+                        game.getPlayerRankScores(),
+                        game.isFindAFriend(),
+                        game.getKittySize(),
+                        playerNames,
+                        playerReadyForPlay));
+                }
+                r.write(JacksonEncoder.INSTANCE.encode(new Rejoin(r.uuid())));
+            }
+        }
+
+        String playerId = humanControllers.inverse().get(r);
+        if (playerId != null)
+            handleGameMessage(playerId, r.getBroadcaster(), message);
     }
 
-    private void handleMessage(String playerId, Broadcaster broadcaster, IncomingMessage message) {
-        System.out.println(message);
+    private void handleGameMessage(String playerId, Broadcaster broadcaster, IncomingMessage message) {
 
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
@@ -205,10 +237,10 @@ public class TractorRoom {
         }
 
         if (message instanceof AddAiRequest) {
-            if (aiClients.size() >= 5)
+            if (aiControllers.size() >= 5)
                 return;
             String aiPlayerId = UUID.randomUUID().toString();
-            aiClients.put(aiPlayerId, new AiClient(aiPlayerId));
+            aiControllers.put(aiPlayerId, new AiClient(aiPlayerId));
             playerNames.put(aiPlayerId, Names.generateRandomName());
             game.addPlayer(aiPlayerId);
             sendSync(broadcaster, new UpdateAis(
@@ -217,7 +249,7 @@ public class TractorRoom {
                 game.isFindAFriend(),
                 game.getKittySize(),
                 playerNames,
-                aiClients.keySet()));
+                aiControllers.keySet()));
         }
 
         if (message instanceof GameConfigurationRequest) {
@@ -328,6 +360,14 @@ public class TractorRoom {
         }
     }
 
+    private void addHumanController(AtmosphereResource r) {
+        String playerId = r.uuid();
+        humanControllers.put(playerId, r);
+        playerNames.put(playerId, Names.generateRandomName());
+        playerReadyForPlay.put(playerId, false);
+        game.addPlayer(playerId);
+    }
+
     private void startRound(Broadcaster broadcaster) {
         game.startRound();
         sendSync(broadcaster, new StartRound(
@@ -399,11 +439,8 @@ public class TractorRoom {
                     game.getCurrentTrick(),
                     game.getCurrentRoundScores(),
                     game.getCurrentTrump()));
-                if (game.getStatus() != GameStatus.PLAY) {
-                    // game end, send kitty card info to all players
-                    sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
+                if (game.getStatus() != GameStatus.PLAY)
                     prepareStartNewRound(broadcaster);
-                }
             }
         };
 
@@ -413,8 +450,6 @@ public class TractorRoom {
 
     private void forfeit(String playerId, String message, Broadcaster broadcaster) {
         game.forfeitRound(playerId);
-        // game end, send kitty card info to all players
-        sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
         sendSync(broadcaster, new Forfeit(
             playerId,
             message,
@@ -426,13 +461,14 @@ public class TractorRoom {
     }
 
     private void prepareStartNewRound(Broadcaster broadcaster) {
+        // game end, send kitty card info to all players
+        sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
+
         // add any current observers to the game
-        Set<String> observers = Sets.difference(resources.keySet(), new HashSet<>(game.getPlayerIds()));
+        Set<AtmosphereResource> observers = Sets.filter(resources, r -> !humanControllers.containsValue(r));
         if (!observers.isEmpty()) {
-            for (String observer : observers) {
-                playerReadyForPlay.put(observer, false);
-                game.addPlayer(observer);
-            }
+            for (AtmosphereResource observer : observers)
+                addHumanController(observer);
             sendSync(broadcaster, new UpdatePlayers(
                 game.getPlayerIds(),
                 game.getPlayerRankScores(),
@@ -444,10 +480,10 @@ public class TractorRoom {
     }
 
     private void sendSync(String playerId, Broadcaster broadcaster, OutgoingMessage message) {
-        if (resources.containsKey(playerId))
-            resources.get(playerId).write(JacksonEncoder.INSTANCE.encode(message));
-        else if (aiClients.containsKey(playerId))
-            aiClients.get(playerId).processMessage(game, message, inputMessage -> handleMessage(playerId, broadcaster, inputMessage));
+        if (humanControllers.containsKey(playerId))
+            humanControllers.get(playerId).write(JacksonEncoder.INSTANCE.encode(message));
+        else if (aiControllers.containsKey(playerId))
+            aiControllers.get(playerId).processMessage(game, message, inputMessage -> handleGameMessage(playerId, broadcaster, inputMessage));
         else
             throw new IllegalStateException();
     }
@@ -458,8 +494,8 @@ public class TractorRoom {
         } catch (ExecutionException | InterruptedException e) {
             throw new IllegalStateException(e);
         }
-        aiClients.forEach((playerId, aiClient) -> {
-            aiClient.processMessage(game, message, inputMessage -> handleMessage(playerId, broadcaster, inputMessage));
+        aiControllers.forEach((playerId, aiController) -> {
+            aiController.processMessage(game, message, inputMessage -> handleGameMessage(playerId, broadcaster, inputMessage));
         });
     }
 }

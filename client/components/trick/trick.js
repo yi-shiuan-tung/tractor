@@ -14,15 +14,15 @@ export class Trick extends React.Component {
     }
 
     render() {
-        const { trick, playerIds, cardsById, myId } = this.props;
+        const { trick, myPlayerId, playerIds, cardsById } = this.props;
         return (
             <span className="trick">
                 {trick.plays.map(({ playerId, cardIds }) => {
                     return <PlayerArea
                         key={`playerArea${playerId}`}
+                        myPlayerId={myPlayerId}
                         playerIds={playerIds}
                         playerId={playerId}
-                        myId={myId}
                         distance={0.2}
                     >
                         <Cards

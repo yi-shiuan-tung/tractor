@@ -13,6 +13,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
+import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
@@ -25,6 +26,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
+import io.github.ytung.tractor.api.OutgoingMessage.Rejoin;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
@@ -37,6 +39,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = CreateRoom.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = FullRoomState.class, name = "ROOM_STATE"),
+    @JsonSubTypes.Type(value = Rejoin.class, name = "REJOIN"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
     @JsonSubTypes.Type(value = UpdateAis.class, name = "UPDATE_AIS"),
     @JsonSubTypes.Type(value = GameConfiguration.class, name = "GAME_CONFIGURATION"),
@@ -54,6 +57,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = TakeBack.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
+    @JsonSubTypes.Type(value = DisconnectMessage.class, name = "DISCONNECT"),
     @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
 })
 public interface OutgoingMessage {
@@ -100,9 +104,17 @@ public interface OutgoingMessage {
         private final Card currentTrump;
         private final int kittySize;
 
+        private final Set<String> humanControllers;
+        private final Set<String> aiControllers;
         private final Map<String, String> playerNames;
         private final Map<String, Boolean> playerReadyForPlay;
-        private final Set<String> ais;
+        private final String myPlayerId;
+    }
+
+    @Data
+    public static class Rejoin implements OutgoingMessage {
+
+        private final String myPlayerId;
     }
 
     @Data
@@ -273,6 +285,12 @@ public interface OutgoingMessage {
         private final Map<String, Card.Value> playerRankScores;
 
         private final GameStatus status;
+    }
+
+    @Data
+    public static class DisconnectMessage implements OutgoingMessage {
+
+        private final String playerId;
     }
 
     @Data

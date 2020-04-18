@@ -22,11 +22,11 @@ export class RoundStartPanel extends React.Component {
 
     render() {
         const {
-            ais,
+            aiControllers,
             playerNames,
             playerReadyForPlay,
+            myPlayerId,
             playerIds,
-            myId,
             numDecks,
             findAFriend,
             playerRankScores,
@@ -39,7 +39,7 @@ export class RoundStartPanel extends React.Component {
         } = this.props;
         const { inputMyName, isMyNameEditable } = this.state;
 
-        const iAmReadyForPlay = playerReadyForPlay[myId];
+        const iAmReadyForPlay = playerReadyForPlay[myPlayerId];
         const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
 
         return (
@@ -70,7 +70,7 @@ export class RoundStartPanel extends React.Component {
                                     setPlayerOrder(playerIds);
                                 }} />);
                         }
-                        if (playerId === myId && isMyNameEditable) {
+                        if (playerId === myPlayerId && isMyNameEditable) {
                             const setNameFunc = () => {
                                 this.setState({ isMyNameEditable: false });
                                 setName(inputMyName.slice(0, 20));
@@ -87,12 +87,12 @@ export class RoundStartPanel extends React.Component {
                         } else {
                             children.push(playerNames[playerId]);
                         }
-                        if (playerId === myId && !isMyNameEditable) {
+                        if (playerId === myPlayerId && !isMyNameEditable) {
                             children.push(<a
                                 key="edit_name"
                                 className='edit_name'
                                 onClick={() => {
-                                    this.setState({ isMyNameEditable: true, inputMyName: playerNames[myId] });
+                                    this.setState({ isMyNameEditable: true, inputMyName: playerNames[myPlayerId] });
                                 }}
                             />);
                         }
@@ -114,10 +114,10 @@ export class RoundStartPanel extends React.Component {
                             />);
                         }
 
-                        if (playerId === myId) {
+                        if (playerId === myPlayerId) {
                             children.push(<span key="me" className='me'> (YOU)</span>);
                         }
-                        if (ais.indexOf(playerId) >= 0) {
+                        if (aiControllers.indexOf(playerId) >= 0) {
                             children.push(<span key={`ai${playerId}`}> (AI)</span>);
                         }
                         if (winningPlayerIds.indexOf(playerId) >= 0) {

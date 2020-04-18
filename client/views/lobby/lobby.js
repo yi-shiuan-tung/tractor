@@ -16,7 +16,6 @@ export class Lobby extends React.Component {
     const {joinRoom} = this.props;
     this.connection = setUpConnection(
         LOCATION + 'tractor',
-        undefined,
         json => {
           if (json.CREATE_ROOM || json.JOIN_ROOM) {
             const roomCode = json.CREATE_ROOM ?

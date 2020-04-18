@@ -53,10 +53,10 @@ public class Game {
     private Queue<Integer> deck;
     private Map<Integer, Card> cardsById;
     private Map<String, List<Integer>> playerHands;
-    private List<Play> declaredCards = new ArrayList<>();
+    private List<Play> declaredCards;
     private List<Integer> kitty;
     private FindAFriendDeclaration findAFriendDeclaration;
-    private List<Trick> pastTricks = new ArrayList<>();
+    private List<Trick> pastTricks;
     private Trick currentTrick;
     private Map<String, Integer> currentRoundScores = new HashMap<>();
 
@@ -513,7 +513,7 @@ public class Game {
     public Card getCurrentTrump() {
         return new Card(
             playerRankScores.get(playerIds.get(declarerPlayerIndex)),
-            declaredCards.isEmpty()
+            declaredCards == null || declaredCards.isEmpty()
                     ? Card.Suit.JOKER
                     : cardsById.get(declaredCards.get(declaredCards.size() - 1).getCardIds().get(0)).getSuit());
     }
@@ -527,18 +527,31 @@ public class Game {
 
     public Map<Integer, Card> getPublicCards() {
         Map<Integer, Card> publicCards = new HashMap<>();
-        for (Play play : declaredCards)
-            for (int cardId : play.getCardIds())
-                publicCards.put(cardId, cardsById.get(cardId));
-        for (Trick trick : pastTricks)
-            for (Play play : trick.getPlays())
+        if (declaredCards != null)
+            for (Play play : declaredCards)
                 for (int cardId : play.getCardIds())
                     publicCards.put(cardId, cardsById.get(cardId));
+        if (pastTricks != null)
+            for (Trick trick : pastTricks)
+                for (Play play : trick.getPlays())
+                    for (int cardId : play.getCardIds())
+                        publicCards.put(cardId, cardsById.get(cardId));
         if (currentTrick != null)
             for (Play play : currentTrick.getPlays())
                 for (int cardId : play.getCardIds())
                     publicCards.put(cardId, cardsById.get(cardId));
         return publicCards;
+    }
+
+    public Map<Integer, Card> getPrivateCards(String playerId) {
+        Map<Integer, Card> privateCards = new HashMap<>();
+        if (playerHands != null && playerHands.containsKey(playerId))
+            for (int cardId : playerHands.get(playerId))
+                privateCards.put(cardId, cardsById.get(cardId));
+        if (kitty != null)
+            for (int cardId : kitty)
+                privateCards.put(cardId, cardsById.get(cardId));
+        return privateCards;
     }
 
     private void sortCards(List<Integer> hand) {

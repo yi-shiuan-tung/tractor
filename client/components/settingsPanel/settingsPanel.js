@@ -17,10 +17,10 @@ export class SettingsPanel extends React.Component {
 
     render() {
         const {
+            myPlayerId,
             soundVolume,
             status,
             currentTrick,
-            myId,
             setSoundVolume, // soundVolume => void
             forfeit, // () => void
             leaveRoom, // () => void
@@ -38,7 +38,7 @@ export class SettingsPanel extends React.Component {
                 />
                 {this.maybeRenderConfirm(forfeit, leaveRoom)}
                 {this.maybeRenderLeaveRoomButton(status)}
-                {this.maybeRenderTakeBackButton(currentTrick, myId, takeBack)}
+                {this.maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack)}
             </div>
         );
     }
@@ -76,12 +76,12 @@ export class SettingsPanel extends React.Component {
         />;
     }
 
-    maybeRenderTakeBackButton(currentTrick, myId, takeBack) {
+    maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack) {
         if (!currentTrick) {
             return;
         }
         const { plays } = currentTrick;
-        if (plays.length > 0 && plays[plays.length - 1].playerId === myId) {
+        if (plays.length > 0 && plays[plays.length - 1].playerId === myPlayerId) {
             return <div
                 className='button undo'
                 onClick={takeBack}

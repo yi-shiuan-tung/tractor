@@ -29,7 +29,7 @@ import lombok.Data;
 @Data
 public class AiClient {
 
-    private final String myId;
+    private final String myPlayerId;
 
     public void processMessage(Game game, OutgoingMessage message, Consumer<IncomingMessage> send) {
         if (game.getStatus() == GameStatus.DRAW) {
@@ -43,7 +43,7 @@ public class AiClient {
 
         if (game.getStatus() == GameStatus.MAKE_KITTY
                 && game.getCurrentPlayerIndex() != -1
-                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)
+                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myPlayerId)
                 && game.getKitty().isEmpty()) {
             MakeKittyRequest request = new MakeKittyRequest();
             request.setCardIds(new ArrayList<>(makeKitty(game)));
@@ -52,7 +52,7 @@ public class AiClient {
 
         if (game.getStatus() == GameStatus.PLAY
                 && game.getCurrentPlayerIndex() != -1
-                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myId)) {
+                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myPlayerId)) {
             PlayRequest request = new PlayRequest();
             request.setCardIds(new ArrayList<>(play(game)));
             request.setConfirmDoesItFly(true);
@@ -64,7 +64,7 @@ public class AiClient {
         Map<Integer, Card> cardsById = game.getCardsById();
         List<Play> declaredCards = game.getDeclaredCards();
         Card trump = game.getCurrentTrump();
-        List<Integer> myHand = game.getPlayerHands().get(myId);
+        List<Integer> myHand = game.getPlayerHands().get(myPlayerId);
 
         if (!declaredCards.isEmpty())
             return null;
@@ -88,7 +88,7 @@ public class AiClient {
         Map<Integer, Card> cardsById = game.getCardsById();
         Card trump = game.getCurrentTrump();
         int kittySize = game.getKittySize();
-        List<Integer> myHand = game.getPlayerHands().get(myId);
+        List<Integer> myHand = game.getPlayerHands().get(myPlayerId);
 
         List<Card> myCards = myHand.stream().map(cardsById::get).collect(Collectors.toList());
         return myHand.stream()
@@ -106,7 +106,7 @@ public class AiClient {
         Map<Integer, Card> cardsById = game.getCardsById();
         Trick currentTrick = game.getCurrentTrick();
         Card trump = game.getCurrentTrump();
-        List<Integer> myHand = game.getPlayerHands().get(myId);
+        List<Integer> myHand = game.getPlayerHands().get(myPlayerId);
 
         Map<Grouping, List<Integer>> myHandByGrouping = Maps.toMap(Arrays.asList(Grouping.values()), grouping -> myHand.stream()
             .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == grouping)

@@ -36,9 +36,9 @@ export class PlayerArea extends React.Component {
 
   render() {
     const {
+      myPlayerId,
       playerIds,
       playerId,
-      myId,
       distance,
       shiftX = 0,
       isText,
@@ -46,7 +46,7 @@ export class PlayerArea extends React.Component {
     } = this.props;
     const {textWidth} = this.state;
     const playerIndex = playerIds.indexOf(playerId);
-    const myIndex = playerIds.indexOf(myId);
+    const myIndex = playerIds.indexOf(myPlayerId);
     const centerPoint = {
       x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 *
         Math.PI / playerIds.length) * distance / 2 * 0.9),
@@ -87,7 +87,7 @@ export class PlayerArea extends React.Component {
           top: centerPoint.y,
           left: centerPoint.x + shiftX,
           transform,
-          zIndex: playerId === myId ? 1 : 0,
+          zIndex: playerId === myPlayerId ? 1 : 0,
         }}
         ref={ref}
       >
@@ -98,9 +98,9 @@ export class PlayerArea extends React.Component {
 }
 
 PlayerArea.propTypes = {
+  myPlayerId: PropTypes.string,
   playerIds: PropTypes.array,
   playerId: PropTypes.string,
-  myId: PropTypes.string,
   distance: PropTypes.number,
   isText: PropTypes.bool,
   children: PropTypes.any,

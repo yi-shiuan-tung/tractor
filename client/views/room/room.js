@@ -14,6 +14,7 @@ import {
   Kitty,
   PlayerArea,
   PlayerNametag,
+  RejoinPanel,
   RoundInfoPanel,
   RoundStartPanel,
   SettingsPanel,
@@ -24,17 +25,22 @@ export class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      // local state
-      ais: [], // PlayerId[]
+      // room state (same as server)
+      humanControllers: [], // PlayerId[]
+      aiControllers: [], // PlayerId[]
       playerNames: {}, // {playerId: playerName}
+      playerReadyForPlay: {}, // {playerId: boolean}
+      myPlayerId: undefined, // PlayerId
+
+      // local state
       selectedCardIds: {}, // {cardId: boolean}
       notifications: {},
       showPreviousTrick: false,
-      playerReadyForPlay: {}, // {playerId: boolean}
       confirmDoesItFlyCards: undefined, // CardId[]?
       soundVolume: 3, // 0, 1, 2, or 3
+      unmappedPlayerIds: [], // PlayerId[]
 
-      // game state
+      // game state (same as server)
       playerIds: [], // PlayerId[]
       numDecks: 2, // integer
       findAFriend: false, // boolean
@@ -64,12 +70,13 @@ export class Game extends React.Component {
     this.audio = getAudio();
     this.connection = setUpConnection(
         LOCATION + 'tractor/' + roomCode,
-        myId => this.myId = myId,
         json => {
-          const {playerNames, playerIds, status, cardsById} = this.state;
+          const {playerNames, myPlayerId, playerIds, status, cardsById} = this.state;
 
           if (json.ROOM_STATE) {
             this.setState(json.ROOM_STATE);
+          } else if (json.REJOIN) {
+            this.setState(json.REJOIN);
           } else if (json.UPDATE_PLAYERS) {
             this.setState(json.UPDATE_PLAYERS);
           } else if (json.UPDATE_AIS) {
@@ -98,7 +105,7 @@ export class Game extends React.Component {
             this.setState(json.MAKE_KITTY);
           } else if (json.PLAY) {
             this.setState(json.PLAY);
-            if (status === 'PLAY' && playerIds[json.PLAY.currentPlayerIndex] === this.myId) {
+            if (status === 'PLAY' && playerIds[json.PLAY.currentPlayerIndex] === myPlayerId) {
               this.audio.playYourTurn();
             }
           } else if (json.FINISH_TRICK) {
@@ -109,7 +116,7 @@ export class Game extends React.Component {
                  doDeclarersWin ? 'Declarers win!' : 'Opponents win!',
               );
               this.audio.playGameOver();
-            } else if (other.status === 'PLAY' && playerIds[other.currentPlayerIndex] === this.myId) {
+            } else if (other.status === 'PLAY' && playerIds[other.currentPlayerIndex] === myPlayerId) {
               this.audio.playYourTurn();
             }
           } else if (json.CONFIRM_DOES_IT_FLY) {
@@ -127,6 +134,9 @@ export class Game extends React.Component {
             const {playerId, message, ...other} = json.FORFEIT;
             this.setNotification(`${playerNames[playerId]} ${message}.`);
             this.setState(other);
+          } else if (json.DISCONNECT) {
+            const { playerId } = json.DISCONNECT;
+            this.setNotification(`${playerNames[playerId]} disconnected.`);
           } else if (json.INVALID_ACTION) {
             this.setNotification(json.INVALID_ACTION.message);
           } else {
@@ -209,9 +219,10 @@ export class Game extends React.Component {
 
   renderRoundStartPanel() {
     const {
-      ais,
+      aiControllers,
       playerNames,
       playerReadyForPlay,
+      myPlayerId,
       playerIds,
       numDecks,
       findAFriend,
@@ -221,11 +232,11 @@ export class Game extends React.Component {
     } = this.state;
     if (status === 'START_ROUND') {
       return <RoundStartPanel
-        ais={ais}
+        aiControllers={aiControllers}
         playerNames={playerNames}
         playerReadyForPlay={playerReadyForPlay}
+        myPlayerId={myPlayerId}
         playerIds={playerIds}
-        myId={this.myId}
         numDecks={numDecks}
         findAFriend={findAFriend}
         playerRankScores={playerRankScores}
@@ -242,6 +253,7 @@ export class Game extends React.Component {
   renderRoundInfo() {
     const {
       playerNames,
+      myPlayerId,
       playerIds,
       declarerPlayerIndex,
       isDeclaringTeam,
@@ -251,33 +263,34 @@ export class Game extends React.Component {
     } = this.state;
     return <RoundInfoPanel
       playerNames={playerNames}
+      myPlayerId={myPlayerId}
       playerIds={playerIds}
       declarerPlayerIndex={declarerPlayerIndex}
       isDeclaringTeam={isDeclaringTeam}
       findAFriendDeclaration={findAFriendDeclaration}
       currentRoundScores={currentRoundScores}
       currentTrump={currentTrump}
-      myId={this.myId}
     />;
   }
 
   renderGameInfo() {
-    const {playerNames, playerIds, playerRankScores, status} = this.state;
+    const {playerNames, myPlayerId, playerIds, playerRankScores, status} = this.state;
     if (status === 'START_ROUND') {
       return; // all info is already shown in the round start panel
     }
     return <GameInfoPanel
       playerNames={playerNames}
+      myPlayerId={myPlayerId}
       playerIds={playerIds}
       playerRankScores={playerRankScores}
       status={status}
-      myId={this.myId}
     />;
   }
 
   renderPlayerNames() {
     const {
       playerNames,
+      myPlayerId,
       playerIds,
       findAFriend,
       status,
@@ -291,11 +304,11 @@ export class Game extends React.Component {
     return playerIds.map(playerId => {
       return <PlayerArea
         key={`playerName${playerId}`}
+        myPlayerId={myPlayerId}
         playerIds={playerIds}
         playerId={playerId}
-        myId={this.myId}
         distance={0.91}
-        shiftX={playerId === this.myId ? 204 : 0}
+        shiftX={playerId === myPlayerId ? 204 : 0}
         isText={true}
       >
         <PlayerNametag
@@ -314,15 +327,30 @@ export class Game extends React.Component {
 
   renderNotifications() {
     const {
+      aiControllers,
+      humanControllers,
       playerNames,
-      notifications,
       playerReadyForPlay,
+      myPlayerId,
+      notifications,
       confirmDoesItFlyCards,
       playerIds,
       kittySize,
       status,
       currentPlayerIndex,
     } = this.state;
+    if (!myPlayerId) {
+      return <RejoinPanel
+        aiControllers={aiControllers}
+        humanControllers={humanControllers}
+        playerNames={playerNames}
+        playerIds={playerIds}
+        rejoin={playerId => {
+          this.connection.send({ REJOIN: { playerId }});
+          this.setState({ unmappedPlayerIds: [] });
+        }}
+      />;
+    }
     if (confirmDoesItFlyCards !== undefined) {
       return <ConfirmationPanel
         message={'That is a special play. If it doesn\'t fly, you will forfeit the round.'}
@@ -341,25 +369,25 @@ export class Game extends React.Component {
     if (status === 'DRAW') {
       return <div className='notification'>{"Select one or more cards to declare"}</div>
     }
-    if (!playerReadyForPlay[this.myId] && status === 'DRAW_KITTY') {
+    if (!playerReadyForPlay[myPlayerId] && status === 'DRAW_KITTY') {
       return <div className='notification'>{"Select card(s) to declare, or press Ready"}</div>
     }
     const playerId = playerIds[currentPlayerIndex];
     if (status === 'MAKE_KITTY') {
-      if (playerId === this.myId) {
+      if (playerId === myPlayerId) {
         return <div className='notification'>{`Select ${kittySize} cards to put in the kitty`}</div>
       } else {
         return <div className='notification'>{`${playerNames[playerId]} is selecting cards for the kitty`}</div>
       }
     }
-    if (status === 'PLAY' && playerId === this.myId) {
+    if (status === 'PLAY' && playerId === myPlayerId) {
       return <div className='notification short'>{'Your turn'}</div>
     }
   }
 
   renderFindAFriendPanel() {
-    const { playerIds, findAFriend, declarerPlayerIndex, status, findAFriendDeclaration } = this.state;
-    if (findAFriend && status === 'MAKE_KITTY' && playerIds[declarerPlayerIndex] === this.myId && !findAFriendDeclaration) {
+    const { myPlayerId, playerIds, findAFriend, declarerPlayerIndex, status, findAFriendDeclaration } = this.state;
+    if (findAFriend && status === 'MAKE_KITTY' && playerIds[declarerPlayerIndex] === myPlayerId && !findAFriendDeclaration) {
       return (
         <FindAFriendPanel
           playerIds={playerIds}
@@ -370,7 +398,7 @@ export class Game extends React.Component {
   }
 
   renderPlayerHands() {
-    const {selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
+    const {myPlayerId, selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
     if (status === 'START_ROUND') {
       return;
     }
@@ -387,17 +415,17 @@ export class Game extends React.Component {
       return (
         <PlayerArea
           key={`playerArea${playerId}`}
+          myPlayerId={myPlayerId}
           playerIds={playerIds}
           playerId={playerId}
-          myId={this.myId}
           distance={0.6}
         >
           <Cards
             cardIds={nonDeclaredCards}
             selectedCardIds={selectedCardIds}
             cardsById={cardsById}
-            faceUp={playerId === this.myId}
-            selectCards={playerId === this.myId ? cardId => this.setState({
+            faceUp={playerId === myPlayerId}
+            selectCards={playerId === myPlayerId ? cardId => this.setState({
               selectedCardIds: {
                 ...selectedCardIds,
                 [cardId]: !selectedCardIds[cardId],
@@ -410,7 +438,7 @@ export class Game extends React.Component {
   }
 
   renderDeclaredCards() {
-    const {playerIds, status, cardsById, declaredCards} = this.state;
+    const {myPlayerId, playerIds, status, cardsById, declaredCards} = this.state;
     if (status === 'START_ROUND' ||
       status === 'PLAY' ||
       declaredCards.length === 0) {
@@ -419,9 +447,9 @@ export class Game extends React.Component {
     const latestDeclaredCards = declaredCards[declaredCards.length - 1];
     return <div>
       <PlayerArea
+        myPlayerId={myPlayerId}
         playerIds={playerIds}
         playerId={latestDeclaredCards.playerId}
-        myId={this.myId}
         distance={0.3}
       >
         <Cards
@@ -434,16 +462,16 @@ export class Game extends React.Component {
   }
 
   renderCurrentTrick() {
-    const {showPreviousTrick, playerIds, status, cardsById, pastTricks, currentTrick} = this.state;
+    const {myPlayerId, showPreviousTrick, playerIds, status, cardsById, pastTricks, currentTrick} = this.state;
     if (!currentTrick) {
       return;
     }
     if (showPreviousTrick && pastTricks.length > 0) {
       return <Trick
         trick={pastTricks[pastTricks.length - 1]}
+        myPlayerId={myPlayerId}
         playerIds={playerIds}
         cardsById={cardsById}
-        myId={this.myId}
       />
     }
     if (status === 'START_ROUND') {
@@ -451,20 +479,20 @@ export class Game extends React.Component {
     }
     return <Trick
       trick={currentTrick}
+      myPlayerId={myPlayerId}
       playerIds={playerIds}
       cardsById={cardsById}
-      myId={this.myId}
     />
   }
 
   renderSettings() {
     const { leaveRoom } = this.props;
-    const { soundVolume, status, currentTrick } = this.state;
+    const { myPlayerId, soundVolume, status, currentTrick } = this.state;
     return <SettingsPanel
+      myPlayerId={myPlayerId}
       soundVolume={soundVolume}
       status={status}
       currentTrick={currentTrick}
-      myId={this.myId}
       setSoundVolume={soundVolume => {
         this.audio.setVolume(soundVolume);
         this.setState({ soundVolume });
@@ -477,6 +505,7 @@ export class Game extends React.Component {
 
   renderActionButton() {
     const {
+      myPlayerId,
       selectedCardIds,
       playerIds,
       kittySize,
@@ -489,7 +518,7 @@ export class Game extends React.Component {
     const selectedCardIdsList = Object.entries(selectedCardIds)
         .filter(([_cardId, selected]) => selected)
         .map(([cardId, _selected]) => cardId);
-    const iAmReadyForPlay = playerReadyForPlay[this.myId];
+    const iAmReadyForPlay = playerReadyForPlay[myPlayerId];
     const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
 
     if (status === 'DRAW_KITTY' && selectedCardIdsList.length === 0) {
@@ -509,7 +538,7 @@ export class Game extends React.Component {
 
           // if you currently declared cards already, add them as well
           if (declaredCards.length > 0 &&
-            declaredCards[declaredCards.length - 1].playerId === this.myId) {
+            declaredCards[declaredCards.length - 1].playerId === myPlayerId) {
             cardIds.push(...declaredCards[declaredCards.length - 1].cardIds);
           }
 
@@ -519,7 +548,7 @@ export class Game extends React.Component {
       />;
     }
 
-    if (playerIds[currentPlayerIndex] !== this.myId) {
+    if (playerIds[currentPlayerIndex] !== myPlayerId) {
       return;
     }
 
@@ -546,21 +575,21 @@ export class Game extends React.Component {
   }
 
   renderKitty() {
-    const { playerIds, declarerPlayerIndex, status, cardsById, kitty } = this.state;
+    const { myPlayerId, playerIds, declarerPlayerIndex, status, cardsById, kitty } = this.state;
 
     return <Kitty
+      myPlayerId={myPlayerId}
       playerIds={playerIds}
       declarerPlayerIndex={declarerPlayerIndex}
       status={status}
       cardsById={cardsById}
       kitty={kitty}
-      myId={this.myId}
     />;
   }
 
   renderLastTrickButton() {
     const {pastTricks} = this.state;
-    if (pastTricks === undefined || pastTricks.length === 0) {
+    if (!pastTricks || pastTricks.length === 0) {
       return;
     }
     return <div

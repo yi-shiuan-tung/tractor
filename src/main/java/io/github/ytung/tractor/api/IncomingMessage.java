@@ -18,6 +18,7 @@ import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
+import io.github.ytung.tractor.api.IncomingMessage.RejoinRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
@@ -28,6 +29,7 @@ import lombok.NoArgsConstructor;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = CreateRoomRequest.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoomRequest.class, name = "JOIN_ROOM"),
+    @JsonSubTypes.Type(value = RejoinRequest.class, name = "REJOIN"),
     @JsonSubTypes.Type(value = SetNameRequest.class, name = "SET_NAME"),
     @JsonSubTypes.Type(value = PlayerOrderRequest.class, name = "PLAYER_ORDER"),
     @JsonSubTypes.Type(value = PlayerScoreRequest.class, name = "PLAYER_SCORE"),
@@ -55,6 +57,13 @@ public interface IncomingMessage {
     public static class JoinRoomRequest implements IncomingMessage {
 
         private String roomCode;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class RejoinRequest implements IncomingMessage {
+
+        private String playerId;
     }
 
     @Data

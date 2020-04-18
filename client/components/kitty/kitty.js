@@ -17,15 +17,15 @@ export class Kitty extends React.Component {
 
     render() {
         const {
+            myPlayerId,
             playerIds,
             declarerPlayerIndex,
             status,
             cardsById,
             kitty,
-            myId,
         } = this.props;
 
-        if (status !== 'START_ROUND' && playerIds[declarerPlayerIndex] !== myId) {
+        if (status !== 'START_ROUND' && playerIds[declarerPlayerIndex] !== myPlayerId) {
             return null;
         }
         if (!kitty || kitty.length === 0) {

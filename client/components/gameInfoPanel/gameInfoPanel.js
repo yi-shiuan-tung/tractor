@@ -11,9 +11,9 @@ export class GameInfoPanel extends React.Component {
     render() {
         const {
             playerNames,
+            myPlayerId,
             playerIds,
             playerRankScores,
-            myId,
         } = this.props;
 
         return (
@@ -21,7 +21,7 @@ export class GameInfoPanel extends React.Component {
                 <div>Player scores:</div>
                 <ul>
                     {playerIds.map((playerId) => {
-                        const name = playerId === myId ?
+                        const name = playerId === myPlayerId ?
                             <span className='me'>{'You'}</span> : playerNames[playerId];
                         return <li
                             key={playerId}
