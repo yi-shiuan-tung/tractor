@@ -169,9 +169,6 @@ export class Game extends React.Component {
       <div>
         <div>
           <h3>Room Code: {roomCode}</h3>
-          <button type='button' onClick={() => this.connection.send({ FORFEIT: {} })}>
-            {'Forfeit'}
-          </button>
           {this.maybeRenderAddAiButton()}
         </div>
         {this.renderGameArea()}
@@ -471,6 +468,7 @@ export class Game extends React.Component {
         this.audio.setVolume(soundVolume);
         this.setState({ soundVolume });
       }}
+      forfeit={() => this.connection.send({ FORFEIT: {} })}
       takeBack={() => this.connection.send({ TAKE_BACK: {} })}
     />;
   }

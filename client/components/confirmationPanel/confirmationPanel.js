@@ -12,16 +12,18 @@ export class ConfirmationPanel extends React.Component {
         return (
             <div className='confirmation_panel'>
                 {message}
-                <button
-                    onClick={confirm}
-                >
-                    {'Confirm'}
-                </button>
-                <button
-                    onClick={cancel}
-                >
-                    {'Cancel'}
-                </button>
+                <div>
+                    <button
+                        onClick={confirm}
+                    >
+                        {'Confirm'}
+                    </button>
+                    <button
+                        onClick={cancel}
+                    >
+                        {'Cancel'}
+                    </button>
+                </div>
             </div>
         );
     }

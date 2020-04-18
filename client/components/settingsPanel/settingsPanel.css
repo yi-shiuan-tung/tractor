@@ -7,6 +7,11 @@
     border-radius: 6px;
     background-color: tan;
     background-size: cover;
+    cursor: pointer;
+}
+
+.settings_panel .button:hover {
+    background-color: rgba(210, 180, 140, 0.9);
 }
 
 .settings_panel .sound {
@@ -14,9 +19,15 @@
     left: 20px;
 }
 
-.settings_panel .undo {
+.settings_panel .forfeit {
     bottom: 20px;
     left: 60px;
+    background-image: url("../../assets/images/forfeit.png");
+}
+
+.settings_panel .undo {
+    bottom: 20px;
+    left: 100px;
     background-image: url("../../assets/images/undo.png");
 }
 

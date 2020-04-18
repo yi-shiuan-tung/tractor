@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ConfirmationPanel } from '../confirmationPanel';
 import './settingsPanel.css';
 
 /**
@@ -6,12 +7,20 @@ import './settingsPanel.css';
  */
 export class SettingsPanel extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            isConfirmingForfeit: false,
+        }
+    }
+
     render() {
         const {
             soundVolume,
             currentTrick,
             myId,
             setSoundVolume, // soundVolume => void
+            forfeit, // () => void
             takeBack, // () => void
         } = this.props;
         return (
@@ -20,7 +29,12 @@ export class SettingsPanel extends React.Component {
                     className={`button sound sound${soundVolume}`}
                     onClick={() => setSoundVolume((soundVolume + 1) % 4)}
                 />
+                <div
+                    className={"button forfeit"}
+                    onClick={() => this.setState({ isConfirmingForfeit: true })}
+                />
                 {this.maybeRenderTakeBackButton(currentTrick, myId, takeBack)}
+                {this.maybeRenderConfirmForfeit(forfeit)}
             </div>
         );
     }
@@ -34,6 +48,20 @@ export class SettingsPanel extends React.Component {
             return <div
                 className='button undo'
                 onClick={takeBack}
+            />
+        }
+    }
+
+    maybeRenderConfirmForfeit(forfeit) {
+        const { isConfirmingForfeit } = this.state;
+        if (isConfirmingForfeit) {
+            return <ConfirmationPanel
+                message='Are you sure you want to forfeit?'
+                confirm={() => {
+                    forfeit();
+                    this.setState({ isConfirmingForfeit: false });
+                }}
+                cancel={() => this.setState({ isConfirmingForfeit: false })}
             />
         }
     }
