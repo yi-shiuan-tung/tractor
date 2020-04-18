@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
-import "./FindAFriendPanel.css";
+import "./findAFriendPanel.css";
 
 /**
  * Renders a panel to allow the declarer to select N friends.

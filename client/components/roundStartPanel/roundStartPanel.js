@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { VALUES } from '../../lib/cards';
-import './RoundStartPanel.css';
+import './roundStartPanel.css';
 
 /**
  * The panel shown right before the first round starts, and between rounds.
