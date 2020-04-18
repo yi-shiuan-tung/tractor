@@ -98,17 +98,17 @@ export class RoundStartPanel extends React.Component {
                         }
 
                         children.push(` (rank ${VALUES[playerRankScores[playerId]]})`);
-                        children.push(<span className='spacing' />);
+                        children.push(<span key='spacing' className='spacing' />);
                         if (playerRankScores[playerId] !== 'ACE') {
                             children.push(<span
-                                key="score_arrow_up"
+                                key='score_arrow_up'
                                 className='arrow up'
                                 onClick={() => setPlayerScore(playerId, true)}
                             />);
                         }
                         if (playerRankScores[playerId] !== 'TWO') {
                             children.push(<span
-                                key="score_arrow_down"
+                                key='score_arrow_down'
                                 className='arrow down'
                                 onClick={() => setPlayerScore(playerId, false)}
                             />);

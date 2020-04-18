@@ -461,6 +461,22 @@ public class Game {
         }
     }
 
+    public synchronized void takeBack(String playerId) {
+        List<Play> plays = currentTrick.getPlays();
+        if (plays.isEmpty())
+            throw new IllegalStateException();
+
+        Play lastPlay = plays.get(plays.size() - 1);
+        if (!lastPlay.getPlayerId().equals(playerId))
+            throw new IllegalStateException();
+
+        currentTrick.getPlays().remove(plays.size() - 1);
+        currentTrick.setWinningPlayerId(winningPlayerId(currentTrick));
+        playerHands.get(playerId).addAll(lastPlay.getCardIds());
+        sortCards(playerHands.get(playerId));
+        currentPlayerIndex = playerIds.indexOf(playerId);
+    }
+
     public synchronized void forfeitRound(String playerId) {
         boolean doDeclarersWin = !isDeclaringTeam.get(playerId);
         roundEnd(doDeclarersWin, doDeclarersWin ? 1 : 0);
@@ -593,18 +609,20 @@ public class Game {
     private String winningPlayerId(Trick trick) {
         String winningPlayerId = trick.getStartPlayerId();
         List<Play> plays = trick.getPlays();
-        List<Component> bestProfile = getProfile(plays.get(0).getCardIds());
-        Grouping bestGrouping = getGrouping(plays.get(0).getCardIds());
-        for (int i = 1; i < plays.size(); i++) {
-            Play play = plays.get(i);
-            List<Component> profile = getProfile(play.getCardIds());
-            Grouping grouping = getGrouping(play.getCardIds());
-            if (getShapes(profile).equals(getShapes(bestProfile))) {
-                if (grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP
-                        || grouping == bestGrouping && profile.get(0).getMaxRank() > bestProfile.get(0).getMaxRank()) {
-                    winningPlayerId = play.getPlayerId();
-                    bestProfile = profile;
-                    bestGrouping = grouping;
+        if (!plays.isEmpty()) {
+            List<Component> bestProfile = getProfile(plays.get(0).getCardIds());
+            Grouping bestGrouping = getGrouping(plays.get(0).getCardIds());
+            for (int i = 1; i < plays.size(); i++) {
+                Play play = plays.get(i);
+                List<Component> profile = getProfile(play.getCardIds());
+                Grouping grouping = getGrouping(play.getCardIds());
+                if (getShapes(profile).equals(getShapes(bestProfile))) {
+                    if (grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP
+                            || grouping == bestGrouping && profile.get(0).getMaxRank() > bestProfile.get(0).getMaxRank()) {
+                        winningPlayerId = play.getPlayerId();
+                        bestProfile = profile;
+                        bestGrouping = grouping;
+                    }
                 }
             }
         }

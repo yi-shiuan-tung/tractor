@@ -38,6 +38,7 @@ import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
+import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
 import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
@@ -53,6 +54,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
+import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdateAis;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
@@ -278,6 +280,15 @@ public class TractorRoom {
                 else
                     sendSync(playerId, broadcaster, new ConfirmDoesItFly(cardIds));
             }
+        }
+
+        if (message instanceof TakeBackRequest) {
+            game.takeBack(playerId);
+            sendSync(broadcaster, new TakeBack(
+                playerId,
+                game.getCurrentPlayerIndex(),
+                game.getPlayerHands(),
+                game.getCurrentTrick()));
         }
 
         if (message instanceof ForfeitRequest) {

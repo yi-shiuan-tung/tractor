@@ -1,29 +1,37 @@
-.settings_panel {
+.settings_panel .button {
     position: absolute;
+    width: 26px;
+    height: 26px;
+    padding: 3px;
+    border: 1px solid black;
+    border-radius: 6px;
+    background-color: tan;
+    background-size: cover;
+}
+
+.settings_panel .sound {
     bottom: 20px;
     left: 20px;
-    padding: 16px;
-    border: 1px solid black;
-    border-radius: 2px;
-    background-color: tan;
 }
 
-.settings_panel.sound3 {
+.settings_panel .undo {
+    bottom: 20px;
+    left: 60px;
+    background-image: url("../../assets/images/undo.png");
+}
+
+.settings_panel .sound3 {
     background-image: url("../../assets/images/sound3.png");
-    background-size: cover;
 }
 
-.settings_panel.sound2 {
+.settings_panel .sound2 {
     background-image: url("../../assets/images/sound2.png");
-    background-size: cover;
 }
 
-.settings_panel.sound1 {
+.settings_panel .sound1 {
     background-image: url("../../assets/images/sound1.png");
-    background-size: cover;
 }
 
-.settings_panel.sound0 {
+.settings_panel .sound0 {
     background-image: url("../../assets/images/sound0.png");
-    background-size: cover;
 }

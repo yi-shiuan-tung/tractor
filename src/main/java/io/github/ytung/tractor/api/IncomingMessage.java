@@ -20,6 +20,7 @@ import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
+import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -38,6 +39,7 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = MakeKittyRequest.class, name = "MAKE_KITTY"),
     @JsonSubTypes.Type(value = ReadyForPlayRequest.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayRequest.class, name = "PLAY"),
+    @JsonSubTypes.Type(value = TakeBackRequest.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = ForfeitRequest.class, name = "FORFEIT"),
 })
 public interface IncomingMessage {
@@ -130,6 +132,11 @@ public interface IncomingMessage {
 
         private List<Integer> cardIds;
         private boolean confirmDoesItFly;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class TakeBackRequest implements IncomingMessage {
     }
 
     @Data

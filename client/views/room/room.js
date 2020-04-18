@@ -32,7 +32,7 @@ export class Game extends React.Component {
       showPreviousTrick: false,
       playerReadyForPlay: {}, // {playerId: boolean}
       confirmDoesItFlyCards: undefined, // CardId[]?
-      soundVolume: 3,
+      soundVolume: 3, // 0, 1, 2, or 3
 
       // game state
       playerIds: [], // PlayerId[]
@@ -119,6 +119,10 @@ export class Game extends React.Component {
           } else if (json.FRIEND_JOINED) {
             const {playerId, ...other} = json.FRIEND_JOINED;
             this.setNotification(`${playerNames[playerId]} has joined the declaring team!`);
+            this.setState(other);
+          } else if (json.TAKE_BACK) {
+            const {playerId, ...other} = json.TAKE_BACK;
+            this.setNotification(`${playerNames[playerId]} took back their cards`);
             this.setState(other);
           } else if (json.FORFEIT) {
             const {playerId, message, ...other} = json.FORFEIT;
@@ -458,13 +462,16 @@ export class Game extends React.Component {
   }
 
   renderSettings() {
-    const { soundVolume } = this.state;
+    const { soundVolume, currentTrick } = this.state;
     return <SettingsPanel
       soundVolume={soundVolume}
+      currentTrick={currentTrick}
+      myId={this.myId}
       setSoundVolume={soundVolume => {
         this.audio.setVolume(soundVolume);
         this.setState({ soundVolume });
       }}
+      takeBack={() => this.connection.send({ TAKE_BACK: {} })}
     />;
   }
 

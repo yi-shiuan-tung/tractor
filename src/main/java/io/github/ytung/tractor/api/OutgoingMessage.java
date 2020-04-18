@@ -25,6 +25,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
+import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdateAis;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
@@ -51,6 +52,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
     @JsonSubTypes.Type(value = ConfirmDoesItFly.class, name = "CONFIRM_DOES_IT_FLY"),
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
+    @JsonSubTypes.Type(value = TakeBack.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
     @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
 })
@@ -220,6 +222,16 @@ public interface OutgoingMessage {
 
         private final String playerId;
         private final Map<String, Boolean> isDeclaringTeam;
+    }
+
+    @Data
+    public static class TakeBack implements OutgoingMessage {
+
+        private final String playerId;
+
+        private final int currentPlayerIndex;
+        private final Map<String, List<Integer>> playerHands;
+        private final Trick currentTrick;
     }
 
     @Data

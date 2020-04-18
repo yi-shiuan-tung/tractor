@@ -1,4 +1,3 @@
-import * as classNames from 'classnames';
 import * as React from 'react';
 import './settingsPanel.css';
 
@@ -9,14 +8,33 @@ export class SettingsPanel extends React.Component {
 
     render() {
         const {
-            soundVolume, // 0, 1, 2, or 3
+            soundVolume,
+            currentTrick,
+            myId,
             setSoundVolume, // soundVolume => void
+            takeBack, // () => void
         } = this.props;
         return (
-            <div
-                className={classNames('settings_panel', `sound${soundVolume}`)}
-                onClick={() => setSoundVolume((soundVolume + 1) % 4)}
-            />
+            <div className='settings_panel'>
+                <div
+                    className={`button sound sound${soundVolume}`}
+                    onClick={() => setSoundVolume((soundVolume + 1) % 4)}
+                />
+                {this.maybeRenderTakeBackButton(currentTrick, myId, takeBack)}
+            </div>
         );
+    }
+
+    maybeRenderTakeBackButton(currentTrick, myId, takeBack) {
+        if (!currentTrick) {
+            return;
+        }
+        const { plays } = currentTrick;
+        if (plays.length > 0 && plays[plays.length - 1].playerId === myId) {
+            return <div
+                className='button undo'
+                onClick={takeBack}
+            />
+        }
     }
 }
