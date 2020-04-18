@@ -28,15 +28,12 @@ export class SettingsPanel extends React.Component {
         } = this.props;
         return (
             <div className='settings_panel'>
+                {this.maybeRenderConfirm(forfeit, leaveRoom)}
                 <div
                     className={`button sound sound${soundVolume}`}
                     onClick={() => setSoundVolume((soundVolume + 1) % 4)}
                 />
-                <div
-                    className={"button forfeit"}
-                    onClick={() => this.setState({ isConfirmingForfeit: true })}
-                />
-                {this.maybeRenderConfirm(forfeit, leaveRoom)}
+                {this.maybeRenderForfeitButton(status)}
                 {this.maybeRenderLeaveRoomButton(status)}
                 {this.maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack)}
             </div>
@@ -66,7 +63,17 @@ export class SettingsPanel extends React.Component {
         }
     }
 
-    maybeRenderLeaveRoomButton(status, leaveRoom) {
+    maybeRenderForfeitButton(status) {
+        if (status === 'START_ROUND') {
+            return;
+        }
+        return <div
+            className='button forfeit'
+            onClick={() => this.setState({ isConfirmingForfeit: true })}
+        />;
+    }
+
+    maybeRenderLeaveRoomButton(status) {
         if (status !== 'START_ROUND') {
             return;
         }
