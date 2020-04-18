@@ -502,7 +502,7 @@ export class Game extends React.Component {
       }}
       forfeit={() => this.connection.send({ FORFEIT: {} })}
       leaveRoom={() => {
-        this.connection.send({ LEAVE_ROOM: {} });
+        this.connection.send({ REMOVE_PLAYER: { playerId: myPlayerId } });
         this.connection.disconnect();
         leaveRoom();
       }}

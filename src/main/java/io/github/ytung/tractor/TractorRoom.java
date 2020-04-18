@@ -37,13 +37,13 @@ import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
-import io.github.ytung.tractor.api.IncomingMessage.LeaveRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.RejoinRequest;
+import io.github.ytung.tractor.api.IncomingMessage.RemovePlayerRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
@@ -67,7 +67,6 @@ import io.github.ytung.tractor.api.OutgoingMessage.Rejoin;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
-import io.github.ytung.tractor.api.OutgoingMessage.UpdateAis;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
 import io.github.ytung.tractor.api.Play;
 
@@ -179,16 +178,6 @@ public class TractorRoom {
             }
         }
 
-        if (message instanceof LeaveRoomRequest) {
-            String playerId = humanControllers.inverse().get(r);
-            if (game.getStatus() == GameStatus.START_ROUND && playerId != null) {
-                playerNames.remove(playerId);
-                playerReadyForPlay.remove(playerId);
-                game.removePlayer(playerId);
-                broadcastUpdatePlayers(r.getBroadcaster());
-            }
-        }
-
         String playerId = humanControllers.inverse().get(r);
         if (playerId != null)
             handleGameMessage(playerId, r.getBroadcaster(), message);
@@ -224,13 +213,25 @@ public class TractorRoom {
             aiControllers.put(aiPlayerId, new AiClient(aiPlayerId));
             playerNames.put(aiPlayerId, Names.generateRandomName());
             game.addPlayer(aiPlayerId);
-            sendSync(broadcaster, new UpdateAis(
-                game.getPlayerIds(),
-                game.getPlayerRankScores(),
-                game.isFindAFriend(),
-                game.getKittySize(),
-                playerNames,
-                aiControllers.keySet()));
+            broadcastUpdatePlayers(broadcaster);
+        }
+
+        if (message instanceof RemovePlayerRequest) {
+            String removePlayerId = ((RemovePlayerRequest) message).getPlayerId();
+            if (game.getStatus() == GameStatus.START_ROUND) {
+                if (aiControllers.containsKey(removePlayerId)) {
+                    aiControllers.remove(removePlayerId);
+                    playerNames.remove(removePlayerId);
+                    game.removePlayer(removePlayerId);
+                } else if (game.getPlayerIds().contains(removePlayerId)) {
+                    if (removePlayerId.equals(playerId) || !humanControllers.containsKey(removePlayerId)) {
+                        playerNames.remove(removePlayerId);
+                        playerReadyForPlay.remove(removePlayerId);
+                        game.removePlayer(removePlayerId);
+                    }
+                }
+                broadcastUpdatePlayers(broadcaster);
+            }
         }
 
         if (message instanceof GameConfigurationRequest) {
@@ -460,6 +461,7 @@ public class TractorRoom {
             game.getPlayerRankScores(),
             game.isFindAFriend(),
             game.getKittySize(),
+            aiControllers.keySet(),
             playerNames,
             playerReadyForPlay));
     }

@@ -13,13 +13,13 @@ import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.JoinRoomRequest;
-import io.github.ytung.tractor.api.IncomingMessage.LeaveRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.RejoinRequest;
+import io.github.ytung.tractor.api.IncomingMessage.RemovePlayerRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.StartRoundRequest;
 import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
@@ -31,11 +31,11 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = CreateRoomRequest.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoomRequest.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = RejoinRequest.class, name = "REJOIN"),
-    @JsonSubTypes.Type(value = LeaveRoomRequest.class, name = "LEAVE_ROOM"),
     @JsonSubTypes.Type(value = SetNameRequest.class, name = "SET_NAME"),
     @JsonSubTypes.Type(value = PlayerOrderRequest.class, name = "PLAYER_ORDER"),
     @JsonSubTypes.Type(value = PlayerScoreRequest.class, name = "PLAYER_SCORE"),
     @JsonSubTypes.Type(value = AddAiRequest.class, name = "ADD_AI"),
+    @JsonSubTypes.Type(value = RemovePlayerRequest.class, name = "REMOVE_PLAYER"),
     @JsonSubTypes.Type(value = GameConfigurationRequest.class, name = "GAME_CONFIGURATION"),
     @JsonSubTypes.Type(value = StartRoundRequest.class, name = "START_ROUND"),
     @JsonSubTypes.Type(value = DeclareRequest.class, name = "DECLARE"),
@@ -70,12 +70,6 @@ public interface IncomingMessage {
 
     @Data
     @NoArgsConstructor
-    public static class LeaveRoomRequest implements IncomingMessage {
-
-    }
-
-    @Data
-    @NoArgsConstructor
     public static class SetNameRequest implements IncomingMessage {
 
         private String name;
@@ -100,6 +94,13 @@ public interface IncomingMessage {
     @NoArgsConstructor
     public static class AddAiRequest implements IncomingMessage {
 
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class RemovePlayerRequest implements IncomingMessage {
+
+        private String playerId;
     }
 
     @Data
