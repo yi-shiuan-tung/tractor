@@ -26,6 +26,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
+import io.github.ytung.tractor.api.OutgoingMessage.ReconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Rejoin;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
@@ -57,6 +58,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = TakeBack.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
+    @JsonSubTypes.Type(value = ReconnectMessage.class, name = "RECONNECT"),
     @JsonSubTypes.Type(value = DisconnectMessage.class, name = "DISCONNECT"),
     @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
 })
@@ -285,6 +287,12 @@ public interface OutgoingMessage {
         private final Map<String, Card.Value> playerRankScores;
 
         private final GameStatus status;
+    }
+
+    @Data
+    public static class ReconnectMessage implements OutgoingMessage {
+
+        private final String playerId;
     }
 
     @Data

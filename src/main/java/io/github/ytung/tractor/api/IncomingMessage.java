@@ -13,6 +13,7 @@ import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.JoinRoomRequest;
+import io.github.ytung.tractor.api.IncomingMessage.LeaveRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
     @JsonSubTypes.Type(value = CreateRoomRequest.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoomRequest.class, name = "JOIN_ROOM"),
     @JsonSubTypes.Type(value = RejoinRequest.class, name = "REJOIN"),
+    @JsonSubTypes.Type(value = LeaveRoomRequest.class, name = "LEAVE_ROOM"),
     @JsonSubTypes.Type(value = SetNameRequest.class, name = "SET_NAME"),
     @JsonSubTypes.Type(value = PlayerOrderRequest.class, name = "PLAYER_ORDER"),
     @JsonSubTypes.Type(value = PlayerScoreRequest.class, name = "PLAYER_SCORE"),
@@ -64,6 +66,12 @@ public interface IncomingMessage {
     public static class RejoinRequest implements IncomingMessage {
 
         private String playerId;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class LeaveRoomRequest implements IncomingMessage {
+
     }
 
     @Data

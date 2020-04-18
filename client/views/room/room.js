@@ -134,6 +134,9 @@ export class Game extends React.Component {
             const {playerId, message, ...other} = json.FORFEIT;
             this.setNotification(`${playerNames[playerId]} ${message}.`);
             this.setState(other);
+          } else if (json.RECONNECT) {
+            const { playerId } = json.RECONNECT;
+            this.setNotification(`${playerNames[playerId]} reconnected.`);
           } else if (json.DISCONNECT) {
             const { playerId } = json.DISCONNECT;
             this.setNotification(`${playerNames[playerId]} disconnected.`);
@@ -498,7 +501,11 @@ export class Game extends React.Component {
         this.setState({ soundVolume });
       }}
       forfeit={() => this.connection.send({ FORFEIT: {} })}
-      leaveRoom={leaveRoom}
+      leaveRoom={() => {
+        this.connection.send({ LEAVE_ROOM: {} });
+        this.connection.disconnect();
+        leaveRoom();
+      }}
       takeBack={() => this.connection.send({ TAKE_BACK: {} })}
     />;
   }

@@ -37,6 +37,7 @@ import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
 import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ForfeitRequest;
 import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
+import io.github.ytung.tractor.api.IncomingMessage.LeaveRoomRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
@@ -61,6 +62,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
+import io.github.ytung.tractor.api.OutgoingMessage.ReconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Rejoin;
 import io.github.ytung.tractor.api.OutgoingMessage.StartRound;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
@@ -106,13 +108,7 @@ public class TractorRoom {
         if (unmappedPlayerIds.isEmpty() && game.getStatus() == GameStatus.START_ROUND) {
             addHumanController(r);
             myPlayerId = r.uuid();
-            sendSync(r.getBroadcaster(), new UpdatePlayers(
-                game.getPlayerIds(),
-                game.getPlayerRankScores(),
-                game.isFindAFriend(),
-                game.getKittySize(),
-                playerNames,
-                playerReadyForPlay));
+            broadcastUpdatePlayers(r.getBroadcaster());
         }
 
         r.write(JacksonEncoder.INSTANCE.encode(new FullRoomState(
@@ -153,9 +149,7 @@ public class TractorRoom {
             return;
 
         humanControllers.remove(playerId);
-
-        if (game.getStatus() != GameStatus.START_ROUND)
-            sendSync(r.broadcaster(), new DisconnectMessage(playerId));
+        sendSync(r.broadcaster(), new DisconnectMessage(playerId));
 
         if (resources.isEmpty())
             TractorLobby.closeRoom(roomCode);
@@ -175,18 +169,23 @@ public class TractorRoom {
                 humanControllers.put(playerId, r);
                 sendSync(playerId, r.getBroadcaster(), new CardInfo(game.getPrivateCards(playerId)));
                 sendSync(playerId, r.getBroadcaster(), new Rejoin(playerId));
+                sendSync(r.getBroadcaster(), new ReconnectMessage(playerId));
             } else {
                 if (game.getStatus() == GameStatus.START_ROUND) {
                     addHumanController(r);
-                    sendSync(r.getBroadcaster(), new UpdatePlayers(
-                        game.getPlayerIds(),
-                        game.getPlayerRankScores(),
-                        game.isFindAFriend(),
-                        game.getKittySize(),
-                        playerNames,
-                        playerReadyForPlay));
+                    broadcastUpdatePlayers(r.getBroadcaster());
                 }
                 r.write(JacksonEncoder.INSTANCE.encode(new Rejoin(r.uuid())));
+            }
+        }
+
+        if (message instanceof LeaveRoomRequest) {
+            String playerId = humanControllers.inverse().get(r);
+            if (game.getStatus() == GameStatus.START_ROUND && playerId != null) {
+                playerNames.remove(playerId);
+                playerReadyForPlay.remove(playerId);
+                game.removePlayer(playerId);
+                broadcastUpdatePlayers(r.getBroadcaster());
             }
         }
 
@@ -200,26 +199,14 @@ public class TractorRoom {
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
             playerNames.put(playerId, name);
-            sendSync(broadcaster, new UpdatePlayers(
-                game.getPlayerIds(),
-                game.getPlayerRankScores(),
-                game.isFindAFriend(),
-                game.getKittySize(),
-                playerNames,
-                playerReadyForPlay));
+            broadcastUpdatePlayers(broadcaster);
         }
 
         if (message instanceof PlayerOrderRequest) {
             List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
             game.setPlayerOrder(playerIds);
             playerReadyForPlay.replaceAll((k, v) -> v=false);
-            sendSync(broadcaster, new UpdatePlayers(
-                game.getPlayerIds(),
-                game.getPlayerRankScores(),
-                game.isFindAFriend(),
-                game.getKittySize(),
-                playerNames,
-                playerReadyForPlay));
+            broadcastUpdatePlayers(broadcaster);
         }
 
         if (message instanceof PlayerScoreRequest) {
@@ -227,13 +214,7 @@ public class TractorRoom {
             boolean increment = ((PlayerScoreRequest) message).isIncrement();
             game.updatePlayerScore(updatedPlayerId, increment);
             playerReadyForPlay.replaceAll((k, v) -> v=false);
-            sendSync(broadcaster, new UpdatePlayers(
-                game.getPlayerIds(),
-                game.getPlayerRankScores(),
-                game.isFindAFriend(),
-                game.getKittySize(),
-                playerNames,
-                playerReadyForPlay));
+            broadcastUpdatePlayers(broadcaster);
         }
 
         if (message instanceof AddAiRequest) {
@@ -469,14 +450,18 @@ public class TractorRoom {
         if (!observers.isEmpty()) {
             for (AtmosphereResource observer : observers)
                 addHumanController(observer);
-            sendSync(broadcaster, new UpdatePlayers(
-                game.getPlayerIds(),
-                game.getPlayerRankScores(),
-                game.isFindAFriend(),
-                game.getKittySize(),
-                playerNames,
-                playerReadyForPlay));
+            broadcastUpdatePlayers(broadcaster);
         }
+    }
+
+    private void broadcastUpdatePlayers(Broadcaster broadcaster) {
+        sendSync(broadcaster, new UpdatePlayers(
+            game.getPlayerIds(),
+            game.getPlayerRankScores(),
+            game.isFindAFriend(),
+            game.getKittySize(),
+            playerNames,
+            playerReadyForPlay));
     }
 
     private void sendSync(String playerId, Broadcaster broadcaster, OutgoingMessage message) {
