@@ -68,9 +68,8 @@ export class Game extends React.Component {
         json => {
           const {playerNames, playerIds, status, cardsById} = this.state;
 
-          if (json.WELCOME) {
-            const {playerNames} = json.WELCOME;
-            this.setState({playerNames});
+          if (json.ROOM_STATE) {
+            this.setState(json.ROOM_STATE);
           } else if (json.UPDATE_PLAYERS) {
             this.setState(json.UPDATE_PLAYERS);
           } else if (json.UPDATE_AIS) {

@@ -53,10 +53,10 @@ public class Game {
     private Queue<Integer> deck;
     private Map<Integer, Card> cardsById;
     private Map<String, List<Integer>> playerHands;
-    private List<Play> declaredCards;
+    private List<Play> declaredCards = new ArrayList<>();
     private List<Integer> kitty;
     private FindAFriendDeclaration findAFriendDeclaration;
-    private List<Trick> pastTricks;
+    private List<Trick> pastTricks = new ArrayList<>();
     private Trick currentTrick;
     private Map<String, Integer> currentRoundScores = new HashMap<>();
 
@@ -523,6 +523,22 @@ public class Game {
         while (kittySize < 5)
             kittySize += playerIds.size();
         return kittySize;
+    }
+
+    public Map<Integer, Card> getPublicCards() {
+        Map<Integer, Card> publicCards = new HashMap<>();
+        for (Play play : declaredCards)
+            for (int cardId : play.getCardIds())
+                publicCards.put(cardId, cardsById.get(cardId));
+        for (Trick trick : pastTricks)
+            for (Play play : trick.getPlays())
+                for (int cardId : play.getCardIds())
+                    publicCards.put(cardId, cardsById.get(cardId));
+        if (currentTrick != null)
+            for (Play play : currentTrick.getPlays())
+                for (int cardId : play.getCardIds())
+                    publicCards.put(cardId, cardsById.get(cardId));
+        return publicCards;
     }
 
     private void sortCards(List<Integer> hand) {

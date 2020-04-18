@@ -20,7 +20,7 @@ export class RoundInfoPanel extends React.Component {
             myId,
         } = this.props;
 
-        if (currentTrump === undefined) {
+        if (!isDeclaringTeam) {
             return null;
         }
         const declarer = playerIds[declarerPlayerIndex] === myId ?

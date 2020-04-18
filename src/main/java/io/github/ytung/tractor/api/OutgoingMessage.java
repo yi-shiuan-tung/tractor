@@ -18,6 +18,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
+import io.github.ytung.tractor.api.OutgoingMessage.FullRoomState;
 import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
@@ -29,14 +30,13 @@ import io.github.ytung.tractor.api.OutgoingMessage.TakeBack;
 import io.github.ytung.tractor.api.OutgoingMessage.TakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdateAis;
 import io.github.ytung.tractor.api.OutgoingMessage.UpdatePlayers;
-import io.github.ytung.tractor.api.OutgoingMessage.Welcome;
 import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.WRAPPER_OBJECT)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = CreateRoom.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
-    @JsonSubTypes.Type(value = Welcome.class, name = "WELCOME"),
+    @JsonSubTypes.Type(value = FullRoomState.class, name = "ROOM_STATE"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
     @JsonSubTypes.Type(value = UpdateAis.class, name = "UPDATE_AIS"),
     @JsonSubTypes.Type(value = GameConfiguration.class, name = "GAME_CONFIGURATION"),
@@ -72,9 +72,37 @@ public interface OutgoingMessage {
 
 
     @Data
-    public static class Welcome implements OutgoingMessage {
+    public static class FullRoomState implements OutgoingMessage {
+
+        private final List<String> playerIds;
+
+        private final int numDecks;
+        private final boolean findAFriend;
+
+        private final int roundNumber;
+        private final int declarerPlayerIndex;
+        private final Map<String, Card.Value> playerRankScores;
+        private final Set<String> winningPlayerIds;
+
+        private final GameStatus status;
+        private final int currentPlayerIndex;
+        private final Map<String, Boolean> isDeclaringTeam;
+        private final Queue<Integer> deck;
+        private final Map<Integer, Card> cardsById;
+        private final Map<String, List<Integer>> playerHands;
+        private final List<Play> declaredCards;
+        private final List<Integer> kitty;
+        private final FindAFriendDeclaration findAFriendDeclaration;
+        private final List<Trick> pastTricks;
+        private final Trick currentTrick;
+        private final Map<String, Integer> currentRoundScores;
+
+        private final Card currentTrump;
+        private final int kittySize;
 
         private final Map<String, String> playerNames;
+        private final Map<String, Boolean> playerReadyForPlay;
+        private final Set<String> ais;
     }
 
     @Data

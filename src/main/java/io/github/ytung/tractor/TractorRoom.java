@@ -2,8 +2,10 @@
 package io.github.ytung.tractor;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -20,6 +22,7 @@ import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.Broadcaster;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 
 import io.github.ytung.tractor.ai.AiClient;
@@ -48,6 +51,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
+import io.github.ytung.tractor.api.OutgoingMessage.FullRoomState;
 import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
@@ -89,8 +93,10 @@ public class TractorRoom {
 
         resources.put(r.uuid(), r);
         playerNames.put(r.uuid(), Names.generateRandomName());
-        playerReadyForPlay.put(r.uuid(), false);
-        game.addPlayer(r.uuid());
+        if (game.getStatus() == GameStatus.START_ROUND) {
+            playerReadyForPlay.put(r.uuid(), false);
+            game.addPlayer(r.uuid());
+        }
         sendSync(r.getBroadcaster(), new UpdatePlayers(
             game.getPlayerIds(),
             game.getPlayerRankScores(),
@@ -98,6 +104,31 @@ public class TractorRoom {
             game.getKittySize(),
             playerNames,
             playerReadyForPlay));
+        sendSync(r.uuid(), r.getBroadcaster(), new FullRoomState(
+            game.getPlayerIds(),
+            game.getNumDecks(),
+            game.isFindAFriend(),
+            game.getRoundNumber(),
+            game.getDeclarerPlayerIndex(),
+            game.getPlayerRankScores(),
+            game.getWinningPlayerIds(),
+            game.getStatus(),
+            game.getCurrentPlayerIndex(),
+            game.getIsDeclaringTeam(),
+            game.getDeck(),
+            game.getPublicCards(),
+            game.getPlayerHands(),
+            game.getDeclaredCards(),
+            game.getKitty(),
+            game.getFindAFriendDeclaration(),
+            game.getPastTricks(),
+            game.getCurrentTrick(),
+            game.getCurrentRoundScores(),
+            game.getCurrentTrump(),
+            game.getKittySize(),
+            playerNames,
+            playerReadyForPlay,
+            aiClients.keySet()));
     }
 
     @Disconnect
@@ -220,7 +251,8 @@ public class TractorRoom {
         }
 
         if (message instanceof ReadyForPlayRequest) {
-            playerReadyForPlay.put(playerId, ((ReadyForPlayRequest) message).isReady());
+            if (playerReadyForPlay.containsKey(playerId))
+                playerReadyForPlay.put(playerId, ((ReadyForPlayRequest) message).isReady());
             if (!playerReadyForPlay.containsValue(false) || DEV_MODE) {
                 if (game.getStatus() == GameStatus.START_ROUND)
                     startRound(broadcaster);
@@ -367,9 +399,11 @@ public class TractorRoom {
                     game.getCurrentTrick(),
                     game.getCurrentRoundScores(),
                     game.getCurrentTrump()));
-                if (game.getStatus() != GameStatus.PLAY)
+                if (game.getStatus() != GameStatus.PLAY) {
                     // game end, send kitty card info to all players
                     sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
+                    prepareStartNewRound(broadcaster);
+                }
             }
         };
 
@@ -388,6 +422,25 @@ public class TractorRoom {
             game.getDeclarerPlayerIndex(),
             game.getPlayerRankScores(),
             game.getStatus()));
+        prepareStartNewRound(broadcaster);
+    }
+
+    private void prepareStartNewRound(Broadcaster broadcaster) {
+        // add any current observers to the game
+        Set<String> observers = Sets.difference(resources.keySet(), new HashSet<>(game.getPlayerIds()));
+        if (!observers.isEmpty()) {
+            for (String observer : observers) {
+                playerReadyForPlay.put(observer, false);
+                game.addPlayer(observer);
+            }
+            sendSync(broadcaster, new UpdatePlayers(
+                game.getPlayerIds(),
+                game.getPlayerRankScores(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerNames,
+                playerReadyForPlay));
+        }
     }
 
     private void sendSync(String playerId, Broadcaster broadcaster, OutgoingMessage message) {
