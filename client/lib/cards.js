@@ -1,6 +1,5 @@
 
 export const VALUES = Object.freeze({
-  'ACE': 'A',
   'TWO': '2',
   'THREE': '3',
   'FOUR': '4',
@@ -13,6 +12,7 @@ export const VALUES = Object.freeze({
   'JACK': 'J',
   'QUEEN': 'Q',
   'KING': 'K',
+  'ACE': 'A',
 });
 
 export const SUITS = Object.freeze({

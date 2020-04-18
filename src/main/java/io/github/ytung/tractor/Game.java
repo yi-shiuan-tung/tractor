@@ -97,6 +97,13 @@ public class Game {
         declarerPlayerIndex = playerIds.indexOf(declarerPlayerId);
     }
 
+    public synchronized void updatePlayerScore(String playerId, boolean increment) {
+        if (status != GameStatus.START_ROUND)
+            throw new IllegalStateException();
+
+        updatePlayerScore(playerId, increment ? 1 : -1);
+    }
+
     public synchronized void setNumDecks(int numDecks) {
         if (status != GameStatus.START_ROUND)
             throw new IllegalStateException();
@@ -471,14 +478,20 @@ public class Game {
         winningPlayerIds.clear();
         for (String playerId : playerIds)
             if (isDeclaringTeam.get(playerId) == doDeclarersWin) {
-                int newScore = playerRankScores.get(playerId).ordinal() + scoreIncrease;
-                if (newScore > Card.Value.values().length)
-                    playerRankScores.put(playerId, Card.Value.BIG_JOKER);
-                else
-                    playerRankScores.put(playerId, Card.Value.values()[newScore]);
+                updatePlayerScore(playerId, scoreIncrease);
                 winningPlayerIds.add(playerId);
             }
         status = GameStatus.START_ROUND;
+    }
+
+    private void updatePlayerScore(String playerId, int scoreIncrease) {
+        int newScore = playerRankScores.get(playerId).ordinal() + scoreIncrease;
+        if (newScore > Card.Value.ACE.ordinal())
+            playerRankScores.put(playerId, Card.Value.ACE);
+        else if (newScore < Card.Value.TWO.ordinal())
+            playerRankScores.put(playerId, Card.Value.TWO);
+        else
+            playerRankScores.put(playerId, Card.Value.values()[newScore]);
     }
 
     public Card getCurrentTrump() {

@@ -231,6 +231,7 @@ export class Game extends React.Component {
         playerRankScores={playerRankScores}
         winningPlayerIds={winningPlayerIds}
         setPlayerOrder={playerIds => this.connection.send({ PLAYER_ORDER: { playerIds }})}
+        setPlayerScore={(playerId, increment) => this.connection.send({ PLAYER_SCORE: { playerId, increment }})}
         setName={name => this.connection.send({ SET_NAME: { name }})}
         setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
         setReadyForPlay={ready => this.connection.send({ READY_FOR_PLAY: { ready }})}

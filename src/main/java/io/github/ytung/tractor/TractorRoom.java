@@ -35,6 +35,7 @@ import io.github.ytung.tractor.api.IncomingMessage.GameConfigurationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayerOrderRequest;
+import io.github.ytung.tractor.api.IncomingMessage.PlayerScoreRequest;
 import io.github.ytung.tractor.api.IncomingMessage.ReadyForPlayRequest;
 import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
@@ -146,6 +147,20 @@ public class TractorRoom {
         if (message instanceof PlayerOrderRequest) {
             List<String> playerIds = ((PlayerOrderRequest) message).getPlayerIds();
             game.setPlayerOrder(playerIds);
+            playerReadyForPlay.replaceAll((k, v) -> v=false);
+            sendSync(broadcaster, new UpdatePlayers(
+                game.getPlayerIds(),
+                game.getPlayerRankScores(),
+                game.isFindAFriend(),
+                game.getKittySize(),
+                playerNames,
+                playerReadyForPlay));
+        }
+
+        if (message instanceof PlayerScoreRequest) {
+            String updatedPlayerId = ((PlayerScoreRequest) message).getPlayerId();
+            boolean increment = ((PlayerScoreRequest) message).isIncrement();
+            game.updatePlayerScore(updatedPlayerId, increment);
             playerReadyForPlay.replaceAll((k, v) -> v=false);
             sendSync(broadcaster, new UpdatePlayers(
                 game.getPlayerIds(),

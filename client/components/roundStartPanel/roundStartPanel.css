@@ -51,6 +51,11 @@
     margin-left: -15px;
 }
 
+.round_start_panel .spacing {
+    display: inline-block;
+    width: 20px;
+}
+
 .round_start_panel .hidden {
     display: none;
 }

@@ -32,6 +32,7 @@ export class RoundStartPanel extends React.Component {
             playerRankScores,
             winningPlayerIds,
             setPlayerOrder, // PlayerId[] => void
+            setPlayerScore, // (PlayerId, boolean) => void
             setName, // string => void
             setGameConfiguration, // { numDecks, findAFriend } => void
             setReadyForPlay, // boolean => void
@@ -47,29 +48,27 @@ export class RoundStartPanel extends React.Component {
                 <ul>
                     {playerIds.map((playerId) => {
                         const children = [];
-                        if (playerId === myId) {
-                            if (playerIds.indexOf(myId) !== 0) {
-                                children.push(<span
-                                    key="player_arrow_up"
-                                    className='arrow up'
-                                    onClick={() => {
-                                        const index = playerIds.indexOf(myId);
-                                        [playerIds[index], playerIds[index - 1]] =
-                                            [playerIds[index - 1], playerIds[index]];
-                                        setPlayerOrder(playerIds);
-                                    }} />);
-                            }
-                            if (playerIds.indexOf(myId) !== playerIds.length - 1) {
-                                children.push(<span
-                                    key="player_arrow_down"
-                                    className='arrow down'
-                                    onClick={() => {
-                                        const index = playerIds.indexOf(myId);
-                                        [playerIds[index], playerIds[index + 1]] =
-                                            [playerIds[index + 1], playerIds[index]];
-                                        setPlayerOrder(playerIds);
-                                    }} />);
-                            }
+                        if (playerIds.indexOf(playerId) !== 0) {
+                            children.push(<span
+                                key="player_arrow_up"
+                                className='arrow up'
+                                onClick={() => {
+                                    const index = playerIds.indexOf(playerId);
+                                    [playerIds[index], playerIds[index - 1]] =
+                                        [playerIds[index - 1], playerIds[index]];
+                                    setPlayerOrder(playerIds);
+                                }} />);
+                        }
+                        if (playerIds.indexOf(playerId) !== playerIds.length - 1) {
+                            children.push(<span
+                                key="player_arrow_down"
+                                className='arrow down'
+                                onClick={() => {
+                                    const index = playerIds.indexOf(playerId);
+                                    [playerIds[index], playerIds[index + 1]] =
+                                        [playerIds[index + 1], playerIds[index]];
+                                    setPlayerOrder(playerIds);
+                                }} />);
                         }
                         if (playerId === myId && isMyNameEditable) {
                             const setNameFunc = () => {
@@ -97,7 +96,24 @@ export class RoundStartPanel extends React.Component {
                                 }}
                             />);
                         }
+
                         children.push(` (rank ${VALUES[playerRankScores[playerId]]})`);
+                        children.push(<span className='spacing' />);
+                        if (playerRankScores[playerId] !== 'ACE') {
+                            children.push(<span
+                                key="score_arrow_up"
+                                className='arrow up'
+                                onClick={() => setPlayerScore(playerId, true)}
+                            />);
+                        }
+                        if (playerRankScores[playerId] !== 'TWO') {
+                            children.push(<span
+                                key="score_arrow_down"
+                                className='arrow down'
+                                onClick={() => setPlayerScore(playerId, false)}
+                            />);
+                        }
+
                         if (playerId === myId) {
                             children.push(<span key="me" className='me'> (YOU)</span>);
                         }
