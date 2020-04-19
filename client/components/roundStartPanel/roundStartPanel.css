@@ -80,6 +80,16 @@
     margin-left: 5px;
 }
 
+.round_start_panel .remove {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    background-image: url("../../assets/images/red_x.png");
+    background-size: cover;
+    display: inline-block;
+    margin-left: 5px;
+}
+
 .round_start_panel .game_properties {
     margin: 40px;
 }
@@ -97,6 +107,17 @@
     width: 150px;
     margin: auto;
     margin-bottom: 44px;
+}
+
+.round_start_panel .add_ai_button {
+    width: 80px;
+    cursor: pointer;
+    margin: auto;
+  background-color: rgba(173, 213, 230, 1);
+}
+
+.round_start_panel .add_ai_button:hover {
+  background-color: rgba(173, 213, 230, 0.8);
 }
 
 .button {

@@ -23,18 +23,22 @@ export class RoundStartPanel extends React.Component {
     render() {
         const {
             aiControllers,
+            humanControllers,
             playerNames,
             playerReadyForPlay,
             myPlayerId,
+            isEditingPlayers,
             playerIds,
             numDecks,
             findAFriend,
             playerRankScores,
             winningPlayerIds,
             setPlayerOrder, // PlayerId[] => void
-            setPlayerScore, // (PlayerId, boolean) => void
             setName, // string => void
+            setPlayerScore, // (PlayerId, boolean) => void
+            removePlayer, // playerId => void
             setGameConfiguration, // { numDecks, findAFriend } => void
+            addAi,
             setReadyForPlay, // boolean => void
         } = this.props;
         const { inputMyName, isMyNameEditable } = this.state;
@@ -48,27 +52,29 @@ export class RoundStartPanel extends React.Component {
                 <ul>
                     {playerIds.map((playerId) => {
                         const children = [];
-                        if (playerIds.indexOf(playerId) !== 0) {
-                            children.push(<span
-                                key="player_arrow_up"
-                                className='arrow up'
-                                onClick={() => {
-                                    const index = playerIds.indexOf(playerId);
-                                    [playerIds[index], playerIds[index - 1]] =
-                                        [playerIds[index - 1], playerIds[index]];
-                                    setPlayerOrder(playerIds);
-                                }} />);
-                        }
-                        if (playerIds.indexOf(playerId) !== playerIds.length - 1) {
-                            children.push(<span
-                                key="player_arrow_down"
-                                className='arrow down'
-                                onClick={() => {
-                                    const index = playerIds.indexOf(playerId);
-                                    [playerIds[index], playerIds[index + 1]] =
-                                        [playerIds[index + 1], playerIds[index]];
-                                    setPlayerOrder(playerIds);
-                                }} />);
+                        if (isEditingPlayers) {
+                            if (playerIds.indexOf(playerId) !== 0) {
+                                children.push(<span
+                                    key="player_arrow_up"
+                                    className='arrow up'
+                                    onClick={() => {
+                                        const index = playerIds.indexOf(playerId);
+                                        [playerIds[index], playerIds[index - 1]] =
+                                            [playerIds[index - 1], playerIds[index]];
+                                        setPlayerOrder(playerIds);
+                                    }} />);
+                            }
+                            if (playerIds.indexOf(playerId) !== playerIds.length - 1) {
+                                children.push(<span
+                                    key="player_arrow_down"
+                                    className='arrow down'
+                                    onClick={() => {
+                                        const index = playerIds.indexOf(playerId);
+                                        [playerIds[index], playerIds[index + 1]] =
+                                            [playerIds[index + 1], playerIds[index]];
+                                        setPlayerOrder(playerIds);
+                                    }} />);
+                            }
                         }
                         if (playerId === myPlayerId && isMyNameEditable) {
                             const setNameFunc = () => {
@@ -98,20 +104,22 @@ export class RoundStartPanel extends React.Component {
                         }
 
                         children.push(` (rank ${VALUES[playerRankScores[playerId]]})`);
-                        children.push(<span key='spacing' className='spacing' />);
-                        if (playerRankScores[playerId] !== 'ACE') {
-                            children.push(<span
-                                key='score_arrow_up'
-                                className='arrow up'
-                                onClick={() => setPlayerScore(playerId, true)}
-                            />);
-                        }
-                        if (playerRankScores[playerId] !== 'TWO') {
-                            children.push(<span
-                                key='score_arrow_down'
-                                className='arrow down'
-                                onClick={() => setPlayerScore(playerId, false)}
-                            />);
+                        if (isEditingPlayers) {
+                            children.push(<span key='spacing' className='spacing' />);
+                            if (playerRankScores[playerId] !== 'ACE') {
+                                children.push(<span
+                                    key='score_arrow_up'
+                                    className='arrow up'
+                                    onClick={() => setPlayerScore(playerId, true)}
+                                />);
+                            }
+                            if (playerRankScores[playerId] !== 'TWO') {
+                                children.push(<span
+                                    key='score_arrow_down'
+                                    className='arrow down'
+                                    onClick={() => setPlayerScore(playerId, false)}
+                                />);
+                            }
                         }
 
                         if (playerId === myPlayerId) {
@@ -122,6 +130,13 @@ export class RoundStartPanel extends React.Component {
                         }
                         if (winningPlayerIds.indexOf(playerId) >= 0) {
                             children.push(<span key={`crown${playerId}`} className='crown' />);
+                        }
+                        if (isEditingPlayers && humanControllers.indexOf(playerId) === -1) {
+                            children.push(<span
+                                key={`remove${playerId}`}
+                                className='remove'
+                                onClick={() => removePlayer(playerId)}
+                            />);
                         }
                         return <li key={playerId}>{children}</li>;
                     })}
@@ -146,6 +161,7 @@ export class RoundStartPanel extends React.Component {
                         />
                         {"Find a friend mode"}
                     </div>
+                    {this.maybeRenderAddAiButton(isEditingPlayers, addAi)}
                 </div>
                 <div
                     className={iAmReadyForPlay ?
@@ -157,5 +173,16 @@ export class RoundStartPanel extends React.Component {
                 </div>
             </div>
         );
+    }
+
+    maybeRenderAddAiButton(isEditingPlayers, addAi) {
+        if (isEditingPlayers) {
+            return <div
+                className='button add_ai_button'
+                onClick={addAi}
+            >
+                {'Add AI'}
+            </div>;
+        }
     }
 }

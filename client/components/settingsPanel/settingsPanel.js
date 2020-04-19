@@ -21,20 +21,22 @@ export class SettingsPanel extends React.Component {
             soundVolume,
             status,
             currentTrick,
-            setSoundVolume, // soundVolume => void
             forfeit, // () => void
             leaveRoom, // () => void
+            setSoundVolume, // soundVolume => void
+            toggleEditPlayers, // () => void
             takeBack, // () => void
         } = this.props;
         return (
             <div className='settings_panel'>
                 {this.maybeRenderConfirm(forfeit, leaveRoom)}
+                {this.maybeRenderForfeitButton(status)}
+                {this.maybeRenderLeaveRoomButton(status)}
                 <div
                     className={`button sound sound${soundVolume}`}
                     onClick={() => setSoundVolume((soundVolume + 1) % 4)}
                 />
-                {this.maybeRenderForfeitButton(status)}
-                {this.maybeRenderLeaveRoomButton(status)}
+                {this.maybeRenderEditPlayersButton(status, toggleEditPlayers)}
                 {this.maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack)}
             </div>
         );
@@ -64,27 +66,39 @@ export class SettingsPanel extends React.Component {
     }
 
     maybeRenderForfeitButton(status) {
+        const { isConfirmingForfeit } = this.state;
         if (status === 'START_ROUND') {
             return;
         }
         return <div
             className='button forfeit'
-            onClick={() => this.setState({ isConfirmingForfeit: true })}
+            onClick={() => this.setState({ isConfirmingForfeit: !isConfirmingForfeit })}
         />;
     }
 
     maybeRenderLeaveRoomButton(status) {
+        const { isConfirmingLeave } = this.state;
         if (status !== 'START_ROUND') {
             return;
         }
         return <div
             className='button leave_room'
-            onClick={() => this.setState({ isConfirmingLeave: true })}
+            onClick={() => this.setState({ isConfirmingLeave: !isConfirmingLeave })}
+        />;
+    }
+
+    maybeRenderEditPlayersButton(status, toggleEditPlayers) {
+        if (status !== 'START_ROUND') {
+            return;
+        }
+        return <div
+            className='button edit_players'
+            onClick={toggleEditPlayers}
         />;
     }
 
     maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack) {
-        if (!currentTrick) {
+        if (status === 'START_ROUND' || !currentTrick) {
             return;
         }
         const { plays } = currentTrick;
@@ -92,7 +106,7 @@ export class SettingsPanel extends React.Component {
             return <div
                 className='button undo'
                 onClick={takeBack}
-            />
+            />;
         }
     }
 }

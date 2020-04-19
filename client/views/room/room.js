@@ -38,7 +38,7 @@ export class Game extends React.Component {
       showPreviousTrick: false,
       confirmDoesItFlyCards: undefined, // CardId[]?
       soundVolume: 3, // 0, 1, 2, or 3
-      unmappedPlayerIds: [], // PlayerId[]
+      isEditingPlayers: false, // boolean
 
       // game state (same as server)
       playerIds: [], // PlayerId[]
@@ -181,22 +181,9 @@ export class Game extends React.Component {
       <div>
         <div>
           <h3>Room Code: {roomCode}</h3>
-          {this.maybeRenderAddAiButton()}
         </div>
         {this.renderGameArea()}
       </div>
-    );
-  }
-
-  maybeRenderAddAiButton() {
-    const { status } = this.state;
-    if (status !== 'START_ROUND') {
-      return;
-    }
-    return (
-      <button type='button' onClick={() => this.connection.send({ ADD_AI: {} })}>
-        {'Add AI (beta)'}
-      </button>
     );
   }
 
@@ -223,9 +210,11 @@ export class Game extends React.Component {
   renderRoundStartPanel() {
     const {
       aiControllers,
+      humanControllers,
       playerNames,
       playerReadyForPlay,
       myPlayerId,
+      isEditingPlayers,
       playerIds,
       numDecks,
       findAFriend,
@@ -236,18 +225,22 @@ export class Game extends React.Component {
     if (status === 'START_ROUND') {
       return <RoundStartPanel
         aiControllers={aiControllers}
+        humanControllers={humanControllers}
         playerNames={playerNames}
         playerReadyForPlay={playerReadyForPlay}
         myPlayerId={myPlayerId}
+        isEditingPlayers={isEditingPlayers}
         playerIds={playerIds}
         numDecks={numDecks}
         findAFriend={findAFriend}
         playerRankScores={playerRankScores}
         winningPlayerIds={winningPlayerIds}
         setPlayerOrder={playerIds => this.connection.send({ PLAYER_ORDER: { playerIds }})}
-        setPlayerScore={(playerId, increment) => this.connection.send({ PLAYER_SCORE: { playerId, increment }})}
         setName={name => this.connection.send({ SET_NAME: { name }})}
+        setPlayerScore={(playerId, increment) => this.connection.send({ PLAYER_SCORE: { playerId, increment }})}
+        removePlayer={playerId => this.connection.send({ REMOVE_PLAYER: { playerId } })}
         setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
+        addAi={() => this.connection.send({ ADD_AI: {} })}
         setReadyForPlay={ready => this.connection.send({ READY_FOR_PLAY: { ready }})}
       />;
     }
@@ -348,10 +341,7 @@ export class Game extends React.Component {
         humanControllers={humanControllers}
         playerNames={playerNames}
         playerIds={playerIds}
-        rejoin={playerId => {
-          this.connection.send({ REJOIN: { playerId }});
-          this.setState({ unmappedPlayerIds: [] });
-        }}
+        rejoin={playerId => this.connection.send({ REJOIN: { playerId }})}
       />;
     }
     if (confirmDoesItFlyCards !== undefined) {
@@ -490,22 +480,23 @@ export class Game extends React.Component {
 
   renderSettings() {
     const { leaveRoom } = this.props;
-    const { myPlayerId, soundVolume, status, currentTrick } = this.state;
+    const { myPlayerId, soundVolume, isEditingPlayers, status, currentTrick } = this.state;
     return <SettingsPanel
       myPlayerId={myPlayerId}
       soundVolume={soundVolume}
       status={status}
       currentTrick={currentTrick}
-      setSoundVolume={soundVolume => {
-        this.audio.setVolume(soundVolume);
-        this.setState({ soundVolume });
-      }}
       forfeit={() => this.connection.send({ FORFEIT: {} })}
       leaveRoom={() => {
         this.connection.send({ REMOVE_PLAYER: { playerId: myPlayerId } });
         this.connection.disconnect();
         leaveRoom();
       }}
+      setSoundVolume={soundVolume => {
+        this.audio.setVolume(soundVolume);
+        this.setState({ soundVolume });
+      }}
+      toggleEditPlayers={() => this.setState({ isEditingPlayers: !isEditingPlayers })}
       takeBack={() => this.connection.send({ TAKE_BACK: {} })}
     />;
   }

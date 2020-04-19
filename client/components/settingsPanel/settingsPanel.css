@@ -14,21 +14,27 @@
     background-color: rgba(210, 180, 140, 0.9);
 }
 
-.settings_panel .sound {
-    bottom: 20px;
-    left: 20px;
-}
-
 .settings_panel .forfeit {
     bottom: 20px;
-    left: 60px;
+    left: 20px;
     background-image: url("../../assets/images/forfeit.png");
 }
 
 .settings_panel .leave_room {
     bottom: 20px;
-    left: 60px;
+    left: 20px;
     background-image: url("../../assets/images/leave_room.png");
+}
+
+.settings_panel .sound {
+    bottom: 20px;
+    left: 60px;
+}
+
+.settings_panel .edit_players {
+    bottom: 20px;
+    left: 100px;
+    background-image: url("../../assets/images/edit_players.png");
 }
 
 .settings_panel .undo {
