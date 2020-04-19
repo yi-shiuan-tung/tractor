@@ -474,8 +474,6 @@ public class TractorRoom {
             humanControllers.get(playerId).write(JacksonEncoder.INSTANCE.encode(message));
         else if (aiControllers.containsKey(playerId))
             aiControllers.get(playerId).processMessage(game, message, inputMessage -> handleGameMessage(playerId, broadcaster, inputMessage));
-        else
-            throw new IllegalStateException();
     }
 
     private void sendSync(Broadcaster broadcaster, OutgoingMessage message) {
