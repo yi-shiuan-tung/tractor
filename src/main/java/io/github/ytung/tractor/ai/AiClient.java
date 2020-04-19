@@ -55,7 +55,7 @@ public class AiClient {
                 && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myPlayerId)) {
             PlayRequest request = new PlayRequest();
             request.setCardIds(new ArrayList<>(play(game)));
-            request.setConfirmDoesItFly(true);
+            request.setConfirmSpecialPlay(true);
             send.accept(request);
         }
     }

@@ -49,7 +49,7 @@ import io.github.ytung.tractor.api.IncomingMessage.SetNameRequest;
 import io.github.ytung.tractor.api.IncomingMessage.TakeBackRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
-import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
+import io.github.ytung.tractor.api.OutgoingMessage.ConfirmSpecialPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
@@ -316,9 +316,9 @@ public class TractorRoom {
 
         if (message instanceof PlayRequest) {
             List<Integer> cardIds = ((PlayRequest) message).getCardIds();
-            boolean  confirmDoesItFly = ((PlayRequest) message).isConfirmDoesItFly();
+            boolean confirmSpecialPlay = ((PlayRequest) message).isConfirmSpecialPlay();
             try {
-                PlayResult result = game.play(playerId, cardIds, confirmDoesItFly);
+                PlayResult result = game.play(playerId, cardIds, confirmSpecialPlay);
                 Map<Integer, Card> cardsById = game.getCardsById();
                 sendSync(broadcaster, new CardInfo(Maps.toMap(cardIds, cardsById::get)));
                 sendSync(broadcaster, new PlayMessage(
@@ -331,11 +331,11 @@ public class TractorRoom {
                     sendSync(broadcaster, new FriendJoined(playerId, game.getIsDeclaringTeam()));
             } catch (InvalidPlayException e) {
                 sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
-            } catch (DoesNotFlyException e) {
-                if (confirmDoesItFly)
-                    forfeit(playerId, "made an incorrect does-it-fly declaration", broadcaster);
+            } catch (InvalidSpecialPlayException e) {
+                if (confirmSpecialPlay)
+                    forfeit(playerId, "made an invalid special play", broadcaster);
                 else
-                    sendSync(playerId, broadcaster, new ConfirmDoesItFly(cardIds));
+                    sendSync(playerId, broadcaster, new ConfirmSpecialPlay(cardIds));
             }
         }
 

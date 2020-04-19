@@ -305,19 +305,18 @@ public class Game {
     /**
      * The specified player makes the given play.
      *
-     * If confirmDoesItFly is true, then the penalty will be paid if the play does not fly. If
-     * false, then the play will always fail if it is a possible does-it-fly play, regardless of
-     * whether the play is valid or not.
+     * If confirmSpecialPlay is true, then the penalty will be paid if the special play is invalid. If
+     * false, then the play will always fail, regardless of whether the special play is valid or not.
      */
-    public synchronized PlayResult play(String playerId, List<Integer> cardIds, boolean confirmDoesItFly)
-            throws InvalidPlayException, DoesNotFlyException {
+    public synchronized PlayResult play(String playerId, List<Integer> cardIds, boolean confirmSpecialPlay)
+            throws InvalidPlayException, InvalidSpecialPlayException {
         sortCards(cardIds);
         Play play = new Play(playerId, cardIds);
 
         try {
-            verifyCanPlay(play, confirmDoesItFly);
-        } catch (DoesNotFlyException e) {
-            if (confirmDoesItFly)
+            verifyCanPlay(play, confirmSpecialPlay);
+        } catch (InvalidSpecialPlayException e) {
+            if (confirmSpecialPlay)
                 forfeitRound(playerId);
             throw e;
         }
@@ -389,7 +388,7 @@ public class Game {
         }
     }
 
-    private void verifyCanPlay(Play play, boolean confirmDoesItFly) throws InvalidPlayException, DoesNotFlyException {
+    private void verifyCanPlay(Play play, boolean confirmSpecialPlay) throws InvalidPlayException, InvalidSpecialPlayException {
         if (status != GameStatus.PLAY)
             throw new InvalidPlayException("You cannot make a play now.");
         if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
@@ -408,10 +407,10 @@ public class Game {
             if (profile.size() == 1)
                 return;
 
-            if (!confirmDoesItFly)
-                throw new DoesNotFlyException();
+            if (!confirmSpecialPlay)
+                throw new InvalidSpecialPlayException();
 
-            // check to see if this is a does-it-fly play, and if so, whether it is valid
+            // check to see if this is a special play, and if so, whether it is valid
             for (Component component : profile)
                 for (String otherPlayerId : playerIds)
                     if (!otherPlayerId.equals(play.getPlayerId())) {
@@ -422,7 +421,7 @@ public class Game {
                             if (otherComponent.getShape().getWidth() >= component.getShape().getWidth()
                                     && otherComponent.getShape().getHeight() >= component.getShape().getHeight()
                                     && otherComponent.getMinRank() > component.getMinRank()) {
-                                throw new DoesNotFlyException();
+                                throw new InvalidSpecialPlayException();
                             }
                     }
         } else {

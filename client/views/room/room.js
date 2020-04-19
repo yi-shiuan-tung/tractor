@@ -36,7 +36,7 @@ export class Room extends React.Component {
       selectedCardIds: {}, // {cardId: boolean}
       notifications: {},
       showPreviousTrick: false,
-      confirmDoesItFlyCards: undefined, // CardId[]?
+      confirmSpecialPlayCards: undefined, // CardId[]?
       soundVolume: 3, // 0, 1, 2, or 3
       isEditingPlayers: false, // boolean
 
@@ -137,9 +137,9 @@ export class Room extends React.Component {
             } else if (other.status === 'PLAY' && playerIds[other.currentPlayerIndex] === myPlayerId) {
               this.audio.playYourTurn();
             }
-          } else if (json.CONFIRM_DOES_IT_FLY) {
-            const {cardIds} = json.CONFIRM_DOES_IT_FLY;
-            this.setState({confirmDoesItFlyCards: cardIds})
+          } else if (json.CONFIRM_SPECIAL_PLAY) {
+            const {cardIds} = json.CONFIRM_SPECIAL_PLAY;
+            this.setState({confirmSpecialPlayCards: cardIds})
           } else if (json.FRIEND_JOINED) {
             const {playerId, ...other} = json.FRIEND_JOINED;
             this.setNotification(`${playerNames[playerId]} has joined the declaring team!`);
@@ -343,7 +343,7 @@ export class Room extends React.Component {
       playerReadyForPlay,
       myPlayerId,
       notifications,
-      confirmDoesItFlyCards,
+      confirmSpecialPlayCards,
       playerIds,
       kittySize,
       status,
@@ -358,14 +358,14 @@ export class Room extends React.Component {
         rejoin={playerId => this.connection.send({ REJOIN: { playerId }})}
       />;
     }
-    if (confirmDoesItFlyCards !== undefined) {
+    if (confirmSpecialPlayCards !== undefined) {
       return <ConfirmationPanel
-        message={'That is a special play. If it doesn\'t fly, you will forfeit the round.'}
+        message={'That is a multiple-component play. If any component can be beaten, you will forfeit the round.'}
         confirm={() => {
-          this.connection.send({ PLAY: { cardIds: confirmDoesItFlyCards, confirmDoesItFly: true } });
-          this.setState({ confirmDoesItFlyCards: undefined });
+          this.connection.send({ PLAY: { cardIds: confirmSpecialPlayCards, confirmSpecialPlay: true } });
+          this.setState({ confirmSpecialPlayCards: undefined });
         }}
-        cancel={() => this.setState({ confirmDoesItFlyCards: undefined })}
+        cancel={() => this.setState({ confirmSpecialPlayCards: undefined })}
       />;
     }
     if (Object.entries(notifications).length > 0) {

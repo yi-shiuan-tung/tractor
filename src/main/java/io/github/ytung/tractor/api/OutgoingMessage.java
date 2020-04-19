@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
 import io.github.ytung.tractor.api.OutgoingMessage.CardInfo;
-import io.github.ytung.tractor.api.OutgoingMessage.ConfirmDoesItFly;
+import io.github.ytung.tractor.api.OutgoingMessage.ConfirmSpecialPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
@@ -54,7 +54,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = ReadyForPlay.class, name = "READY_FOR_PLAY"),
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
-    @JsonSubTypes.Type(value = ConfirmDoesItFly.class, name = "CONFIRM_DOES_IT_FLY"),
+    @JsonSubTypes.Type(value = ConfirmSpecialPlay.class, name = "CONFIRM_SPECIAL_PLAY"),
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = TakeBack.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
@@ -248,7 +248,7 @@ public interface OutgoingMessage {
     }
 
     @Data
-    public static class ConfirmDoesItFly implements OutgoingMessage {
+    public static class ConfirmSpecialPlay implements OutgoingMessage {
 
         private final List<Integer> cardIds;
     }

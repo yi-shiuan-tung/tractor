@@ -149,7 +149,7 @@ public interface IncomingMessage {
     public static class PlayRequest implements IncomingMessage {
 
         private List<Integer> cardIds;
-        private boolean confirmDoesItFly;
+        private boolean confirmSpecialPlay;
     }
 
     @Data
