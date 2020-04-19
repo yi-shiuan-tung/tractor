@@ -125,6 +125,7 @@ public interface OutgoingMessage {
         private final boolean findAFriend;
         private final int kittySize;
         private final Set<String> aiControllers;
+        private final Set<String> humanControllers;
         private final Map<String, String> playerNames;
         private final Map<String, Boolean> playerReadyForPlay;
     }

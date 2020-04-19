@@ -148,6 +148,7 @@ public class TractorRoom {
             return;
 
         humanControllers.remove(playerId);
+        broadcastUpdatePlayers(r.broadcaster());
         sendSync(r.broadcaster(), new DisconnectMessage(playerId));
 
         if (resources.isEmpty())
@@ -168,6 +169,7 @@ public class TractorRoom {
                 humanControllers.put(playerId, r);
                 sendSync(playerId, r.getBroadcaster(), new CardInfo(game.getPrivateCards(playerId)));
                 sendSync(playerId, r.getBroadcaster(), new Rejoin(playerId));
+                broadcastUpdatePlayers(r.getBroadcaster());
                 sendSync(r.getBroadcaster(), new ReconnectMessage(playerId));
             } else {
                 if (game.getStatus() == GameStatus.START_ROUND) {
@@ -462,6 +464,7 @@ public class TractorRoom {
             game.isFindAFriend(),
             game.getKittySize(),
             aiControllers.keySet(),
+            humanControllers.keySet(),
             playerNames,
             playerReadyForPlay));
     }
