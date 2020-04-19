@@ -9,13 +9,15 @@ Multiplayer online tractor game. Try it at https://orange-tractor.herokuapp.com/
 - Engine implements the full ruleset and allows only valid plays
 - Supports variable number of players and variable number of decks
 - Supports find-a-friend version
-- Supports leading with a set of top cards (special "does it fly" plays)
+- Supports leading with a set of top cards (special "does-it-fly" plays)
 - Supports take-backs
 - Sound notifications on your turn
 - Shows the currently winning player in each trick
 - View the most recent trick
 - Automatic card drawing during the draw phase
 - AI players
+
+The engine follows the ruleset and terminology [here](https://www.pagat.com/kt5/tractor.html).
 
 ## Quickstart
 
