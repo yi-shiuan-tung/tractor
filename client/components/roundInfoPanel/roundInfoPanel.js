@@ -26,8 +26,7 @@ export class RoundInfoPanel extends React.Component {
         const declarer = playerIds[declarerPlayerIndex] === myPlayerId ?
             <span className='me'>{'You'}</span> :
             playerNames[playerIds[declarerPlayerIndex]];
-        const trumpSuit = currentTrump.suit === 'JOKER' ?
-            'NO TRUMP' : currentTrump.suit + 'S';
+        const trumpSuit = currentTrump.suit === 'JOKER' ? 'NO TRUMP' : SUITS[currentTrump.suit];
         let opponentsPoints = 0;
         playerIds.forEach((playerId) => {
             if (!isDeclaringTeam[playerId]) {
@@ -53,10 +52,20 @@ export class RoundInfoPanel extends React.Component {
                 <div>Friends:</div>
                 {findAFriendDeclaration.declarations.map((declaration, index) => {
                     return <div key={`declaration${index}`}>
-                        {`${ORDINALS[declaration.ordinal]} ${VALUES[declaration.value]} of ${SUITS[declaration.suit]}`}
+                        {this.renderDeclaration(declaration)}
                     </div>;
                 })}
             </div>
         );
+    }
+
+    renderDeclaration({ ordinal, value, suit }) {
+        if (value === 'BIG_JOKER') {
+            return `${ORDINALS[ordinal]} big joker`;
+        } else if (value === 'SMALL_JOKER') {
+            return `${ORDINALS[ordinal]} small joker`;
+        } else {
+            return `${ORDINALS[ordinal]} ${VALUES[value]} of ${SUITS[suit]}`;
+        }
     }
 }

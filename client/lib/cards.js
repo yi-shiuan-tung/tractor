@@ -16,10 +16,10 @@ export const VALUES = Object.freeze({
 });
 
 export const SUITS = Object.freeze({
-  'CLUB': 'CLUBS',
-  'DIAMOND': 'DIAMONDS',
-  'HEART': 'HEARTS',
-  'SPADE': 'SPADES',
+  'CLUB': 'CLUBS ♣',
+  'DIAMOND': 'DIAMONDS ♢',
+  'HEART': 'HEARTS ♡',
+  'SPADE': 'SPADES ♠',
 });
 
 export const ORDINALS = ['OTHER', 'FIRST', 'SECOND'];
