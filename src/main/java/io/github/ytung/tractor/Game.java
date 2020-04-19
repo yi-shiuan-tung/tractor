@@ -190,6 +190,8 @@ public class Game {
         Card card = cardsById.get(play.getCardIds().get(0));
         if (card.getValue() != getCurrentTrump().getValue() && card.getSuit() != Card.Suit.JOKER)
             throw new InvalidDeclareException("You can only declare the current trump value.");
+        if (card.getSuit() == Card.Suit.JOKER && play.getCardIds().size() == 1)
+            throw new InvalidDeclareException("You cannot declare a single joker.");
 
         if (declaredCards.isEmpty())
             return;
