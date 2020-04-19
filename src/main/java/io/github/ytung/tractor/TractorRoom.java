@@ -61,6 +61,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
 import io.github.ytung.tractor.api.OutgoingMessage.FullRoomState;
 import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
+import io.github.ytung.tractor.api.OutgoingMessage.InvalidSpecialPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.LeaveRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
@@ -330,13 +331,12 @@ public class TractorRoom {
                     scheduleFinishTrick(broadcaster);
                 if (result.isDidFriendJoin())
                     sendSync(broadcaster, new FriendJoined(playerId, game.getIsDeclaringTeam()));
+                if (result.isBadSpecialPlay())
+                    sendSync(broadcaster, new InvalidSpecialPlay(playerId, game.getCurrentRoundPenalties()));
             } catch (InvalidPlayException e) {
                 sendSync(playerId, broadcaster, new InvalidAction(e.getMessage()));
-            } catch (InvalidSpecialPlayException e) {
-                if (confirmSpecialPlay)
-                    forfeit(playerId, "made an invalid special play", broadcaster);
-                else
-                    sendSync(playerId, broadcaster, new ConfirmSpecialPlay(cardIds));
+            } catch (ConfirmSpecialPlayException e) {
+                sendSync(playerId, broadcaster, new ConfirmSpecialPlay(cardIds));
             }
         }
 

@@ -10,4 +10,5 @@ public class PlayResult {
 
     private final boolean isTrickComplete;
     private final boolean didFriendJoin;
+    private final boolean isBadSpecialPlay;
 }

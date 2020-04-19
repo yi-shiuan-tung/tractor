@@ -23,6 +23,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
 import io.github.ytung.tractor.api.OutgoingMessage.FullRoomState;
 import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
+import io.github.ytung.tractor.api.OutgoingMessage.InvalidSpecialPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.LeaveRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
@@ -57,6 +58,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = PlayMessage.class, name = "PLAY"),
     @JsonSubTypes.Type(value = FinishTrick.class, name = "FINISH_TRICK"),
     @JsonSubTypes.Type(value = ConfirmSpecialPlay.class, name = "CONFIRM_SPECIAL_PLAY"),
+    @JsonSubTypes.Type(value = InvalidSpecialPlay.class, name = "INVALID_SPECIAL_PLAY"),
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = TakeBack.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
@@ -262,6 +264,13 @@ public interface OutgoingMessage {
     public static class ConfirmSpecialPlay implements OutgoingMessage {
 
         private final List<Integer> cardIds;
+    }
+
+    @Data
+    public static class InvalidSpecialPlay implements OutgoingMessage {
+
+        private final String playerId;
+        private final Map<String, Integer> currentRoundPenalties;
     }
 
     @Data

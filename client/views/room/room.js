@@ -63,6 +63,7 @@ export class Room extends React.Component {
       pastTricks: undefined, // Trick[]
       currentTrick: undefined, // Trick
       currentRoundScores: undefined, // {playerId: integer}
+      currentRoundPenalties: undefined, // {playerId: integer}
       currentTrump: undefined, // Card
     };
   }
@@ -145,6 +146,10 @@ export class Room extends React.Component {
           } else if (json.CONFIRM_SPECIAL_PLAY) {
             const {cardIds} = json.CONFIRM_SPECIAL_PLAY;
             this.setState({confirmSpecialPlayCards: cardIds})
+          } else if (json.INVALID_SPECIAL_PLAY) {
+            const {playerId, ...other} = json.INVALID_SPECIAL_PLAY;
+            this.setNotification(`${playerNames[playerId]} made an invalid special play.`);
+            this.setState(other);
           } else if (json.FRIEND_JOINED) {
             const {playerId, ...other} = json.FRIEND_JOINED;
             this.setNotification(`${playerNames[playerId]} has joined the declaring team!`);
@@ -275,6 +280,7 @@ export class Room extends React.Component {
       isDeclaringTeam,
       findAFriendDeclaration,
       currentRoundScores,
+      currentRoundPenalties,
       currentTrump,
     } = this.state;
     return <RoundInfoPanel
@@ -285,6 +291,7 @@ export class Room extends React.Component {
       isDeclaringTeam={isDeclaringTeam}
       findAFriendDeclaration={findAFriendDeclaration}
       currentRoundScores={currentRoundScores}
+      currentRoundPenalties={currentRoundPenalties}
       currentTrump={currentTrump}
     />;
   }
@@ -366,7 +373,7 @@ export class Room extends React.Component {
     }
     if (confirmSpecialPlayCards !== undefined) {
       return <ConfirmationPanel
-        message={'That is a multiple-component play. If any component can be beaten, you will forfeit the round.'}
+        message={'That is a multiple-component play. If any component can be beaten, you will pay a 10 point penalty.'}
         confirm={() => {
           this.connection.send({ PLAY: { cardIds: confirmSpecialPlayCards, confirmSpecialPlay: true } });
           this.setState({ confirmSpecialPlayCards: undefined });

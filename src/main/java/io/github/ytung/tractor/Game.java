@@ -60,6 +60,7 @@ public class Game {
     private List<Trick> pastTricks;
     private Trick currentTrick;
     private Map<String, Integer> currentRoundScores = new HashMap<>();
+    private Map<String, Integer> currentRoundPenalties = new HashMap<>();
 
     // internal state for convenience
     private Multimap<Card, Integer> findAFriendDeclarationCounters;
@@ -140,6 +141,7 @@ public class Game {
         pastTricks = new ArrayList<>();
         currentTrick = null;
         currentRoundScores = new HashMap<>(Maps.toMap(playerIds, playerId -> 0));
+        currentRoundPenalties = new HashMap<>(Maps.toMap(playerIds, playerId -> 0));
 
         for (String playerId : playerIds)
             playerHands.put(playerId, new ArrayList<>());
@@ -326,20 +328,44 @@ public class Game {
      * false, then the play will always fail, regardless of whether the special play is valid or not.
      */
     public synchronized PlayResult play(String playerId, List<Integer> cardIds, boolean confirmSpecialPlay)
-            throws InvalidPlayException, InvalidSpecialPlayException {
+            throws InvalidPlayException, ConfirmSpecialPlayException {
         sortCards(cardIds);
         Play play = new Play(playerId, cardIds);
+        verifyCanPlay(new Play(playerId, cardIds));
 
-        try {
-            verifyCanPlay(play, confirmSpecialPlay);
-        } catch (InvalidSpecialPlayException e) {
-            if (confirmSpecialPlay)
-                forfeitRound(playerId);
-            throw e;
+        // check to see if this is a special play, and if so, whether it is valid
+        Component badComponent = null;
+        if (currentTrick.getPlays().isEmpty()) {
+            List<Component> profile = getProfile(play.getCardIds());
+
+            if (profile.size() > 1) {
+                if (!confirmSpecialPlay)
+                    throw new ConfirmSpecialPlayException();;
+
+                Card trump = getCurrentTrump();
+                for (Component component : profile)
+                    for (String otherPlayerId : playerIds)
+                        if (!otherPlayerId.equals(play.getPlayerId())) {
+                            List<Integer> sameSuitCardIds = playerHands.get(otherPlayerId).stream()
+                                .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == getGrouping(play.getCardIds()))
+                                .collect(Collectors.toList());
+                            for (Component otherComponent : getProfile(sameSuitCardIds))
+                                if (otherComponent.getShape().getWidth() >= component.getShape().getWidth()
+                                        && otherComponent.getShape().getHeight() >= component.getShape().getHeight()
+                                        && otherComponent.getMinRank() > component.getMinRank()) {
+                                    badComponent = component;
+                                }
+                        }
+            }
+        }
+        if (badComponent != null) {
+            currentRoundPenalties.compute(playerId, (key, penalty) -> penalty + 10);
+            cardIds = new ArrayList<>(badComponent.getCardIds());
+            sortCards(cardIds);
         }
 
         playerHands.get(playerId).removeAll(cardIds);
-        currentTrick.getPlays().add(play);
+        currentTrick.getPlays().add(new Play(playerId, cardIds)); // might be different from the initial play
         currentTrick.setWinningPlayerId(winningPlayerId(currentTrick));
 
         // test for find a friend
@@ -367,10 +393,10 @@ public class Game {
 
         if (currentTrick.getPlays().size() == playerIds.size()) {
             currentPlayerIndex = -1;
-            return new PlayResult(true, didFriendJoin);
+            return new PlayResult(true, didFriendJoin, badComponent != null);
         } else {
             currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
-            return new PlayResult(false, didFriendJoin);
+            return new PlayResult(false, didFriendJoin, badComponent != null);
         }
     }
 
@@ -394,9 +420,14 @@ public class Game {
                 currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + bonus * totalCardScore(kitty));
             }
             int roundScore = 0;
-            for (String playerId : playerIds)
-                if (!isDeclaringTeam.get(playerId))
+            for (String playerId : playerIds) {
+                if (isDeclaringTeam.get(playerId)) {
+                    roundScore += currentRoundPenalties.get(playerId);
+                } else {
                     roundScore += currentRoundScores.get(playerId);
+                    roundScore -= currentRoundPenalties.get(playerId);
+                }
+            }
             boolean doDeclarersWin = roundScore < 40 * numDecks;
             int scoreIncrease = doDeclarersWin
                     ? (roundScore == 0 ? 3 : 2 - roundScore / (20 * numDecks))
@@ -405,7 +436,7 @@ public class Game {
         }
     }
 
-    private void verifyCanPlay(Play play, boolean confirmSpecialPlay) throws InvalidPlayException, InvalidSpecialPlayException {
+    private void verifyCanPlay(Play play) throws InvalidPlayException {
         if (status != GameStatus.PLAY)
             throw new InvalidPlayException("You cannot make a play now.");
         if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
@@ -421,26 +452,6 @@ public class Game {
             List<Component> profile = getProfile(play.getCardIds());
             if (profile.isEmpty())
                 throw new InvalidPlayException("You must play cards in only one suit.");
-            if (profile.size() == 1)
-                return;
-
-            if (!confirmSpecialPlay)
-                throw new InvalidSpecialPlayException();
-
-            // check to see if this is a special play, and if so, whether it is valid
-            for (Component component : profile)
-                for (String otherPlayerId : playerIds)
-                    if (!otherPlayerId.equals(play.getPlayerId())) {
-                        List<Integer> sameSuitCardIds = playerHands.get(otherPlayerId).stream()
-                            .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == getGrouping(play.getCardIds()))
-                            .collect(Collectors.toList());
-                        for (Component otherComponent : getProfile(sameSuitCardIds))
-                            if (otherComponent.getShape().getWidth() >= component.getShape().getWidth()
-                                    && otherComponent.getShape().getHeight() >= component.getShape().getHeight()
-                                    && otherComponent.getMinRank() > component.getMinRank()) {
-                                throw new InvalidSpecialPlayException();
-                            }
-                    }
         } else {
             Play startingPlay = currentTrick.getPlays().get(0);
             if (play.getCardIds().size() != startingPlay.getCardIds().size())
