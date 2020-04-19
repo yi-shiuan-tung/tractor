@@ -17,10 +17,10 @@ public class FindAFriendDeclaration {
     public static class Declaration {
 
         /**
-         * e.g. 1 for the first Big Joker, 2 for the second Big Joker, etc.
+         * e.g. 1 for the first of card X, 2 for the second of card X, etc.
          *
-         * 0 refers to the "other" Big Joker, and is only valid 2-deck games when the declarer has
-         * one of the Jokers.
+         * 0 refers to the "other" card X, and is only valid 2-deck games when the starter has one
+         * of the card X.
          */
         private int ordinal;
 

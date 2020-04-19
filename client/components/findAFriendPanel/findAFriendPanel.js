@@ -3,7 +3,7 @@ import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
 import "./findAFriendPanel.css";
 
 /**
- * Renders a panel to allow the declarer to select N friends.
+ * Renders a panel to allow the starter to select N friends.
  */
 export class FindAFriendPanel extends React.Component {
 

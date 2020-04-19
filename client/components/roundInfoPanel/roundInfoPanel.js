@@ -4,7 +4,7 @@ import './roundInfoPanel.css';
 
 /**
  * A panel that displays info relevant only to the current round: the current
- * round trump, the current declarer, and the current number of card points.
+ * round trump, the current starter, and the current number of card points.
  */
 export class RoundInfoPanel extends React.Component {
 
@@ -13,7 +13,7 @@ export class RoundInfoPanel extends React.Component {
             playerNames,
             myPlayerId,
             playerIds,
-            declarerPlayerIndex,
+            starterPlayerIndex,
             isDeclaringTeam,
             findAFriendDeclaration,
             currentRoundScores,
@@ -23,9 +23,9 @@ export class RoundInfoPanel extends React.Component {
         if (!isDeclaringTeam) {
             return null;
         }
-        const declarer = playerIds[declarerPlayerIndex] === myPlayerId ?
+        const starter = playerIds[starterPlayerIndex] === myPlayerId ?
             <span className='me'>{'You'}</span> :
-            playerNames[playerIds[declarerPlayerIndex]];
+            playerNames[playerIds[starterPlayerIndex]];
         const trumpSuit = currentTrump.suit === 'JOKER' ? 'NO TRUMP' : SUITS[currentTrump.suit];
         let opponentsPoints = 0;
         playerIds.forEach((playerId) => {
@@ -36,7 +36,7 @@ export class RoundInfoPanel extends React.Component {
         return (
             <div className='round_info_panel'>
                 <div>Current trump: {VALUES[currentTrump.value]} of {trumpSuit}</div>
-                <div>Declarer: {declarer}</div>
+                <div>Starter: {starter}</div>
                 <div>Opponent&apos;s points: {opponentsPoints}</div>
                 {this.maybeRenderFindAFriendDeclaration(findAFriendDeclaration)}
             </div>

@@ -122,7 +122,7 @@ public class TractorRoom {
             game.getNumDecks(),
             game.isFindAFriend(),
             game.getRoundNumber(),
-            game.getDeclarerPlayerIndex(),
+            game.getStarterPlayerIndex(),
             game.getPlayerRankScores(),
             game.getWinningPlayerIds(),
             game.getStatus(),
@@ -264,7 +264,7 @@ public class TractorRoom {
                 sendSync(broadcaster, new CardInfo(Maps.toMap(cardIds, cardsById::get)));
                 playerReadyForPlay.replaceAll((k, v) -> v=false);
                 sendSync(broadcaster, new Declare(
-                    game.getDeclarerPlayerIndex(),
+                    game.getStarterPlayerIndex(),
                     game.getIsDeclaringTeam(),
                     game.getPlayerHands(),
                     game.getDeclaredCards(),
@@ -365,7 +365,7 @@ public class TractorRoom {
         game.startRound();
         sendSync(broadcaster, new StartRound(
             game.getRoundNumber(),
-            game.getDeclarerPlayerIndex(),
+            game.getStarterPlayerIndex(),
             game.getStatus(),
             game.getCurrentPlayerIndex(),
             game.getIsDeclaringTeam(),
@@ -422,7 +422,7 @@ public class TractorRoom {
                 game.finishTrick();
                 sendSync(broadcaster, new FinishTrick(
                     game.getRoundNumber(),
-                    game.getDeclarerPlayerIndex(),
+                    game.getStarterPlayerIndex(),
                     game.getPlayerRankScores(),
                     game.isDoDeclarersWin(),
                     game.getWinningPlayerIds(),
@@ -447,7 +447,7 @@ public class TractorRoom {
             playerId,
             message,
             game.getRoundNumber(),
-            game.getDeclarerPlayerIndex(),
+            game.getStarterPlayerIndex(),
             game.getPlayerRankScores(),
             game.getStatus()));
         prepareStartNewRound(broadcaster);

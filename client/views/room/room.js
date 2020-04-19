@@ -46,7 +46,7 @@ export class Room extends React.Component {
       findAFriend: false, // boolean
       kittySize: 8, // integer
       roundNumber: undefined, // integer
-      declarerPlayerIndex: undefined, // integer
+      starterPlayerIndex: undefined, // integer
       playerRankScores: {}, // {playerId: cardValue}
       winningPlayerIds: [], // PlayerId[]
       status: 'START_ROUND', // GameStatus
@@ -265,7 +265,7 @@ export class Room extends React.Component {
       playerNames,
       myPlayerId,
       playerIds,
-      declarerPlayerIndex,
+      starterPlayerIndex,
       isDeclaringTeam,
       findAFriendDeclaration,
       currentRoundScores,
@@ -275,7 +275,7 @@ export class Room extends React.Component {
       playerNames={playerNames}
       myPlayerId={myPlayerId}
       playerIds={playerIds}
-      declarerPlayerIndex={declarerPlayerIndex}
+      starterPlayerIndex={starterPlayerIndex}
       isDeclaringTeam={isDeclaringTeam}
       findAFriendDeclaration={findAFriendDeclaration}
       currentRoundScores={currentRoundScores}
@@ -393,8 +393,8 @@ export class Room extends React.Component {
   }
 
   renderFindAFriendPanel() {
-    const { myPlayerId, playerIds, findAFriend, declarerPlayerIndex, status, findAFriendDeclaration } = this.state;
-    if (findAFriend && status === 'MAKE_KITTY' && playerIds[declarerPlayerIndex] === myPlayerId && !findAFriendDeclaration) {
+    const { myPlayerId, playerIds, findAFriend, starterPlayerIndex, status, findAFriendDeclaration } = this.state;
+    if (findAFriend && status === 'MAKE_KITTY' && playerIds[starterPlayerIndex] === myPlayerId && !findAFriendDeclaration) {
       return (
         <FindAFriendPanel
           playerIds={playerIds}
@@ -582,12 +582,12 @@ export class Room extends React.Component {
   }
 
   renderKitty() {
-    const { myPlayerId, playerIds, declarerPlayerIndex, status, cardsById, kitty } = this.state;
+    const { myPlayerId, playerIds, starterPlayerIndex, status, cardsById, kitty } = this.state;
 
     return <Kitty
       myPlayerId={myPlayerId}
       playerIds={playerIds}
-      declarerPlayerIndex={declarerPlayerIndex}
+      starterPlayerIndex={starterPlayerIndex}
       status={status}
       cardsById={cardsById}
       kitty={kitty}

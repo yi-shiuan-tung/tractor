@@ -41,7 +41,7 @@ public class Game {
 
     // constant over each round
     private int roundNumber = 0;
-    private int declarerPlayerIndex = 0;
+    private int starterPlayerIndex = 0;
     private Map<String, Card.Value> playerRankScores = new HashMap<>();
     private boolean doDeclarersWin;
     private Set<String> winningPlayerIds = new HashSet<>();
@@ -91,10 +91,10 @@ public class Game {
             throw new IllegalStateException();
 
         String currentPlayerId = playerIds.get(currentPlayerIndex);
-        String declarerPlayerId = playerIds.get(declarerPlayerIndex);
+        String starterPlayerId = playerIds.get(starterPlayerIndex);
         playerIds = newPlayerIds;
         currentPlayerIndex = playerIds.indexOf(currentPlayerId);
-        declarerPlayerIndex = playerIds.indexOf(declarerPlayerId);
+        starterPlayerIndex = playerIds.indexOf(starterPlayerId);
     }
 
     public synchronized void updatePlayerScore(String playerId, boolean increment) {
@@ -127,7 +127,7 @@ public class Game {
             throw new IllegalStateException();
 
         status = GameStatus.DRAW;
-        currentPlayerIndex = declarerPlayerIndex;
+        currentPlayerIndex = starterPlayerIndex;
         setIsDeclaringTeam();
         cardsById = Decks.getCardsById(numDecks);
         deck = Decks.shuffle(cardsById);
@@ -169,9 +169,9 @@ public class Game {
         declaredCards.add(play);
         playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
 
-        // if this is the first round, then the person who declares is the declarer
+        // if this is the first round, then the person who declares is the starter
         if (roundNumber == 0) {
-            declarerPlayerIndex = playerIds.indexOf(playerId);
+            starterPlayerIndex = playerIds.indexOf(playerId);
             setIsDeclaringTeam();
         }
     }
@@ -219,7 +219,7 @@ public class Game {
         isDeclaringTeam = IntStream.range(0, playerIds.size())
             .boxed()
             .collect(
-                Collectors.toMap(i -> playerIds.get(i), i -> findAFriend ? i == declarerPlayerIndex : (i + declarerPlayerIndex) % 2 == 0));
+                Collectors.toMap(i -> playerIds.get(i), i -> findAFriend ? i == starterPlayerIndex : (i + starterPlayerIndex) % 2 == 0));
     }
 
     public synchronized Play takeKitty() {
@@ -227,7 +227,7 @@ public class Game {
             return null;
 
         status = GameStatus.MAKE_KITTY;
-        currentPlayerIndex = declarerPlayerIndex;
+        currentPlayerIndex = starterPlayerIndex;
         String playerId = playerIds.get(currentPlayerIndex);
         List<Integer> cardIds = new ArrayList<>(deck);
         playerHands.get(playerIds.get(currentPlayerIndex)).addAll(cardIds);
@@ -243,7 +243,7 @@ public class Game {
         if (status != GameStatus.MAKE_KITTY)
             throw new InvalidFindAFriendDeclarationException("You cannot declare a friend now.");
         if (!playerId.equals(playerIds.get(currentPlayerIndex)))
-            throw new InvalidFindAFriendDeclarationException("Only the declarer can declare a friend.");
+            throw new InvalidFindAFriendDeclarationException("Only the starter can declare a friend.");
         if (findAFriendDeclaration != null)
             throw new InvalidFindAFriendDeclarationException("You've already declared.");
 
@@ -333,8 +333,8 @@ public class Game {
             if (count == 0)
                 continue;
 
-            // ignore OTHER declaration if the declarer played the card
-            if (counter == 0 && playerIds.get(declarerPlayerIndex).equals(playerId))
+            // ignore OTHER declaration if the starter played the card
+            if (counter == 0 && playerIds.get(starterPlayerIndex).equals(playerId))
                 continue;
 
             findAFriendDeclarationCounters.remove(card, counter);
@@ -485,12 +485,12 @@ public class Game {
     private void roundEnd(boolean doDeclarersWin, int scoreIncrease) {
         roundNumber++;
         this.doDeclarersWin = doDeclarersWin;
-        int prevDeclarerPlayerIndex = declarerPlayerIndex;
+        int prevStarterPlayerIndex = starterPlayerIndex;
         do {
-            // declarer goes to next person on the winning team
-            declarerPlayerIndex = (declarerPlayerIndex + 1) % playerIds.size();
-        } while (declarerPlayerIndex != prevDeclarerPlayerIndex
-                && isDeclaringTeam.get(playerIds.get(declarerPlayerIndex)) != doDeclarersWin);
+            // starter goes to next person on the winning team
+            starterPlayerIndex = (starterPlayerIndex + 1) % playerIds.size();
+        } while (starterPlayerIndex != prevStarterPlayerIndex
+                && isDeclaringTeam.get(playerIds.get(starterPlayerIndex)) != doDeclarersWin);
         winningPlayerIds.clear();
         for (String playerId : playerIds)
             if (isDeclaringTeam.get(playerId) == doDeclarersWin) {
@@ -512,7 +512,7 @@ public class Game {
 
     public Card getCurrentTrump() {
         return new Card(
-            playerRankScores.get(playerIds.get(declarerPlayerIndex)),
+            playerRankScores.get(playerIds.get(starterPlayerIndex)),
             declaredCards == null || declaredCards.isEmpty()
                     ? Card.Suit.JOKER
                     : cardsById.get(declaredCards.get(declaredCards.size() - 1).getCardIds().get(0)).getSuit());

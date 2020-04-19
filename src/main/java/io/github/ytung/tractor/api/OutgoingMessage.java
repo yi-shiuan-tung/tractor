@@ -89,7 +89,7 @@ public interface OutgoingMessage {
         private final boolean findAFriend;
 
         private final int roundNumber;
-        private final int declarerPlayerIndex;
+        private final int starterPlayerIndex;
         private final Map<String, Card.Value> playerRankScores;
         private final Set<String> winningPlayerIds;
 
@@ -148,7 +148,7 @@ public interface OutgoingMessage {
     public static class StartRound implements OutgoingMessage {
 
         private final int roundNumber;
-        private final int declarerPlayerIndex;
+        private final int starterPlayerIndex;
         private final GameStatus status;
         private final int currentPlayerIndex;
         private final Map<String, Boolean> isDeclaringTeam;
@@ -191,7 +191,7 @@ public interface OutgoingMessage {
     @Data
     public static class Declare implements OutgoingMessage {
 
-        private final int declarerPlayerIndex;
+        private final int starterPlayerIndex;
 
         private final Map<String, Boolean> isDeclaringTeam;
         private final Map<String, List<Integer>> playerHands;
@@ -234,7 +234,7 @@ public interface OutgoingMessage {
     public static class FinishTrick implements OutgoingMessage {
 
         private final int roundNumber;
-        private final int declarerPlayerIndex;
+        private final int starterPlayerIndex;
         private final Map<String, Card.Value> playerRankScores;
         private final boolean doDeclarersWin;
         private final Set<String> winningPlayerIds;
@@ -277,7 +277,7 @@ public interface OutgoingMessage {
         private final String message;
 
         private final int roundNumber;
-        private final int declarerPlayerIndex;
+        private final int starterPlayerIndex;
         private final Map<String, Card.Value> playerRankScores;
 
         private final GameStatus status;
