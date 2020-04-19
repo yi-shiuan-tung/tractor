@@ -446,7 +446,7 @@ public class TractorRoom {
         Thread finishTrickThread = new Thread() {
             @Override
             public void run() {
-                Uninterruptibles.sleepUninterruptibly(2500, TimeUnit.MILLISECONDS);
+                Uninterruptibles.sleepUninterruptibly(1500, TimeUnit.MILLISECONDS);
                 game.finishTrick();
                 sendSync(broadcaster, new FinishTrick(
                     game.getRoundNumber(),
