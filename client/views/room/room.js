@@ -20,6 +20,7 @@ import {
   SettingsPanel,
   Trick,
 } from '../../components';
+import { SUITS } from '../../lib/cards';
 
 export class Room extends React.Component {
   constructor(props) {
@@ -56,7 +57,8 @@ export class Room extends React.Component {
       cardsById: undefined, // {cardId: Card}
       playerHands: undefined, // {playerId: cardId[]}
       declaredCards: undefined, // Play[]
-      kitty: undefined, // Card[]
+      exposedBottomCards: undefined, // cardId[]
+      kitty: undefined, // cardId[]
       findAFriendDeclaration: undefined, // FindAFriendDeclaration
       pastTricks: undefined, // Trick[]
       currentTrick: undefined, // Trick
@@ -115,6 +117,9 @@ export class Room extends React.Component {
             this.setState(json.DECLARE);
           } else if (json.READY_FOR_PLAY) {
             this.setState(json.READY_FOR_PLAY);
+          } else if (json.EXPOSE_BOTTOM_CARDS) {
+            this.setNotification(`The trump suit is ${SUITS[json.EXPOSE_BOTTOM_CARDS.currentTrump.suit]}`)
+            this.setState(json.EXPOSE_BOTTOM_CARDS);
           } else if (json.TAKE_KITTY) {
             this.setState(json.TAKE_KITTY);
           } else if (json.FRIEND_DECLARE) {
@@ -212,6 +217,7 @@ export class Room extends React.Component {
         {this.renderFindAFriendPanel()}
         {this.renderPlayerHands()}
         {this.renderDeclaredCards()}
+        {this.renderBottomCards()}
         {this.renderCurrentTrick()}
         {this.renderSettings()}
         {this.renderActionButton()}
@@ -461,6 +467,27 @@ export class Room extends React.Component {
       >
         <Cards
           cardIds={latestDeclaredCards.cardIds}
+          cardsById={cardsById}
+          faceUp={true}
+        />
+      </PlayerArea>
+    </div>;
+  }
+
+  renderBottomCards() {
+    const { myPlayerId, playerIds, starterPlayerIndex, status, cardsById, exposedBottomCards } = this.state;
+    if (status !== 'EXPOSE_BOTTOM_CARDS') {
+      return;
+    }
+    return <div>
+      <PlayerArea
+        myPlayerId={myPlayerId}
+        playerIds={playerIds}
+        playerId={playerIds[starterPlayerIndex]}
+        distance={0.3}
+      >
+        <Cards
+          cardIds={exposedBottomCards}
           cardsById={cardsById}
           faceUp={true}
         />

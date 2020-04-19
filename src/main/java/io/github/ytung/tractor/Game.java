@@ -54,6 +54,7 @@ public class Game {
     private Map<Integer, Card> cardsById;
     private Map<String, List<Integer>> playerHands;
     private List<Play> declaredCards;
+    private List<Integer> exposedBottomCards = new ArrayList<>();
     private List<Integer> kitty;
     private FindAFriendDeclaration findAFriendDeclaration;
     private List<Trick> pastTricks;
@@ -133,6 +134,7 @@ public class Game {
         deck = Decks.shuffle(cardsById);
         playerHands = new HashMap<>();
         declaredCards = new ArrayList<>();
+        exposedBottomCards = new ArrayList<>();
         kitty = new ArrayList<>();
         findAFriendDeclaration = null;
         pastTricks = new ArrayList<>();
@@ -224,8 +226,23 @@ public class Game {
                 Collectors.toMap(i -> playerIds.get(i), i -> findAFriend ? i == starterPlayerIndex : (i + starterPlayerIndex) % 2 == 0));
     }
 
-    public synchronized Play takeKitty() {
+    public synchronized void exposeBottomCards() {
         if (status != GameStatus.DRAW_KITTY)
+            throw new IllegalStateException();
+        if (!declaredCards.isEmpty())
+            throw new IllegalStateException();
+
+        // draw from deck until we find a trump, or take the suit of the highest value card
+        status = GameStatus.EXPOSE_BOTTOM_CARDS;
+        for (int cardId : deck) {
+            exposedBottomCards.add(cardId);
+            if (getCurrentTrump().getSuit() != Card.Suit.JOKER)
+                return;
+        }
+    }
+
+    public synchronized Play takeKitty() {
+        if (status != GameStatus.DRAW_KITTY && status != GameStatus.EXPOSE_BOTTOM_CARDS)
             return null;
 
         status = GameStatus.MAKE_KITTY;
@@ -512,11 +529,31 @@ public class Game {
     }
 
     public Card getCurrentTrump() {
-        return new Card(
-            playerRankScores.get(playerIds.get(starterPlayerIndex)),
-            declaredCards == null || declaredCards.isEmpty()
-                    ? Card.Suit.JOKER
-                    : cardsById.get(declaredCards.get(declaredCards.size() - 1).getCardIds().get(0)).getSuit());
+        Card.Value trumpValue = playerRankScores.get(playerIds.get(starterPlayerIndex));
+
+        if (declaredCards != null && !declaredCards.isEmpty())
+            return new Card(trumpValue, cardsById.get(declaredCards.get(declaredCards.size() - 1).getCardIds().get(0)).getSuit());
+
+        for (int cardId : exposedBottomCards) {
+            Card card = cardsById.get(cardId);
+            if (card.getValue() == trumpValue)
+                return new Card(trumpValue, card.getSuit());
+        }
+
+        if (exposedBottomCards.size() == getKittySize()) {
+            Card highestCard = null;
+            for (int cardId : exposedBottomCards) {
+                Card card = cardsById.get(cardId);
+                if (card.getSuit() == Card.Suit.JOKER)
+                    continue;
+                if (highestCard == null || card.getValue().ordinal() > highestCard.getValue().ordinal())
+                    highestCard = card;
+            }
+            if (highestCard != null)
+                return new Card(trumpValue, highestCard.getSuit());
+        }
+
+        return new Card(trumpValue, Card.Suit.JOKER);
     }
 
     public int getKittySize() {

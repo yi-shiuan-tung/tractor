@@ -53,6 +53,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.ConfirmSpecialPlay;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.ExposeBottomCards;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
@@ -282,7 +283,7 @@ public class TractorRoom {
                 if (game.getStatus() == GameStatus.START_ROUND)
                     startRound(broadcaster);
                 else if (game.getStatus() == GameStatus.DRAW_KITTY)
-                    dealKitty(broadcaster);
+                    maybeExposeBottomCardsAndDealKitty(broadcaster);
                 else
                     throw new IllegalStateException();
                 playerReadyForPlay.replaceAll((k, v) -> v=false); // reset for next time
@@ -373,6 +374,7 @@ public class TractorRoom {
             new HashMap<>(), // no cards are known at beginning
             game.getPlayerHands(),
             game.getDeclaredCards(),
+            game.getExposedBottomCards(),
             game.getKitty(),
             game.getFindAFriendDeclaration(),
             game.getPastTricks(),
@@ -400,6 +402,26 @@ public class TractorRoom {
 
         dealingThread.setDaemon(true);
         dealingThread.start();
+    }
+
+    private void maybeExposeBottomCardsAndDealKitty(Broadcaster broadcaster) {
+        if (game.getDeclaredCards().isEmpty()) {
+            game.exposeBottomCards();
+            sendSync(broadcaster, new CardInfo(Maps.toMap(game.getExposedBottomCards(), game.getCardsById()::get)));
+            sendSync(broadcaster, new ExposeBottomCards(game.getStatus(), game.getExposedBottomCards(), game.getCurrentTrump()));
+            Thread dealingThread = new Thread() {
+                @Override
+                public void run() {
+                    Uninterruptibles.sleepUninterruptibly(5000, TimeUnit.MILLISECONDS);
+                    dealKitty(broadcaster);
+                }
+            };
+
+            dealingThread.setDaemon(true);
+            dealingThread.start();
+        } else {
+            dealKitty(broadcaster);
+        }
     }
 
     private void dealKitty(Broadcaster broadcaster) {

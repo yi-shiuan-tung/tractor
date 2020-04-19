@@ -15,6 +15,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.CreateRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.Declare;
 import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
+import io.github.ytung.tractor.api.OutgoingMessage.ExposeBottomCards;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
@@ -48,6 +49,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = CardInfo.class, name = "CARD_INFO"),
     @JsonSubTypes.Type(value = Draw.class, name = "DRAW"),
     @JsonSubTypes.Type(value = Declare.class, name = "DECLARE"),
+    @JsonSubTypes.Type(value = ExposeBottomCards.class, name = "EXPOSE_BOTTOM_CARDS"),
     @JsonSubTypes.Type(value = TakeKitty.class, name = "TAKE_KITTY"),
     @JsonSubTypes.Type(value = FindAFriendDeclarationMessage.class, name = "FRIEND_DECLARE"),
     @JsonSubTypes.Type(value = MakeKitty.class, name = "MAKE_KITTY"),
@@ -156,6 +158,7 @@ public interface OutgoingMessage {
         private final Map<Integer, Card> cardsById;
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
+        private final List<Integer> exposedBottomCards;
         private final List<Integer> kitty;
         private final FindAFriendDeclaration findAFriendDeclaration;
         private final List<Trick> pastTricks;
@@ -177,6 +180,14 @@ public interface OutgoingMessage {
         private final int currentPlayerIndex;
         private final Queue<Integer> deck;
         private final Map<String, List<Integer>> playerHands;
+    }
+
+    @Data
+    public static class ExposeBottomCards implements OutgoingMessage {
+
+        private final GameStatus status;
+        private final List<Integer> exposedBottomCards;
+        private final Card currentTrump;
     }
 
     @Data
