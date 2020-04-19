@@ -374,7 +374,7 @@ public class Game {
         // check for end of round
         if (playerHands.values().stream().allMatch(List::isEmpty)) {
             if (!isDeclaringTeam.get(winningPlayerId)) {
-                int bonus = 1 << pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
+                int bonus = 2 * pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
                 currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + bonus * totalCardScore(kitty));
             }
             int roundScore = 0;
