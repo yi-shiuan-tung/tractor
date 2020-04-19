@@ -19,6 +19,7 @@ export class SettingsPanel extends React.Component {
         const {
             myPlayerId,
             soundVolume,
+            playerIds,
             status,
             currentTrick,
             forfeit, // () => void
@@ -30,8 +31,7 @@ export class SettingsPanel extends React.Component {
         return (
             <div className='settings_panel'>
                 {this.maybeRenderConfirm(forfeit, leaveRoom)}
-                {this.maybeRenderForfeitButton(status)}
-                {this.maybeRenderLeaveRoomButton(status)}
+                {this.renderLeaveRoomOrForfeitButton(myPlayerId, playerIds, status)}
                 <div
                     className={`button sound sound${soundVolume}`}
                     onClick={() => setSoundVolume((soundVolume + 1) % 4)}
@@ -65,26 +65,19 @@ export class SettingsPanel extends React.Component {
         }
     }
 
-    maybeRenderForfeitButton(status) {
-        const { isConfirmingForfeit } = this.state;
-        if (status === 'START_ROUND') {
-            return;
+    renderLeaveRoomOrForfeitButton(myPlayerId, playerIds, status) {
+        const { isConfirmingForfeit, isConfirmingLeave } = this.state;
+        if (status === 'START_ROUND' || playerIds.indexOf(myPlayerId) === -1) {
+            return <div
+                className='button leave_room'
+                onClick={() => this.setState({ isConfirmingLeave: !isConfirmingLeave })}
+            />;
+        } else {
+            return <div
+                className='button forfeit'
+                onClick={() => this.setState({ isConfirmingForfeit: !isConfirmingForfeit })}
+            />;
         }
-        return <div
-            className='button forfeit'
-            onClick={() => this.setState({ isConfirmingForfeit: !isConfirmingForfeit })}
-        />;
-    }
-
-    maybeRenderLeaveRoomButton(status) {
-        const { isConfirmingLeave } = this.state;
-        if (status !== 'START_ROUND') {
-            return;
-        }
-        return <div
-            className='button leave_room'
-            onClick={() => this.setState({ isConfirmingLeave: !isConfirmingLeave })}
-        />;
     }
 
     maybeRenderEditPlayersButton(status, toggleEditPlayers) {

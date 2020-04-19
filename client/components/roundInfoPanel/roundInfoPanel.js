@@ -10,8 +10,6 @@ export class RoundInfoPanel extends React.Component {
 
     render() {
         const {
-            playerNames,
-            myPlayerId,
             playerIds,
             starterPlayerIndex,
             isDeclaringTeam,

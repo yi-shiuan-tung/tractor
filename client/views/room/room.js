@@ -87,6 +87,7 @@ export class Room extends React.Component {
 
   joinRoomWebsocket() {
     const { roomCode, leaveRoom } = this.props;
+    this.setState({ status: 'START_ROUND' });
     this.connection = setUpConnection(
         '/' + roomCode,
         json => {
@@ -527,10 +528,11 @@ export class Room extends React.Component {
   }
 
   renderSettings() {
-    const { myPlayerId, soundVolume, isEditingPlayers, status, currentTrick } = this.state;
+    const { myPlayerId, soundVolume, isEditingPlayers, playerIds, status, currentTrick } = this.state;
     return <SettingsPanel
       myPlayerId={myPlayerId}
       soundVolume={soundVolume}
+      playerIds={playerIds}
       status={status}
       currentTrick={currentTrick}
       forfeit={() => this.connection.send({ FORFEIT: {} })}

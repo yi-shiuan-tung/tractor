@@ -189,6 +189,12 @@ public class TractorRoom {
             }
         }
 
+        if (message instanceof RemovePlayerRequest) {
+            String removePlayerId = ((RemovePlayerRequest) message).getPlayerId();
+            if (removePlayerId == null)
+                r.write(JacksonEncoder.INSTANCE.encode(new LeaveRoom()));
+        }
+
         String playerId = humanControllers.inverse().get(r);
         if (playerId != null)
             handleGameMessage(playerId, r.getBroadcaster(), message);
