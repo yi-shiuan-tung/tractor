@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import {setUpConnection} from '../../lib/connection';
-import {LOCATION} from '../../lib/consts';
 import './lobby.css';
 
 export class Lobby extends React.Component {
@@ -15,7 +14,7 @@ export class Lobby extends React.Component {
   componentDidMount() {
     const {joinRoom} = this.props;
     this.connection = setUpConnection(
-        LOCATION + 'tractor',
+        '',
         json => {
           if (json.CREATE_ROOM || json.JOIN_ROOM) {
             const roomCode = json.CREATE_ROOM ?

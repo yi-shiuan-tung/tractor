@@ -47,6 +47,12 @@ if (TARGET === 'start' || !TARGET) {
           target: 'http://localhost:8080',
           secure: false,
           prependPath: false
+        },
+        '/tractor': {
+          target: 'ws://localhost:8080',
+          ws: true,
+          secure: false,
+          prependPath: false
         }
       },
       publicPath: 'http://localhost:3000/',
@@ -59,3 +65,4 @@ if (TARGET === 'start' || !TARGET) {
 if (TARGET === 'build') {
   module.exports = common;
 }
+

@@ -3,7 +3,6 @@ import * as React from 'react';
 import { getAudio } from '../../lib/audio';
 import { preloadCardImages } from '../../lib/cardImages';
 import {setUpConnection} from '../../lib/connection';
-import {LOCATION} from '../../lib/consts';
 import './room.css';
 
 import {
@@ -86,7 +85,7 @@ export class Room extends React.Component {
   joinRoomWebsocket() {
     const { roomCode, leaveRoom } = this.props;
     this.connection = setUpConnection(
-        LOCATION + 'tractor/' + roomCode,
+        '/' + roomCode,
         json => {
           const {playerNames, myPlayerId, playerIds, status, cardsById} = this.state;
 

@@ -1,9 +1,11 @@
 import atmosphere from 'atmosphere.js';
 
+const LOCATION = document.location.toString().split('#')[0]; // remove fragment
+
 /**
  * Opens a websocket connection to the server using JSON-serialized messages.
  *
- * @param {*} url The url to connect to. The scheme will be replaced with ws://.
+ * @param {*} contextPath The context path to append to "ws://hostname/tractor"
  * @param {*} onMessage A callback that takes a single parameter, the
  * JSON-deserialized object sent from the server. Called once for each message.
  *
@@ -12,10 +14,10 @@ import atmosphere from 'atmosphere.js';
  * JSON-serialized object to the server.
  * disconnect: a nullary function to call to disconnect to the server.
  */
-export const setUpConnection = function(url, onMessage) {
+export const setUpConnection = function(urlPath, onMessage) {
   let subSocket;
   const request = {
-    url: url,
+    url: LOCATION + 'tractor' + urlPath,
     contentType: 'application/json',
     logLevel: 'debug',
     transport: 'websocket',
