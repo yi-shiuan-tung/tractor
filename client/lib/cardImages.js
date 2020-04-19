@@ -36,6 +36,23 @@ function getImageName(card) {
   }
 }
 
+export function preloadCardImages() {
+  for (const value in VALUES) {
+    for (const suit in SUITS) {
+      const img = new Image();
+      img.src = getImageSrc(getImageName({ value: value, suit: suit }));
+    }
+  }
+  {
+    const img = new Image();
+    img.src = getImageSrc(getImageName({ value: 'BIG_JOKER' }));
+  }
+  {
+    const img = new Image();
+    img.src = getImageSrc(getImageName({ value: 'SMALL_JOKER' }));
+  }
+}
+
 export function getFaceDownCardImageSrc() {
   return getImageSrc('b1fv');
 }

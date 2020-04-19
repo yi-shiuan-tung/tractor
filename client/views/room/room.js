@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import { getAudio } from '../../lib/audio';
+import { preloadCardImages } from '../../lib/cardImages';
 import {setUpConnection} from '../../lib/connection';
 import {LOCATION} from '../../lib/consts';
 import './room.css';
@@ -67,6 +68,7 @@ export class Room extends React.Component {
 
   componentDidMount() {
     this.audio = getAudio();
+    preloadCardImages();
     this.joinRoomWebsocket();
   }
 
