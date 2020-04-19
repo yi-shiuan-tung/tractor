@@ -1,19 +1,20 @@
-# tractor
+# Tractor (拖拉机)
 
-Multiplayer online tractor game
+Multiplayer online tractor game. Try it at https://orange-tractor.herokuapp.com/.
 
 ![Screenshot](screenshot.png)
 
-Features:
+### Features:
 
-- Full ruleset; only valid plays are allowed
+- Engine implements the full ruleset and allows only valid plays
 - Supports variable number of players and variable number of decks
 - Supports find-a-friend version
 - Supports special "does-it-fly" plays
+- Supports take-backs
 - Sound notifications on your turn
 - Shows the currently winning player in each trick
 - View the most recent trick
-- Automatic dealing
+- Automatic card drawing during the draw phase
 - AI players
 
 ## Quickstart
