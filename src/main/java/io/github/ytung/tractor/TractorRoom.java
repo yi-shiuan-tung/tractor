@@ -1,6 +1,7 @@
 
 package io.github.ytung.tractor;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
 import io.github.ytung.tractor.api.OutgoingMessage.FullRoomState;
 import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
+import io.github.ytung.tractor.api.OutgoingMessage.LeaveRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
@@ -96,7 +98,12 @@ public class TractorRoom {
     private String roomCode;
 
     @Ready
-    public void onReady(AtmosphereResource r) {
+    public void onReady(AtmosphereResource r) throws IOException {
+        if (!TractorLobby.roomExists(roomCode)) {
+            r.write(JacksonEncoder.INSTANCE.encode(new LeaveRoom()));
+            return;
+        }
+
         resources.add(r);
 
         Set<String> unmappedPlayerIds = game.getPlayerIds().stream()
@@ -148,8 +155,8 @@ public class TractorRoom {
             return;
 
         humanControllers.remove(playerId);
-        broadcastUpdatePlayers(r.broadcaster());
         sendSync(r.broadcaster(), new DisconnectMessage(playerId));
+        broadcastUpdatePlayers(r.broadcaster());
 
         if (resources.isEmpty())
             TractorLobby.closeRoom(roomCode);
@@ -233,6 +240,8 @@ public class TractorRoom {
                     }
                 }
                 broadcastUpdatePlayers(broadcaster);
+                if (removePlayerId.equals(playerId))
+                    sendSync(playerId, broadcaster, new LeaveRoom());
             }
         }
 

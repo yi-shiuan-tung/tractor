@@ -23,6 +23,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.FullRoomState;
 import io.github.ytung.tractor.api.OutgoingMessage.GameConfiguration;
 import io.github.ytung.tractor.api.OutgoingMessage.InvalidAction;
 import io.github.ytung.tractor.api.OutgoingMessage.JoinRoom;
+import io.github.ytung.tractor.api.OutgoingMessage.LeaveRoom;
 import io.github.ytung.tractor.api.OutgoingMessage.MakeKitty;
 import io.github.ytung.tractor.api.OutgoingMessage.PlayMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.ReadyForPlay;
@@ -38,6 +39,7 @@ import lombok.Data;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = CreateRoom.class, name = "CREATE_ROOM"),
     @JsonSubTypes.Type(value = JoinRoom.class, name = "JOIN_ROOM"),
+    @JsonSubTypes.Type(value = LeaveRoom.class, name = "LEAVE_ROOM"),
     @JsonSubTypes.Type(value = FullRoomState.class, name = "ROOM_STATE"),
     @JsonSubTypes.Type(value = Rejoin.class, name = "REJOIN"),
     @JsonSubTypes.Type(value = UpdatePlayers.class, name = "UPDATE_PLAYERS"),
@@ -74,6 +76,9 @@ public interface OutgoingMessage {
         private final String roomCode;
     }
 
+    @Data
+    public static class LeaveRoom implements OutgoingMessage {
+    }
 
     @Data
     public static class FullRoomState implements OutgoingMessage {

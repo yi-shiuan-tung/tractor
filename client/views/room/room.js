@@ -21,7 +21,7 @@ import {
   Trick,
 } from '../../components';
 
-export class Game extends React.Component {
+export class Room extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -66,14 +66,31 @@ export class Game extends React.Component {
   }
 
   componentDidMount() {
-    const {roomCode} = this.props;
     this.audio = getAudio();
+    this.joinRoomWebsocket();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.roomCode !== prevProps.roomCode) {
+      this.connection.disconnect();
+      this.joinRoomWebsocket();
+    }
+  }
+
+  componentWillUnmount() {
+    this.connection.disconnect();
+  }
+
+  joinRoomWebsocket() {
+    const { roomCode, leaveRoom } = this.props;
     this.connection = setUpConnection(
         LOCATION + 'tractor/' + roomCode,
         json => {
           const {playerNames, myPlayerId, playerIds, status, cardsById} = this.state;
 
-          if (json.ROOM_STATE) {
+          if (json.LEAVE_ROOM) {
+            leaveRoom();
+          } else if (json.ROOM_STATE) {
             this.setState(json.ROOM_STATE);
           } else if (json.REJOIN) {
             this.setState(json.REJOIN);
@@ -146,10 +163,6 @@ export class Game extends React.Component {
             console.error('Unhandled message: ' + JSON.stringify(json));
           }
         });
-  }
-
-  componentWillUnmount() {
-    this.connection.disconnect();
   }
 
   setNotification(message) {
@@ -479,7 +492,6 @@ export class Game extends React.Component {
   }
 
   renderSettings() {
-    const { leaveRoom } = this.props;
     const { myPlayerId, soundVolume, isEditingPlayers, status, currentTrick } = this.state;
     return <SettingsPanel
       myPlayerId={myPlayerId}
@@ -487,11 +499,7 @@ export class Game extends React.Component {
       status={status}
       currentTrick={currentTrick}
       forfeit={() => this.connection.send({ FORFEIT: {} })}
-      leaveRoom={() => {
-        this.connection.send({ REMOVE_PLAYER: { playerId: myPlayerId } });
-        this.connection.disconnect();
-        leaveRoom();
-      }}
+      leaveRoom={() => this.connection.send({ REMOVE_PLAYER: { playerId: myPlayerId } })}
       setSoundVolume={soundVolume => {
         this.audio.setVolume(soundVolume);
         this.setState({ soundVolume });
@@ -598,6 +606,6 @@ export class Game extends React.Component {
   }
 }
 
-Game.propTypes = {
+Room.propTypes = {
   roomCode: PropTypes.string,
 };

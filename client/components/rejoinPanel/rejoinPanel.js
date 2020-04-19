@@ -19,7 +19,7 @@ export class RejoinPanel extends React.Component {
 
         const unmappedPlayerIds = playerIds
             .filter(playerId => aiControllers.indexOf(playerId) === -1 && humanControllers.indexOf(playerId) === -1);
-        if (unmappedPlayerIds.length === 0 || humanControllers.length === 0) {
+        if (unmappedPlayerIds.length === 0) {
             return null;
         }
         return <div className="rejoin_panel">

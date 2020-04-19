@@ -519,6 +519,8 @@ public class Game {
     }
 
     public int getKittySize() {
+        if (playerIds.isEmpty())
+            return 0;
         int kittySize = numDecks * Decks.SIZE % playerIds.size();
         while (kittySize < 5)
             kittySize += playerIds.size();

@@ -34,12 +34,16 @@ public class TractorLobby {
 
         if (message instanceof JoinRoomRequest) {
             String roomCode = ((JoinRoomRequest) message).getRoomCode();
-            if (roomCodes.containsKey(roomCode)) {
+            if (roomExists(roomCode)) {
                 return new JoinRoom(roomCode);
             }
         }
 
         throw new IllegalArgumentException("Invalid message");
+    }
+
+    public static boolean roomExists(String roomCode) {
+        return roomCodes.containsKey(roomCode);
     }
 
     public static void closeRoom(String roomCode) {
@@ -51,7 +55,7 @@ public class TractorLobby {
         for (int i=0; i<4; i++) {
             code += alphabet.charAt(random.nextInt(alphabet.length()));
         }
-        if (roomCodes.containsKey(code)) {
+        if (roomExists(code)) {
             return getNewRoomCode();
         }
         return code;

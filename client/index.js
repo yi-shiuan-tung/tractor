@@ -1,25 +1,24 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { HashRouter, Route, Switch, useHistory } from 'react-router-dom';
 import {Lobby} from './views/lobby';
-import {Game} from './views/room';
+import {Room} from './views/room';
 import './index.css';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      roomCode: undefined,
-    };
-  }
+function App() {
+  const history = useHistory();
 
-  render() {
-    const {roomCode} = this.state;
-    if (roomCode !== undefined) {
-      return <Game roomCode={roomCode} leaveRoom={() => this.setState({ roomCode: undefined })} />
-    } else {
-      return <Lobby joinRoom={(roomCode) => this.setState({roomCode})}/>;
-    }
-  }
+  return <Switch>
+    <Route
+      exact
+      path='/'
+      render={() => <Lobby joinRoom={roomCode => history.push(`/${roomCode}`)} />}
+    />
+    <Route
+      path='/:roomCode'
+      render={({ match: { params: { roomCode } } }) => <Room roomCode={roomCode} leaveRoom={() => history.push('/')} />}
+    />
+  </Switch>;
 }
 
-ReactDOM.render(<App></App>, document.getElementById('app'));
+ReactDOM.render(<HashRouter><App /></HashRouter>, document.getElementById('app'));
