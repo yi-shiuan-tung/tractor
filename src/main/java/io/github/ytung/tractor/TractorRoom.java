@@ -415,7 +415,11 @@ public class TractorRoom {
         if (game.getDeclaredCards().isEmpty()) {
             game.exposeBottomCards();
             sendSync(broadcaster, new CardInfo(Maps.toMap(game.getExposedBottomCards(), game.getCardsById()::get)));
-            sendSync(broadcaster, new ExposeBottomCards(game.getStatus(), game.getExposedBottomCards(), game.getCurrentTrump()));
+            sendSync(broadcaster, new ExposeBottomCards(
+                game.getStatus(),
+                game.getPlayerHands(),
+                game.getExposedBottomCards(),
+                game.getCurrentTrump()));
             Thread dealingThread = new Thread() {
                 @Override
                 public void run() {

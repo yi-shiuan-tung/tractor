@@ -236,6 +236,7 @@ public class Game {
 
         // draw from deck until we find a trump, or take the suit of the highest value card
         status = GameStatus.EXPOSE_BOTTOM_CARDS;
+        playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
         for (int cardId : deck) {
             exposedBottomCards.add(cardId);
             if (getCurrentTrump().getSuit() != Card.Suit.JOKER)

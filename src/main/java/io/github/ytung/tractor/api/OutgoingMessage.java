@@ -188,6 +188,7 @@ public interface OutgoingMessage {
     public static class ExposeBottomCards implements OutgoingMessage {
 
         private final GameStatus status;
+        private final Map<String, List<Integer>> playerHands;
         private final List<Integer> exposedBottomCards;
         private final Card currentTrump;
     }
