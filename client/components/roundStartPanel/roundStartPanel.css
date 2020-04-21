@@ -119,35 +119,3 @@
 .round_start_panel .add_ai_button:hover {
   background-color: rgba(173, 213, 230, 0.8);
 }
-
-.button {
-  border: black solid 1px;
-  border-radius: 10px;
-  font-family: "Play";
-}
-
-.button.primary {
-  cursor: pointer;
-  padding: var(--spacing-med);
-  text-align: center;
-  color: white;
-  font-size: var(--font-size-action);
-  background-color: rgba(var(--button-primary-color), 0.8);
-}
-
-.button.primary:hover {
-  background-color: rgba(var(--button-primary-color), 0.9);
-}
-
-.button.primary:active {
-  background-color: rgba(var(--button-primary-color), 1);
-  transform: scale(0.99);
-}
-
-.button.inactive.inactive {
-    background-color: gray;
-}
-
-.button.inactive.inactive:hover {
-    background-color: rgba(128, 128, 128, 0.9);
-}

@@ -165,11 +165,11 @@ export class RoundStartPanel extends React.Component {
                 </div>
                 <div
                     className={iAmReadyForPlay ?
-                        'button primary start_game_button' :
-                        'inactive button primary start_game_button'}
+                        'button primary clicked start_game_button' :
+                        'button primary start_game_button'}
                     onClick={() => setReadyForPlay(!iAmReadyForPlay)}
                 >
-                    {`Start round (${numPlayersReadyForPlay}/${playerIds.length})`}
+                    {`${iAmReadyForPlay ? 'Ready' : 'Start round'} (${numPlayersReadyForPlay}/${playerIds.length})`}
                 </div>
             </div>
         );

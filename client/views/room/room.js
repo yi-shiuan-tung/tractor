@@ -116,7 +116,11 @@ export class Room extends React.Component {
           } else if (json.DRAW) {
             this.setState(json.DRAW);
           } else if (json.DECLARE) {
-            this.setState(json.DECLARE);
+            const { playerId, ...other } = json.DECLARE;
+            if (playerId === myPlayerId) {
+              this.connection.send({ READY_FOR_PLAY: { ready: true } })
+            }
+            this.setState(other);
           } else if (json.READY_FOR_PLAY) {
             this.setState(json.READY_FOR_PLAY);
           } else if (json.EXPOSE_BOTTOM_CARDS) {
@@ -332,7 +336,7 @@ export class Room extends React.Component {
         playerIds={playerIds}
         playerId={playerId}
         distance={0.91}
-        shiftX={playerId === myPlayerId ? 204 : 0}
+        shiftX={playerId === myPlayerId ? 240 : 0}
         isText={true}
       >
         <PlayerNametag
@@ -391,7 +395,7 @@ export class Room extends React.Component {
       return <div className='notification'>{"Select one or more cards to declare"}</div>
     }
     if (!playerReadyForPlay[myPlayerId] && status === 'DRAW_KITTY') {
-      return <div className='notification'>{"Select card(s) to declare, or press Ready"}</div>
+      return <div className='notification'>{"Select card(s) to declare, or click Pass"}</div>
     }
     const playerId = playerIds[currentPlayerIndex];
     if (status === 'MAKE_KITTY') {
@@ -559,25 +563,29 @@ export class Room extends React.Component {
       kitty,
       playerReadyForPlay,
     } = this.state;
+
+    if (playerIds.indexOf(myPlayerId) === -1) {
+      return;
+    }
+
     const selectedCardIdsList = Object.entries(selectedCardIds)
         .filter(([_cardId, selected]) => selected)
         .map(([cardId, _selected]) => cardId);
     const iAmReadyForPlay = playerReadyForPlay[myPlayerId];
     const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
 
-    if (status === 'DRAW_KITTY' && selectedCardIdsList.length === 0) {
+    if (status === 'DRAW_KITTY' && (selectedCardIdsList.length === 0 || iAmReadyForPlay)) {
       return <ActionButton
-        text={`Ready (${numPlayersReadyForPlay}/${playerIds.length})`}
-        active={!iAmReadyForPlay}
+        text={`${iAmReadyForPlay ? 'Ready' : 'Pass'} (${numPlayersReadyForPlay}/${playerIds.length})`}
+        clicked={iAmReadyForPlay}
         onClick={() => this.connection.send({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } })}
       />;
     }
 
-    if ((status === 'DRAW' || status === 'DRAW_KITTY') && !iAmReadyForPlay) {
+    if (status === 'DRAW' || (status === 'DRAW_KITTY' && !iAmReadyForPlay)) {
       return <ActionButton
         text='Declare'
-        active={selectedCardIdsList.length > 0}
-        onClick={() => {
+        onClick={selectedCardIdsList.length > 0 ? () => {
           const cardIds = [...selectedCardIdsList];
 
           // if you currently declared cards already, add them as well
@@ -588,7 +596,7 @@ export class Room extends React.Component {
 
           this.connection.send({ DECLARE: { cardIds } });
           this.setState({selectedCardIds: {}});
-        }}
+        } : undefined}
       />;
     }
 
@@ -599,21 +607,19 @@ export class Room extends React.Component {
     if (status === 'MAKE_KITTY' && kitty.length === 0) {
       return <ActionButton
         text='Make kitty'
-        active={selectedCardIdsList.length === kittySize}
-        onClick={() => {
+        onClick={selectedCardIdsList.length === kittySize ? () => {
           this.connection.send({ MAKE_KITTY: { cardIds: selectedCardIdsList } });
           this.setState({selectedCardIds: {}});
-        }}
+        } : undefined}
       />;
     }
     if (status === 'PLAY') {
       return <ActionButton
         text='Play'
-        active={selectedCardIdsList.length > 0}
-        onClick={() => {
+        onClick={selectedCardIdsList.length > 0 ? () => {
           this.connection.send({ PLAY: { cardIds: selectedCardIdsList } });
           this.setState({selectedCardIds: {}});
-        }}
+        } : undefined}
       />;
     }
   }

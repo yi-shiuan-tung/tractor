@@ -204,6 +204,8 @@ public interface OutgoingMessage {
     @Data
     public static class Declare implements OutgoingMessage {
 
+        private final String playerId;
+
         private final int starterPlayerIndex;
 
         private final Map<String, Boolean> isDeclaringTeam;

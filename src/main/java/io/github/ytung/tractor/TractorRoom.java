@@ -272,6 +272,7 @@ public class TractorRoom {
                 sendSync(broadcaster, new CardInfo(Maps.toMap(cardIds, cardsById::get)));
                 playerReadyForPlay.replaceAll((k, v) -> v=false);
                 sendSync(broadcaster, new Declare(
+                    playerId,
                     game.getStarterPlayerIndex(),
                     game.getIsDeclaringTeam(),
                     game.getPlayerHands(),

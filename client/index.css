@@ -3,6 +3,8 @@
 :root {
   --font-size-action: 18px;
   --button-primary-color: 0, 100, 25;
+  --button-clicked-color: 0, 64, 0;
+  --button-disabled-color: 60, 60, 60;
   --spacing-med: 12px;
 }
 
@@ -37,6 +39,50 @@ ul {
     list-style-type: none;
     padding-left: 0;
     margin-bottom: 0;
+}
+
+.button {
+  border: black solid 1px;
+  border-radius: 10px;
+  font-family: "Play";
+  padding: var(--spacing-med);
+  text-align: center;
+  color: white;
+  font-size: var(--font-size-action);
+}
+
+.button.primary {
+  cursor: pointer;
+  background-color: rgba(var(--button-primary-color), 0.8);
+}
+
+.button.primary:hover {
+  background-color: rgba(var(--button-primary-color), 0.3);
+}
+
+.button.primary:active {
+  background-color: rgba(var(--button-primary-color), 1);
+  transform: scale(0.99);
+}
+
+.button.clicked {
+  color: gray;
+  background-color: rgba(var(--button-clicked-color), 0.8);
+}
+
+.button.primary.clicked:hover {
+  background-color: rgba(var(--button-clicked-color), 0.9);
+}
+
+.button.primary.clicked:active {
+  background-color: rgba(var(--button-clicked-color), 1);
+  transform: scale(0.99);
+}
+
+.button.disabled {
+    cursor: not-allowed;
+  color: gray;
+  background-color: rgba(var(--button-disabled-color), 0.8);
 }
 
 .me {

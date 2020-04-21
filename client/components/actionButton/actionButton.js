@@ -10,12 +10,12 @@ export class ActionButton extends React.Component {
     render() {
         const {
             text,
-            active, // boolean representing whether the user is expected to click on it
+            clicked,
             onClick,
         } = this.props;
 
         return <div
-            className={classNames('action_button', 'bottom_button', { 'clickable': onClick !== undefined }, { 'active': active })}
+            className={classNames('action_button', 'button', onClick ? 'primary' : 'disabled', { 'clicked': clicked })}
             onClick={onClick}
         >
             {text}
