@@ -20,12 +20,12 @@ export class FindAFriendPanel extends React.Component {
     }
 
     render() {
-        const { playerIds, setFindAFriendDeclaration } = this.props;
+        const { playerIds, numDecks, setFindAFriendDeclaration } = this.props;
         const numFriends = this.getNumFriends(playerIds);
         return (
             <div className="find_a_friend_panel">
                 <h3>Declare your friends</h3>
-                {Array.from({length: numFriends}, (_, i) => this.renderRow(this.state[i], i))}
+                {Array.from({length: numFriends}, (_, i) => this.renderRow(this.state[i], i, numDecks))}
                 <button
                     className='make_friend_button'
                     onClick={() => setFindAFriendDeclaration(Array.from({length: numFriends}, (_, i) => {
@@ -42,7 +42,7 @@ export class FindAFriendPanel extends React.Component {
         )
     }
 
-    renderRow({ ordinal, value, suit }, index) {
+    renderRow({ ordinal, value, suit }, index, numDecks) {
         return (
             <div key={index} className="friend_row">
                 <div>{`Friend ${index + 1}`}</div>
@@ -50,7 +50,11 @@ export class FindAFriendPanel extends React.Component {
                     value={ordinal}
                     onChange={e => this.setState({ [index]: { ordinal: e.target.value, value, suit } })}
                 >
-                    {ORDINALS.map((ordinal, index) => <option key={index} value={`${index}`}>{ordinal}</option>)}
+                    {ORDINALS.flatMap((ordinal, index) => {
+                        if ((index == 0 && numDecks == 2) || (index >= 1 && index <= numDecks)) {
+                            return <option key={index} value={`${index}`}>{ordinal}</option>;
+                        }
+                    })}
                 </select>
                 <select
                     value={value}

@@ -407,11 +407,12 @@ export class Room extends React.Component {
   }
 
   renderFindAFriendPanel() {
-    const { myPlayerId, playerIds, findAFriend, starterPlayerIndex, status, findAFriendDeclaration } = this.state;
+    const { myPlayerId, playerIds, numDecks, findAFriend, starterPlayerIndex, status, findAFriendDeclaration } = this.state;
     if (findAFriend && status === 'MAKE_KITTY' && playerIds[starterPlayerIndex] === myPlayerId && !findAFriendDeclaration) {
       return (
         <FindAFriendPanel
           playerIds={playerIds}
+          numDecks={numDecks}
           setFindAFriendDeclaration={declarations => this.connection.send({ FRIEND_DECLARE: { declaration: { declarations } } })}
         />
       );

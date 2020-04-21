@@ -22,4 +22,16 @@ export const SUITS = Object.freeze({
   'SPADE': 'SPADES ♠',
 });
 
-export const ORDINALS = ['OTHER', 'FIRST', 'SECOND'];
+export const ORDINALS = [
+  'OTHER',
+  'FIRST',
+  'SECOND',
+  'THIRD',
+  'FOURTH',
+  'FIFTH',
+  'SIXTH',
+  'SEVENTH',
+  'EIGHTH',
+  'NINTH',
+  'TENTH',
+];
