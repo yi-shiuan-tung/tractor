@@ -1,3 +1,4 @@
+import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import './playerArea.css';
@@ -82,12 +83,11 @@ export class PlayerArea extends React.Component {
     return (
       <div
         key={playerId}
-        className='player_area'
+        className={classNames('player_area', { 'my_area': playerId === myPlayerId })}
         style={{
           top: centerPoint.y,
           left: centerPoint.x + shiftX,
           transform,
-          zIndex: playerId === myPlayerId ? 1 : 0,
         }}
         ref={ref}
       >
