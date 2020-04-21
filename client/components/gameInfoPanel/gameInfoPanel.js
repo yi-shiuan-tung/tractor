@@ -13,12 +13,17 @@ export class GameInfoPanel extends React.Component {
             playerNames,
             myPlayerId,
             playerIds,
+            numDecks,
+            findAFriend,
             playerRankScores,
         } = this.props;
 
         return (
             <div className='game_info_panel'>
-                <div>Player scores:</div>
+                <div>
+                    {`${numDecks} ${numDecks > 1 ? 'decks' : 'deck'}`}
+                    {findAFriend ? ' · find-a-friend' : undefined}
+                </div>
                 <ul>
                     {playerIds.map((playerId) => {
                         const name = playerId === myPlayerId ?

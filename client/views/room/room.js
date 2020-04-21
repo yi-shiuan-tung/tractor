@@ -302,7 +302,7 @@ export class Room extends React.Component {
   }
 
   renderGameInfo() {
-    const {playerNames, myPlayerId, playerIds, playerRankScores, status} = this.state;
+    const {playerNames, myPlayerId, playerIds, numDecks, findAFriend, playerRankScores, status} = this.state;
     if (status === 'START_ROUND') {
       return; // all info is already shown in the round start panel
     }
@@ -310,6 +310,8 @@ export class Room extends React.Component {
       playerNames={playerNames}
       myPlayerId={myPlayerId}
       playerIds={playerIds}
+      numDecks={numDecks}
+      findAFriend={findAFriend}
       playerRankScores={playerRankScores}
       status={status}
     />;
