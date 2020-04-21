@@ -693,8 +693,8 @@ public class Game {
                 List<Component> profile = getProfile(play.getCardIds());
                 Grouping grouping = getGrouping(play.getCardIds());
                 if (getShapes(profile).equals(getShapes(bestProfile))) {
-                    if (grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP
-                            || grouping == bestGrouping && profile.get(0).getMaxRank() > bestProfile.get(0).getMaxRank()) {
+                    if ((grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP)
+                            || (grouping == bestGrouping && rank(profile) > rank(bestProfile))) {
                         winningPlayerId = play.getPlayerId();
                         bestProfile = profile;
                         bestGrouping = grouping;
@@ -707,5 +707,9 @@ public class Game {
 
     private static Multiset<Shape> getShapes(List<Component> profile) {
         return HashMultiset.create(profile.stream().map(Component::getShape).collect(Collectors.toList()));
+    }
+
+    private static int rank(List<Component> profile) {
+        return profile.stream().mapToInt(Component::getMaxRank).max().orElse(0);
     }
 }
