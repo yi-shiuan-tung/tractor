@@ -258,11 +258,26 @@ public class Game {
         return new Play(playerId, cardIds);
     }
 
+    public synchronized void makeKitty(String playerId, List<Integer> cardIds) throws InvalidKittyException {
+        sortCards(cardIds);
+        Play play = new Play(playerId, cardIds);
+        if (status != GameStatus.MAKE_KITTY || !kitty.isEmpty())
+            throw new InvalidKittyException("You cannot make kitty now");
+        if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
+            throw new InvalidKittyException("You cannot make kitty");
+        if (play.getCardIds().size() != getKittySize())
+            throw new InvalidKittyException("The kitty has to have " + getKittySize() + " cards");
+        if (!isPlayable(play))
+            throw new InvalidKittyException("Unknown error");
+        status = findAFriend ? GameStatus.DECLARE_FRIEND : GameStatus.PLAY;
+        kitty = play.getCardIds();
+        playerHands.get(playerId).removeAll(cardIds);
+        currentTrick = new Trick(play.getPlayerId());
+    }
+
     public synchronized void makeFindAFriendDeclaration(String playerId, FindAFriendDeclaration declarations)
             throws InvalidFindAFriendDeclarationException {
-        if (!findAFriend)
-            throw new InvalidFindAFriendDeclarationException("The game is not in find a friend mode.");
-        if (status != GameStatus.MAKE_KITTY)
+        if (status != GameStatus.DECLARE_FRIEND)
             throw new InvalidFindAFriendDeclarationException("You cannot declare a friend now.");
         if (!playerId.equals(playerIds.get(currentPlayerIndex)))
             throw new InvalidFindAFriendDeclarationException("Only the starter can declare a friend.");
@@ -293,33 +308,13 @@ public class Game {
             }
         }
 
-        if (!kitty.isEmpty())
-            status = GameStatus.PLAY;
-
+        status = GameStatus.PLAY;
         findAFriendDeclaration = declarations;
 
         for (Declaration declaration : declarations.getDeclarations()) {
             Card card = new Card(declaration.getValue(), declaration.getSuit());
             findAFriendDeclarationCounters.put(card, declaration.getOrdinal());
         }
-    }
-
-    public synchronized void makeKitty(String playerId, List<Integer> cardIds) throws InvalidKittyException {
-        sortCards(cardIds);
-        Play play = new Play(playerId, cardIds);
-        if (status != GameStatus.MAKE_KITTY || !kitty.isEmpty())
-            throw new InvalidKittyException("You cannot make kitty now");
-        if (!play.getPlayerId().equals(playerIds.get(currentPlayerIndex)))
-            throw new InvalidKittyException("You cannot make kitty");
-        if (play.getCardIds().size() != getKittySize())
-            throw new InvalidKittyException("The kitty has to have " + getKittySize() + " cards");
-        if (!isPlayable(play))
-            throw new InvalidKittyException("Unknown error");
-        if (!findAFriend || findAFriendDeclaration != null)
-            status = GameStatus.PLAY;
-        kitty = play.getCardIds();
-        playerHands.get(playerId).removeAll(cardIds);
-        currentTrick = new Trick(play.getPlayerId());
     }
 
     /**
