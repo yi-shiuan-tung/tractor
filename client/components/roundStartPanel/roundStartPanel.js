@@ -131,7 +131,7 @@ export class RoundStartPanel extends React.Component {
                         if (winningPlayerIds.indexOf(playerId) >= 0) {
                             children.push(<span key={`crown${playerId}`} className='crown' />);
                         }
-                        if (isEditingPlayers && humanControllers.indexOf(playerId) === -1) {
+                        if (humanControllers.indexOf(playerId) === -1) {
                             children.push(<span
                                 key={`remove${playerId}`}
                                 className='remove'
