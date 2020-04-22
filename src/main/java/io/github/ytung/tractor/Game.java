@@ -327,7 +327,7 @@ public class Game {
 
             if (profile.size() > 1) {
                 if (!confirmSpecialPlay)
-                    throw new ConfirmSpecialPlayException();;
+                    throw new ConfirmSpecialPlayException();
 
                 Card trump = getCurrentTrump();
                 for (Component component : profile)
@@ -363,42 +363,6 @@ public class Game {
         } else {
             currentPlayerIndex = (currentPlayerIndex + 1) % playerIds.size();
             return new PlayResult(false, didFriendJoin, badComponent != null);
-        }
-    }
-
-    public synchronized void finishTrick() {
-        if (currentTrick.getPlays().size() != playerIds.size())
-            throw new IllegalStateException();
-
-        // finish trick
-        String winningPlayerId = currentTrick.getWinningPlayerId();
-        for (Play play : currentTrick.getPlays())
-            currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + totalCardScore(play.getCardIds()));
-
-        pastTricks.add(currentTrick);
-        currentPlayerIndex = playerIds.indexOf(winningPlayerId);
-        currentTrick = new Trick(winningPlayerId);
-
-        // check for end of round
-        if (playerHands.values().stream().allMatch(List::isEmpty)) {
-            if (!isDeclaringTeam.get(winningPlayerId)) {
-                int bonus = 2 * pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
-                currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + bonus * totalCardScore(kitty));
-            }
-            int roundScore = 0;
-            for (String playerId : playerIds) {
-                if (isDeclaringTeam.get(playerId)) {
-                    roundScore += currentRoundPenalties.get(playerId);
-                } else {
-                    roundScore += currentRoundScores.get(playerId);
-                    roundScore -= currentRoundPenalties.get(playerId);
-                }
-            }
-            boolean doDeclarersWin = roundScore < 40 * numDecks;
-            int scoreIncrease = doDeclarersWin
-                    ? (roundScore == 0 ? 3 : 2 - roundScore / (20 * numDecks))
-                    : roundScore / (20 * numDecks) - 2;
-            roundEnd(doDeclarersWin, scoreIncrease);
         }
     }
 
@@ -493,6 +457,42 @@ public class Game {
         return findAFriendDeclaration.getDeclarations().stream()
                 .filter(Declaration::isSatisfied)
                 .count() != numSatisfiedDeclarations;
+    }
+
+    public synchronized void finishTrick() {
+        if (currentTrick.getPlays().size() != playerIds.size())
+            throw new IllegalStateException();
+
+        // finish trick
+        String winningPlayerId = currentTrick.getWinningPlayerId();
+        for (Play play : currentTrick.getPlays())
+            currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + totalCardScore(play.getCardIds()));
+
+        pastTricks.add(currentTrick);
+        currentPlayerIndex = playerIds.indexOf(winningPlayerId);
+        currentTrick = new Trick(winningPlayerId);
+
+        // check for end of round
+        if (playerHands.values().stream().allMatch(List::isEmpty)) {
+            if (!isDeclaringTeam.get(winningPlayerId)) {
+                int bonus = 2 * pastTricks.get(pastTricks.size() - 1).getPlays().get(0).getCardIds().size();
+                currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) + bonus * totalCardScore(kitty));
+            }
+            int roundScore = 0;
+            for (String playerId : playerIds) {
+                if (isDeclaringTeam.get(playerId)) {
+                    roundScore += currentRoundPenalties.get(playerId);
+                } else {
+                    roundScore += currentRoundScores.get(playerId);
+                    roundScore -= currentRoundPenalties.get(playerId);
+                }
+            }
+            boolean doDeclarersWin = roundScore < 40 * numDecks;
+            int scoreIncrease = doDeclarersWin
+                    ? (roundScore == 0 ? 3 : 2 - roundScore / (20 * numDecks))
+                    : roundScore / (20 * numDecks) - 2;
+            roundEnd(doDeclarersWin, scoreIncrease);
+        }
     }
 
     public synchronized void takeBack(String playerId) {
@@ -724,6 +724,6 @@ public class Game {
     }
 
     private static int rank(List<Component> profile) {
-        return profile.stream().mapToInt(Component::getMaxRank).max().orElse(0);
+        return profile.stream().mapToInt(component -> component.getCardIds().size() * 1000 + component.getMaxRank()).max().orElse(0);
     }
 }
