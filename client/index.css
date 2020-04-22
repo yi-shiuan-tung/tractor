@@ -57,7 +57,7 @@ ul {
 }
 
 .button.primary:hover {
-  background-color: rgba(var(--button-primary-color), 0.3);
+  background-color: rgba(var(--button-primary-color), 0.9);
 }
 
 .button.primary:active {
