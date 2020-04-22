@@ -1,3 +1,4 @@
+import * as classNames from 'classnames';
 import * as React from 'react';
 import { ORDINALS, SUITS, VALUES } from '../../lib/cards';
 import './roundInfoPanel.css';
@@ -48,7 +49,7 @@ export class RoundInfoPanel extends React.Component {
             <div className="section">
                 <div>Friends:</div>
                 {findAFriendDeclaration.declarations.map((declaration, index) => {
-                    return <div key={`declaration${index}`}>
+                    return <div key={`declaration${index}`} className={classNames({ 'satisfied': declaration.satisfied })}>
                         {this.renderDeclaration(declaration)}
                     </div>;
                 })}

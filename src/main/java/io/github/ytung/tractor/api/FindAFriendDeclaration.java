@@ -19,13 +19,15 @@ public class FindAFriendDeclaration {
         /**
          * e.g. 1 for the first of card X, 2 for the second of card X, etc.
          *
-         * 0 refers to the "other" card X, and is only valid 2-deck games when the starter has one
-         * of the card X.
+         * 0 refers to the "other" card X, and is only valid in 2-deck games when the starter has
+         * one of the card X.
          */
         private int ordinal;
 
         private Card.Value value;
 
         private Card.Suit suit;
+
+        private boolean satisfied = false;
     }
 }

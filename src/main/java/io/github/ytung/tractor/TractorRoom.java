@@ -337,7 +337,7 @@ public class TractorRoom {
                 if (result.isTrickComplete())
                     scheduleFinishTrick(broadcaster);
                 if (result.isDidFriendJoin())
-                    sendSync(broadcaster, new FriendJoined(playerId, game.getIsDeclaringTeam()));
+                    sendSync(broadcaster, new FriendJoined(playerId, game.getIsDeclaringTeam(), game.getFindAFriendDeclaration()));
                 if (result.isBadSpecialPlay())
                     sendSync(broadcaster, new InvalidSpecialPlay(playerId, game.getCurrentRoundPenalties()));
             } catch (InvalidPlayException e) {
@@ -352,7 +352,9 @@ public class TractorRoom {
             sendSync(broadcaster, new TakeBack(
                 playerId,
                 game.getCurrentPlayerIndex(),
+                game.getIsDeclaringTeam(),
                 game.getPlayerHands(),
+                game.getFindAFriendDeclaration(),
                 game.getCurrentTrick()));
         }
 

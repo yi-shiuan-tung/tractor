@@ -281,6 +281,7 @@ public interface OutgoingMessage {
 
         private final String playerId;
         private final Map<String, Boolean> isDeclaringTeam;
+        private final FindAFriendDeclaration findAFriendDeclaration;
     }
 
     @Data
@@ -289,7 +290,9 @@ public interface OutgoingMessage {
         private final String playerId;
 
         private final int currentPlayerIndex;
+        private final Map<String, Boolean> isDeclaringTeam;
         private final Map<String, List<Integer>> playerHands;
+        private final FindAFriendDeclaration findAFriendDeclaration;
         private final Trick currentTrick;
     }
 

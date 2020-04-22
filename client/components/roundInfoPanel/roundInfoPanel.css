@@ -12,3 +12,7 @@
 .round_info_panel .section {
     margin-top: 10px;
 }
+
+.round_info_panel .satisfied {
+    text-decoration: line-through;
+}

@@ -12,11 +12,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Streams;
 
@@ -61,9 +59,6 @@ public class Game {
     private Trick currentTrick;
     private Map<String, Integer> currentRoundScores = new HashMap<>();
     private Map<String, Integer> currentRoundPenalties = new HashMap<>();
-
-    // internal state for convenience
-    private Multimap<Card, Integer> findAFriendDeclarationCounters;
 
     public synchronized void addPlayer(String playerId) {
         if (status != GameStatus.START_ROUND)
@@ -145,7 +140,6 @@ public class Game {
 
         for (String playerId : playerIds)
             playerHands.put(playerId, new ArrayList<>());
-        findAFriendDeclarationCounters = ArrayListMultimap.create();
     }
 
     /**
@@ -289,6 +283,8 @@ public class Game {
             throw new InvalidFindAFriendDeclarationException("Invalid number of declarations.");
         for (Declaration declaration : declarations.getDeclarations()) {
             Card card = new Card(declaration.getValue(), declaration.getSuit());
+            if (declaration.isSatisfied())
+                throw new InvalidFindAFriendDeclarationException("Unknown error");
             if (declaration.getOrdinal() > numDecks)
                 throw new InvalidFindAFriendDeclarationException("Invalid ordinal.");
             if (declaration.getOrdinal() < 0)
@@ -310,11 +306,6 @@ public class Game {
 
         status = GameStatus.PLAY;
         findAFriendDeclaration = declarations;
-
-        for (Declaration declaration : declarations.getDeclarations()) {
-            Card card = new Card(declaration.getValue(), declaration.getSuit());
-            findAFriendDeclarationCounters.put(card, declaration.getOrdinal());
-        }
     }
 
     /**
@@ -364,28 +355,7 @@ public class Game {
         currentTrick.getPlays().add(new Play(playerId, cardIds)); // might be different from the initial play
         currentTrick.setWinningPlayerId(winningPlayerId(currentTrick));
 
-        // test for find a friend
-        boolean didFriendJoin = false;
-        for (Map.Entry<Card, Integer> entry : new ArrayList<>(findAFriendDeclarationCounters.entries())) {
-            Card card = entry.getKey();
-            int counter = entry.getValue();
-            int count = (int) cardIds.stream().map(cardsById::get).filter(otherCard -> card.equals(otherCard)).count();
-            if (count == 0)
-                continue;
-
-            // ignore OTHER declaration if the starter played the card
-            if (counter == 0 && playerIds.get(starterPlayerIndex).equals(playerId))
-                continue;
-
-            findAFriendDeclarationCounters.remove(card, counter);
-            if (counter - count <= 0) {
-                didFriendJoin = true;
-                continue;
-            }
-            findAFriendDeclarationCounters.put(card, counter - count);
-        }
-        if (didFriendJoin)
-            isDeclaringTeam.put(playerId, true);
+        boolean didFriendJoin = updateFindAFriendDeclaration();
 
         if (currentTrick.getPlays().size() == playerIds.size()) {
             currentPlayerIndex = -1;
@@ -486,6 +456,45 @@ public class Game {
         }
     }
 
+    /**
+     * Returns whether a friend joined
+     */
+    private boolean updateFindAFriendDeclaration() {
+        if (!findAFriend)
+            return false;
+
+        long numSatisfiedDeclarations = findAFriendDeclaration.getDeclarations().stream()
+                .filter(Declaration::isSatisfied)
+                .count();
+
+        for (int i = 0; i < playerIds.size(); i++)
+            if (i != starterPlayerIndex)
+                isDeclaringTeam.put(playerIds.get(i), false);
+
+        for (Declaration declaration : findAFriendDeclaration.getDeclarations()) {
+            declaration.setSatisfied(false);
+            int numPlayed = 0;
+            for (Play play : getAllPlays()) {
+                for (int cardId : play.getCardIds()) {
+                    Card card = cardsById.get(cardId);
+                    if (declaration.getValue() == card.getValue() && declaration.getSuit() == card.getSuit()
+                            && (declaration.getOrdinal() > 0 || !playerIds.get(starterPlayerIndex).equals(play.getPlayerId()))) {
+                        numPlayed++;
+                    }
+                }
+                if (numPlayed >= Math.max(declaration.getOrdinal(), 1)) {
+                    isDeclaringTeam.put(play.getPlayerId(), true);
+                    declaration.setSatisfied(true);
+                    break;
+                }
+            }
+        }
+
+        return findAFriendDeclaration.getDeclarations().stream()
+                .filter(Declaration::isSatisfied)
+                .count() != numSatisfiedDeclarations;
+    }
+
     public synchronized void takeBack(String playerId) {
         List<Play> plays = currentTrick.getPlays();
         if (plays.isEmpty())
@@ -500,6 +509,7 @@ public class Game {
         playerHands.get(playerId).addAll(lastPlay.getCardIds());
         sortCards(playerHands.get(playerId));
         currentPlayerIndex = playerIds.indexOf(playerId);
+        updateFindAFriendDeclaration();
     }
 
     public synchronized void forfeitRound(String playerId) {
@@ -578,15 +588,9 @@ public class Game {
             for (Play play : declaredCards)
                 for (int cardId : play.getCardIds())
                     publicCards.put(cardId, cardsById.get(cardId));
-        if (pastTricks != null)
-            for (Trick trick : pastTricks)
-                for (Play play : trick.getPlays())
-                    for (int cardId : play.getCardIds())
-                        publicCards.put(cardId, cardsById.get(cardId));
-        if (currentTrick != null)
-            for (Play play : currentTrick.getPlays())
-                for (int cardId : play.getCardIds())
-                    publicCards.put(cardId, cardsById.get(cardId));
+        for (Play play : getAllPlays())
+            for (int cardId : play.getCardIds())
+                publicCards.put(cardId, cardsById.get(cardId));
         return publicCards;
     }
 
@@ -599,6 +603,16 @@ public class Game {
             for (int cardId : kitty)
                 privateCards.put(cardId, cardsById.get(cardId));
         return privateCards;
+    }
+
+    private List<Play> getAllPlays() {
+        List<Play> allPlays = new ArrayList<>();
+        if (pastTricks != null)
+            for (Trick trick : pastTricks)
+                allPlays.addAll(trick.getPlays());
+        if (currentTrick != null)
+            allPlays.addAll(currentTrick.getPlays());
+        return allPlays;
     }
 
     private void sortCards(List<Integer> hand) {
