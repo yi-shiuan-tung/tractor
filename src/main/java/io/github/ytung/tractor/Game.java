@@ -1,6 +1,7 @@
 package io.github.ytung.tractor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -438,20 +439,21 @@ public class Game {
         for (Declaration declaration : findAFriendDeclaration.getDeclarations()) {
             declaration.setSatisfied(false);
             int numPlayed = 0;
-            for (Play play : getAllPlays()) {
-                for (int cardId : play.getCardIds()) {
-                    Card card = cardsById.get(cardId);
-                    if (declaration.getValue() == card.getValue() && declaration.getSuit() == card.getSuit()
-                            && (declaration.getOrdinal() > 0 || !playerIds.get(starterPlayerIndex).equals(play.getPlayerId()))) {
-                        numPlayed++;
+            for (Trick trick : getAllTricks())
+                for (Play play : trick.getPlays()) {
+                    for (int cardId : play.getCardIds()) {
+                        Card card = cardsById.get(cardId);
+                        if (declaration.getValue() == card.getValue() && declaration.getSuit() == card.getSuit()
+                                && (declaration.getOrdinal() > 0 || !playerIds.get(starterPlayerIndex).equals(play.getPlayerId()))) {
+                            numPlayed++;
+                        }
+                    }
+                    if (numPlayed >= Math.max(declaration.getOrdinal(), 1)) {
+                        isDeclaringTeam.put(play.getPlayerId(), true);
+                        declaration.setSatisfied(true);
+                        break;
                     }
                 }
-                if (numPlayed >= Math.max(declaration.getOrdinal(), 1)) {
-                    isDeclaringTeam.put(play.getPlayerId(), true);
-                    declaration.setSatisfied(true);
-                    break;
-                }
-            }
         }
 
         return findAFriendDeclaration.getDeclarations().stream()
@@ -588,9 +590,10 @@ public class Game {
             for (Play play : declaredCards)
                 for (int cardId : play.getCardIds())
                     publicCards.put(cardId, cardsById.get(cardId));
-        for (Play play : getAllPlays())
-            for (int cardId : play.getCardIds())
-                publicCards.put(cardId, cardsById.get(cardId));
+        for (Trick trick : getAllTricks())
+            for (Play play : trick.getPlays())
+                for (int cardId : play.getCardIds())
+                    publicCards.put(cardId, cardsById.get(cardId));
         return publicCards;
     }
 
@@ -605,14 +608,13 @@ public class Game {
         return privateCards;
     }
 
-    private List<Play> getAllPlays() {
-        List<Play> allPlays = new ArrayList<>();
+    public List<Trick> getAllTricks() {
+        List<Trick> allTricks = new ArrayList<>();
         if (pastTricks != null)
-            for (Trick trick : pastTricks)
-                allPlays.addAll(trick.getPlays());
+            allTricks.addAll(pastTricks);
         if (currentTrick != null)
-            allPlays.addAll(currentTrick.getPlays());
-        return allPlays;
+            allTricks.add(currentTrick);
+        return allTricks;
     }
 
     private void sortCards(List<Integer> hand) {
@@ -624,7 +626,7 @@ public class Game {
         }));
     }
 
-    private int totalCardScore(List<Integer> cardIds) {
+    public int totalCardScore(Collection<Integer> cardIds) {
         int score = 0;
         for (int cardId : cardIds) {
             Card card = cardsById.get(cardId);
@@ -644,7 +646,7 @@ public class Game {
         return true;
     }
 
-    public Grouping getGrouping(List<Integer> cardIds) {
+    public Grouping getGrouping(Collection<Integer> cardIds) {
         Set<Grouping> groupings = cardIds.stream()
             .map(cardsById::get)
             .map(card -> Cards.grouping(card, getCurrentTrump()))
@@ -652,7 +654,7 @@ public class Game {
         return groupings.size() == 1 ? Iterables.getOnlyElement(groupings) : null;
     }
 
-    public List<Component> getProfile(List<Integer> cardIds) {
+    public List<Component> getProfile(Collection<Integer> cardIds) {
         if (getGrouping(cardIds) == null)
             return new ArrayList<>();
 
@@ -696,7 +698,7 @@ public class Game {
         return false;
     }
 
-    private String winningPlayerId(Trick trick) {
+    public String winningPlayerId(Trick trick) {
         String winningPlayerId = trick.getStartPlayerId();
         List<Play> plays = trick.getPlays();
         if (!plays.isEmpty()) {

@@ -83,6 +83,7 @@ public class TractorRoom {
      * <pre>
      * 1. Only one person is needed to start the game or to confirm the declare phase is over.
      * 2. The deal phase becomes very fast.
+     * 3. All cards are sent to the client.
      * </pre>
      */
     private static final boolean DEV_MODE = false;
@@ -167,8 +168,6 @@ public class TractorRoom {
     @Message(decoders = {JacksonDecoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public void onMessage(AtmosphereResource r, IncomingMessage message) throws Exception {
-        System.out.println(message);
-
         if (message instanceof RejoinRequest) {
             String playerId = ((RejoinRequest) message).getPlayerId();
             if (game.getPlayerIds().contains(playerId)
@@ -201,6 +200,7 @@ public class TractorRoom {
     }
 
     private void handleGameMessage(String playerId, Broadcaster broadcaster, IncomingMessage message) {
+        System.out.println(message);
 
         if (message instanceof SetNameRequest) {
             String name = ((SetNameRequest) message).getName();
@@ -390,6 +390,10 @@ public class TractorRoom {
             game.getCurrentTrick(),
             game.getCurrentRoundScores(),
             game.getCurrentTrump()));
+
+        if (DEV_MODE)
+            sendSync(broadcaster, new CardInfo(game.getCardsById()));
+
         Thread dealingThread = new Thread() {
             @Override
             public void run() {
