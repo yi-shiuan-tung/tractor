@@ -131,7 +131,6 @@ public class BayesianAiClient implements AiClient {
         // This only looks at the short-term of the current trick, and has no long-term goal
         double bestScore = Double.NEGATIVE_INFINITY;
         Collection<Integer> bestPlay = null;
-        System.out.println();
         for (Collection<Integer> myPlay : getCandidatePlays(myPlayerId, game)) {
             Trick currentTrickWithMyPlay = new Trick(currentTrick.getStartPlayerId());
             currentTrickWithMyPlay.getPlays().addAll(currentTrick.getPlays());
@@ -143,7 +142,6 @@ public class BayesianAiClient implements AiClient {
                 bestScore = score;
                 bestPlay = myPlay;
             }
-            System.out.println(myPlay + " " + myPlay.stream().map(cardsById::get).collect(Collectors.toList()) + " " + score);
         }
         return bestPlay;
     }
@@ -304,6 +302,9 @@ public class BayesianAiClient implements AiClient {
             Grouping startingGrouping,
             Map<Grouping, List<Integer>> myHandByGrouping,
             boolean playPoints) {
+        Map<Integer, Card> cardsById = game.getCardsById();
+        Card trump = game.getCurrentTrump();
+
         List<Component> startingProfile = game.getProfile(startingCardIds);
         int maxWidth = startingProfile.stream().mapToInt(component -> component.getShape().getWidth()).max().orElse(0);
 
@@ -331,7 +332,8 @@ public class BayesianAiClient implements AiClient {
                 }
                 return score;
             }))
-            .flatMap(component -> component.getCardIds().stream())
+            .flatMap(component -> component.getCardIds().stream()
+                .sorted(Comparator.comparing(cardId -> Cards.rank(cardsById.get(cardId), trump))))
             .limit(startingCardIds.size())
             .collect(Collectors.toList());
     }
@@ -423,7 +425,6 @@ public class BayesianAiClient implements AiClient {
         String winningPlayerId = currentTrickWithMyPlay.getWinningPlayerId();
         double totalProb = winningProbabilities.values().stream().mapToDouble(prob -> prob).sum();
         winningProbabilities.compute(winningPlayerId, (key, prob) -> prob + 1 - totalProb);
-        System.out.println(playerIds.stream().map(winningProbabilities::get).collect(Collectors.toList()));
 
         double totalExpectedScore = 0;
         for (String playerId : playerIds) {
