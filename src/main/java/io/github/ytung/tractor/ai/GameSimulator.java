@@ -78,7 +78,7 @@ public class GameSimulator {
     public static void main(String[] args) throws Exception {
         List<AiClient> aiClients = new ArrayList<>();
         for (int i = 0; i < 4; i++)
-            aiClients.add(new BayesianAiClient());
+            aiClients.add(i % 2 == 0 ? new BayesianAiClient() : new SimpleAiClient());
         int numDecks = 2;
         boolean findAFriend = false;
 

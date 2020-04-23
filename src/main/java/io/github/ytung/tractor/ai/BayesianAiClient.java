@@ -23,53 +23,9 @@ import io.github.ytung.tractor.api.Play;
 import io.github.ytung.tractor.api.Trick;
 import lombok.Data;
 
-public class BayesianAiClient implements AiClient {
+public class BayesianAiClient extends SimpleAiClient {
 
     private static final double EPS = 1e-6;
-
-    @Override
-    public List<Integer> declare(String myPlayerId, Game game) {
-        Map<Integer, Card> cardsById = game.getCardsById();
-        List<Play> declaredCards = game.getDeclaredCards();
-        Card trump = game.getCurrentTrump();
-        List<Integer> myHand = game.getPlayerHands().get(myPlayerId);
-
-        if (!declaredCards.isEmpty())
-            return null;
-
-        Map<Grouping, List<Integer>> myHandByGrouping = Maps.toMap(Arrays.asList(Grouping.values()), grouping -> myHand.stream()
-            .filter(cardId -> Cards.grouping(cardsById.get(cardId), trump) == grouping)
-            .collect(Collectors.toList()));
-
-        for (int cardId : myHand) {
-            Card card = cardsById.get(cardId);
-            if (card.getValue() == trump.getValue()) {
-                Grouping grouping = Cards.grouping(card, null);
-                if (myHandByGrouping.containsKey(grouping) && myHandByGrouping.get(grouping).size() >= 5)
-                    return Arrays.asList(cardId);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public List<Integer> makeKitty(String myPlayerId, Game game) {
-        Map<Integer, Card> cardsById = game.getCardsById();
-        Card trump = game.getCurrentTrump();
-        int kittySize = game.getKittySize();
-        List<Integer> myHand = game.getPlayerHands().get(myPlayerId);
-
-        List<Card> myCards = myHand.stream().map(cardsById::get).collect(Collectors.toList());
-        return myHand.stream()
-            .sorted(Comparator.comparing(cardId -> {
-                Card card = cardsById.get(cardId);
-                return Cards.rank(card, trump)
-                        + Collections.frequency(myCards, card) * 5
-                        + (Cards.grouping(card, trump) == Grouping.TRUMP ? 100 : 0);
-            }))
-            .limit(kittySize)
-            .collect(Collectors.toList());
-    }
 
     @Override
     public Collection<Integer> play(String myPlayerId, Game game) {
