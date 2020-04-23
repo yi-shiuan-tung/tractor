@@ -28,7 +28,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 
-import io.github.ytung.tractor.ai.AiClient;
+import io.github.ytung.tractor.ai.AiController;
+import io.github.ytung.tractor.ai.BayesianAiClient;
 import io.github.ytung.tractor.api.Card;
 import io.github.ytung.tractor.api.FindAFriendDeclaration;
 import io.github.ytung.tractor.api.GameStatus;
@@ -91,7 +92,7 @@ public class TractorRoom {
     private final Set<AtmosphereResource> resources = ConcurrentHashMap.newKeySet();
 
     private final BiMap<String, AtmosphereResource> humanControllers = Maps.synchronizedBiMap(HashBiMap.create());
-    private final Map<String, AiClient> aiControllers = new ConcurrentHashMap<>();
+    private final Map<String, AiController> aiControllers = new ConcurrentHashMap<>();
 
     private final Map<String, String> playerNames = new ConcurrentHashMap<>();
     private final Map<String, Boolean> playerReadyForPlay = new ConcurrentHashMap<>();
@@ -227,7 +228,7 @@ public class TractorRoom {
             if (aiControllers.size() >= 5)
                 return;
             String aiPlayerId = UUID.randomUUID().toString();
-            aiControllers.put(aiPlayerId, new AiClient(aiPlayerId));
+            aiControllers.put(aiPlayerId, new AiController(aiPlayerId, new BayesianAiClient()));
             playerNames.put(aiPlayerId, Names.generateRandomName());
             game.addPlayer(aiPlayerId);
             broadcastUpdatePlayers(broadcaster);
