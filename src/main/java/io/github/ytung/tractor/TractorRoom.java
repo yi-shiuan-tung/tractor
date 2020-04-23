@@ -160,14 +160,14 @@ public class TractorRoom {
         humanControllers.remove(playerId);
         sendSync(r.broadcaster(), new DisconnectMessage(playerId));
         broadcastUpdatePlayers(r.broadcaster());
-
-        if (resources.isEmpty())
-            TractorLobby.closeRoom(roomCode);
     }
 
     @Message(decoders = {JacksonDecoder.class})
     @DeliverTo(DeliverTo.DELIVER_TO.BROADCASTER)
     public void onMessage(AtmosphereResource r, IncomingMessage message) throws Exception {
+        if (!TractorLobby.roomExists(roomCode))
+            return;
+
         if (message instanceof RejoinRequest) {
             String playerId = ((RejoinRequest) message).getPlayerId();
             if (game.getPlayerIds().contains(playerId)

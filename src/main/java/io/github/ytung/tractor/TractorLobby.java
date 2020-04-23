@@ -46,10 +46,6 @@ public class TractorLobby {
         return roomCodes.containsKey(roomCode);
     }
 
-    public static void closeRoom(String roomCode) {
-        roomCodes.remove(roomCode);
-    }
-
     private String getNewRoomCode() {
         String code = "";
         for (int i=0; i<4; i++) {
