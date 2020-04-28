@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import { getAudio } from '../../lib/audio';
-import { preloadCardImages } from '../../lib/cardImages';
+import {getFaceDownCardImageSrc, preloadCardImages} from '../../lib/cardImages';
 import {setUpConnection} from '../../lib/connection';
 import './room.css';
 
@@ -21,6 +21,7 @@ import {
   Trick,
 } from '../../components';
 import { SUITS } from '../../lib/cards';
+import {getPlayerPosition} from "../../components/playerArea";
 
 export class Room extends React.Component {
   constructor(props) {
@@ -40,6 +41,7 @@ export class Room extends React.Component {
       confirmSpecialPlayCards: undefined, // CardId[]?
       soundVolume: 3, // 0, 1, 2, or 3
       isEditingPlayers: false, // boolean
+      cards: {}, // {cardId: {}}
 
       // game state (same as server)
       playerIds: [], // PlayerId[]
@@ -107,6 +109,22 @@ export class Room extends React.Component {
             this.setState(json.GAME_CONFIGURATION);
           } else if (json.START_ROUND) {
             this.setState(json.START_ROUND);
+
+            this.state.deck.forEach(cardId => {
+              this.setState({cards: {
+                  ...this.state.cards,
+                  [cardId]: {
+                    top: 345,
+                    left: 565,
+                    src: getFaceDownCardImageSrc(),
+                    onClick: undefined,
+                    angle: 0,
+                    zIndex: 0,
+                    transformOrigin: "top center"
+                  }
+                }})
+            });
+
             this.audio.playGameStart();
           } else if (json.CARD_INFO) {
             this.setState({cardsById: {
@@ -178,6 +196,7 @@ export class Room extends React.Component {
           } else {
             console.error('Unhandled message: ' + JSON.stringify(json));
           }
+          this.updatePlayerHands();
         });
   }
 
@@ -225,7 +244,7 @@ export class Room extends React.Component {
         {this.renderPlayerNames()}
         {this.renderNotifications()}
         {this.renderFindAFriendPanel()}
-        {this.renderPlayerHands()}
+        {this.renderCards()}
         {this.renderDeclaredCards()}
         {this.renderBottomCards()}
         {this.renderCurrentTrick()}
@@ -425,12 +444,38 @@ export class Room extends React.Component {
     }
   }
 
-  renderPlayerHands() {
+  renderCards() {
+    const {status, cards} = this.state;
+    if (status === "START_ROUND" || !cards) {
+      return;
+    }
+
+    return Object.keys(cards).map((cardId) => {
+      const card = cards[cardId];
+      const transform = `rotate(${card.angle}deg)`;
+      return (<img
+          key={cardId}
+          style={{
+            position: "absolute",
+            top: card.top,
+            left: card.left,
+            zIndex: card.zIndex,
+            transition: "top 300ms, left 300ms",
+            transformOrigin: card.transformOrigin,
+            transform
+          }}
+          src={card.src}
+          onClick={card.onClick}
+      />)
+    });
+  }
+
+  updatePlayerHands() {
     const {myPlayerId, selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
     if (status === 'START_ROUND') {
       return;
     }
-    return playerIds.map((playerId) => {
+    playerIds.forEach((playerId) => {
 
       const nonDeclaredCards = playerHands[playerId]
       // If not playing tricks, declared cards should be shown in front,
@@ -440,28 +485,19 @@ export class Room extends React.Component {
           declaredCards[declaredCards.length - 1].
               cardIds.every((declaredCardId) => cardId !== declaredCardId));
 
-      return (
-        <PlayerArea
-          key={`playerArea${playerId}`}
-          myPlayerId={myPlayerId}
-          playerIds={playerIds}
-          playerId={playerId}
-          distance={0.6}
-        >
-          <Cards
-            cardIds={nonDeclaredCards}
-            selectedCardIds={selectedCardIds}
-            cardsById={cardsById}
-            faceUp={playerId === myPlayerId}
-            selectCards={playerId === myPlayerId ? cardId => this.setState({
-              selectedCardIds: {
-                ...selectedCardIds,
-                [cardId]: !selectedCardIds[cardId],
-              },
-            }) : undefined}
-          />
-        </PlayerArea>
-      );
+      const selectCards = playerId === myPlayerId ? cardId => this.setState({
+                  selectedCardIds: {
+                    ...selectedCardIds,
+                    [cardId]: !selectedCardIds[cardId],
+                  },
+                }) : undefined;
+      const getCardPositions = getPlayerPosition(playerIds, playerId, myPlayerId, 0.6);
+      const cardPositions = getCardPositions(nonDeclaredCards, selectedCardIds, cardsById, playerId === myPlayerId, selectCards);
+
+      this.setState({cards: {
+          ...this.state.cards,
+          ...cardPositions,
+        }});
     });
   }
 

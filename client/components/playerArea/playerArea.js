@@ -2,10 +2,14 @@ import * as classNames from 'classnames';
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import './playerArea.css';
+import {getCardImageSrc, getFaceDownCardImageSrc} from "../../lib/cardImages";
 
 // dimensions of game area
 export const WIDTH = 1200;
 export const HEIGHT = 800;
+
+const CARD_WIDTH = 71;
+
 
 /*
  * A higher order component that takes the given children and applies a rotation
@@ -105,3 +109,66 @@ PlayerArea.propTypes = {
   isText: PropTypes.bool,
   children: PropTypes.any,
 };
+
+export function getPlayerPosition(playerIds, playerId, myPlayerId, distance) {
+  const numPlayers = playerIds.length;
+  const playerIndex = playerIds.indexOf(playerId);
+  const myIndex = playerIds.indexOf(myPlayerId);
+  let angle = (myIndex - playerIndex) * 360. / numPlayers;
+  const centerPoint = {
+    x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 *
+        Math.PI / numPlayers) * distance / 2 * 0.9),
+    y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 *
+        Math.PI / numPlayers) * distance / 2),
+  };
+
+  let transformOrigin = "top center";
+  if (0 < angle && angle <= 90 || -360 < angle && angle <= -270) {
+    transformOrigin = "top left";
+  } else if (90 < angle && angle <= 180 || -180 < angle && angle <= -270) {
+    transformOrigin = "top right";
+  } else if (180 < angle && angle <= 270 || -90 < angle && angle <= -180) {
+    transformOrigin = "top right";
+  } else if (270 < angle && angle <= 360 || 0 < angle && angle <= -90) {
+    transformOrigin = "top left";
+  }
+  console.log("Angle: " + angle + " transformOrigin: " + transformOrigin);
+
+  return (cardIds, selectedCardIds, cardsById, faceUp, selectCards) => {
+    const interCardDistance = faceUp ? 15 : 9;
+    const totalWidth = CARD_WIDTH + interCardDistance * (cardIds.length - 1);
+    const cardPositions = {};
+    cardIds.forEach((cardId, index) => {
+      let x, y;
+
+      if (centerPoint.y === HEIGHT/2) {
+        x = 0;
+        y = -totalWidth / 2 + interCardDistance * index;
+      } else {
+        const numerator = -(centerPoint.x-(WIDTH/2));
+        const denominator = ((HEIGHT-centerPoint.y)-(HEIGHT/2));
+        const slope = numerator/denominator * 0.7;
+        const xStep = Math.sqrt(interCardDistance**2/(1+slope**2));
+        const yStep = slope * xStep;
+        x = (-cardIds.length/2 + index) * xStep;
+        y = (-cardIds.length/2 + index) * yStep;
+      }
+
+      const src = faceUp ? getCardImageSrc(cardsById[cardId]) : getFaceDownCardImageSrc();
+      const onClick = selectCards ? () => selectCards(cardId) : undefined;
+
+      cardPositions[cardId] = {
+        centerTop: centerPoint.y,
+        centerLeft: centerPoint.x,
+        top: centerPoint.y - y,
+        left: centerPoint.x + x,
+        src: src,
+        angle: angle,
+        zIndex: index,
+        onClick: onClick,
+        transformOrigin: transformOrigin
+      }
+    });
+    return cardPositions;
+  }
+}
