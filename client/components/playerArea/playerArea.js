@@ -123,16 +123,9 @@ export function getPlayerPosition(playerIds, playerId, myPlayerId, distance) {
   };
 
   let transformOrigin = "top center";
-  if (0 < angle && angle <= 90 || -360 < angle && angle <= -270) {
-    transformOrigin = "top left";
-  } else if (90 < angle && angle <= 180 || -180 < angle && angle <= -270) {
-    transformOrigin = "top right";
-  } else if (180 < angle && angle <= 270 || -90 < angle && angle <= -180) {
-    transformOrigin = "top right";
-  } else if (270 < angle && angle <= 360 || 0 < angle && angle <= -90) {
+  if (180 < angle && angle <= 360 || -180 <= angle && angle < -0) {
     transformOrigin = "top left";
   }
-  console.log("Angle: " + angle + " transformOrigin: " + transformOrigin);
 
   return (cardIds, selectedCardIds, cardsById, faceUp, selectCards) => {
     const interCardDistance = faceUp ? 15 : 9;
