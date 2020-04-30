@@ -31,6 +31,7 @@ public class TractorServer extends Application<Configuration> {
         servlet.framework().addInitParameter(ApplicationConfig.WEBSOCKET_CONTENT_TYPE, "application/json");
         servlet.framework().addInitParameter(ApplicationConfig.WEBSOCKET_SUPPORT, "true");
         servlet.framework().addInitParameter(ApplicationConfig.HEARTBEAT_INTERVAL_IN_SECONDS, "30");
+        servlet.framework().addInitParameter(ApplicationConfig.BROADCASTER_ASYNC_WRITE_THREADPOOL_MAXSIZE, "128");
 
         ServletRegistration.Dynamic servletHolder = environment.servlets().addServlet("Tractor", servlet);
         servletHolder.addMapping("/tractor");
