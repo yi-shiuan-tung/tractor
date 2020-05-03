@@ -436,29 +436,32 @@ public class Game {
             if (i != starterPlayerIndex)
                 isDeclaringTeam.put(playerIds.get(i), false);
 
-        for (Declaration declaration : findAFriendDeclaration.getDeclarations()) {
-            declaration.setSatisfied(false);
-            int numPlayed = 0;
-            for (Trick trick : getAllTricks())
-                for (Play play : trick.getPlays()) {
-                    for (int cardId : play.getCardIds()) {
-                        Card card = cardsById.get(cardId);
-                        if (declaration.getValue() == card.getValue() && declaration.getSuit() == card.getSuit()
-                                && (declaration.getOrdinal() > 0 || !playerIds.get(starterPlayerIndex).equals(play.getPlayerId()))) {
-                            numPlayed++;
-                        }
-                    }
-                    if (numPlayed >= Math.max(declaration.getOrdinal(), 1)) {
-                        isDeclaringTeam.put(play.getPlayerId(), true);
-                        declaration.setSatisfied(true);
-                        break;
-                    }
-                }
-        }
+        for (Declaration declaration : findAFriendDeclaration.getDeclarations())
+            updateFindAFriendDeclaration(declaration);
 
         return findAFriendDeclaration.getDeclarations().stream()
                 .filter(Declaration::isSatisfied)
                 .count() != numSatisfiedDeclarations;
+    }
+
+    private void updateFindAFriendDeclaration(Declaration declaration) {
+        declaration.setSatisfied(false);
+        int numPlayed = 0;
+        for (Trick trick : getAllTricks())
+            for (Play play : trick.getPlays()) {
+                for (int cardId : play.getCardIds()) {
+                    Card card = cardsById.get(cardId);
+                    if (declaration.getValue() == card.getValue() && declaration.getSuit() == card.getSuit()
+                            && (declaration.getOrdinal() > 0 || !playerIds.get(starterPlayerIndex).equals(play.getPlayerId()))) {
+                        numPlayed++;
+                    }
+                }
+                if (numPlayed >= Math.max(declaration.getOrdinal(), 1)) {
+                    isDeclaringTeam.put(play.getPlayerId(), true);
+                    declaration.setSatisfied(true);
+                    return;
+                }
+            }
     }
 
     public synchronized void finishTrick() {
