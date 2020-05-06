@@ -555,6 +555,7 @@ export class Room extends React.Component {
 
   renderActionButton() {
     const {
+      humanControllers,
       myPlayerId,
       selectedCardIds,
       playerIds,
@@ -578,7 +579,7 @@ export class Room extends React.Component {
 
     if (status === 'DRAW_KITTY' && (selectedCardIdsList.length === 0 || iAmReadyForPlay)) {
       return <ActionButton
-        text={`${iAmReadyForPlay ? 'Ready' : 'Pass'} (${numPlayersReadyForPlay}/${playerIds.length})`}
+        text={`${iAmReadyForPlay ? 'Ready' : 'Pass'} (${numPlayersReadyForPlay}/${humanControllers.length})`}
         clicked={iAmReadyForPlay}
         onClick={() => this.connection.send({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } })}
       />;
