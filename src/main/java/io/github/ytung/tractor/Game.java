@@ -13,11 +13,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multiset;
 import com.google.common.collect.Streams;
+import com.google.common.collect.TreeMultiset;
 
 import io.github.ytung.tractor.Cards.Grouping;
 import io.github.ytung.tractor.api.Card;
@@ -551,6 +550,9 @@ public class Game {
     }
 
     public Card getCurrentTrump() {
+        if (playerIds.isEmpty())
+            return null;
+
         Card.Value trumpValue = playerRankScores.get(playerIds.get(starterPlayerIndex));
 
         if (declaredCards != null && !declaredCards.isEmpty())
@@ -711,7 +713,7 @@ public class Game {
                 Play play = plays.get(i);
                 List<Component> profile = getProfile(play.getCardIds());
                 Grouping grouping = getGrouping(play.getCardIds());
-                if (getShapes(profile).equals(getShapes(bestProfile))) {
+                if (hasCoveringShape(profile, bestProfile)) {
                     if ((grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP)
                             || (grouping == bestGrouping && rank(profile) > rank(bestProfile))) {
                         winningPlayerId = play.getPlayerId();
@@ -724,8 +726,41 @@ public class Game {
         return winningPlayerId;
     }
 
-    private static Multiset<Shape> getShapes(List<Component> profile) {
-        return HashMultiset.create(profile.stream().map(Component::getShape).collect(Collectors.toList()));
+    /**
+     * Returns whether my play "covers" the other play. For example, if myPlay is a single pair and
+     * otherPlay is two singles, then the pair covers the singles. This method is used to check the
+     * first requirement of beating a play in Tractor: whether your play has the same "shape".
+     */
+    private static boolean hasCoveringShape(List<Component> myPlay, List<Component> otherPlay) {
+        TreeMultiset<Shape> myShapes = TreeMultiset.create(Comparator.comparing(shape -> shape.getWidth() * shape.getHeight()));
+        for (Component component : myPlay)
+            myShapes.add(component.getShape());
+        List<Shape> otherShapes = otherPlay.stream()
+            .map(Component::getShape)
+            .sorted(Comparator.<Shape, Integer>comparing(shape -> shape.getWidth() * shape.getHeight()).reversed())
+            .collect(Collectors.toList());
+
+        for (Shape otherShape : otherShapes) {
+            // For each shape in the other play, find a component of my play that "covers" it (has at least that width
+            // and height), and then remove the relevant cards. This is a greedy algorithm that isn't guaranteed to be
+            // correct, but works for all practical cases if we try to match our smallest components with the other
+            // play's largest components.
+            boolean found = false;
+            for (Shape myShape : myShapes) {
+                if (myShape.getWidth() >= otherShape.getWidth() && myShape.getHeight() >= otherShape.getHeight()) {
+                    myShapes.remove(myShape);
+                    if (myShape.getHeight() > otherShape.getHeight())
+                        myShapes.add(new Shape(myShape.getWidth(), myShape.getHeight() - otherShape.getHeight()));
+                    if (myShape.getWidth() > otherShape.getWidth())
+                        myShapes.add(new Shape(myShape.getWidth() - otherShape.getHeight(), otherShape.getHeight()));
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return false;
+        }
+        return myShapes.isEmpty();
     }
 
     private static int rank(List<Component> profile) {
