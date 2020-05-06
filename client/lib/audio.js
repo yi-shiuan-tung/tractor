@@ -10,16 +10,19 @@ function play(audio, file) {
     }
 }
 
+const VOLUMES = [0, 0.1, 0.4, 1.0];
+
 /**
  * Provides convenience functions to play all audio files.
- * The input volume is an integer from 0 to 3 (inclusive).
+ * The input volume is an integer from 0 to 3 (inclusive), which gets mapped to
+ * an actual Audio volume in [0, 1] using the mapping above.
  */
 export const getAudio = function () {
     const audio = new Audio();
     audio.volume = 1;
 
     return {
-        setVolume: volume => audio.volume = volume / 3,
+        setVolume: volume => audio.volume = VOLUMES[volume],
         playGameStart: () => play(audio, gameStart),
         playYourTurn: () => play(audio, yourTurn),
         playGameOver: () => play(audio, gameOver),
