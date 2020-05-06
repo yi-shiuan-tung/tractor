@@ -143,8 +143,9 @@ export function getPlayerPosition(playerIds, playerId, myPlayerId, distance) {
         const slope = numerator/denominator * 0.7;
         const xStep = Math.sqrt(interCardDistance**2/(1+slope**2));
         const yStep = slope * xStep;
+        const shift = selectedCardIds && selectedCardIds[cardId] ? -20 : 0;
         x = (-cardIds.length/2 + index) * xStep;
-        y = (-cardIds.length/2 + index) * yStep;
+        y = (-cardIds.length/2 + index) * yStep - shift;
       }
 
       const src = faceUp ? getCardImageSrc(cardsById[cardId]) : getFaceDownCardImageSrc();

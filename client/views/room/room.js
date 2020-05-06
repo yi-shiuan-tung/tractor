@@ -23,6 +23,8 @@ import {
 import { SUITS } from '../../lib/cards';
 import {getPlayerPosition} from "../../components/playerArea";
 
+const ANIMATE = true;
+
 export class Room extends React.Component {
   constructor(props) {
     super(props);
@@ -139,6 +141,7 @@ export class Room extends React.Component {
               this.connection.send({ READY_FOR_PLAY: { ready: true } })
             }
             this.setState(other);
+            if (ANIMATE) this.updateDeclaredCards();
           } else if (json.READY_FOR_PLAY) {
             this.setState(json.READY_FOR_PLAY);
           } else if (json.EXPOSE_BOTTOM_CARDS) {
@@ -196,7 +199,7 @@ export class Room extends React.Component {
           } else {
             console.error('Unhandled message: ' + JSON.stringify(json));
           }
-          this.updatePlayerHands();
+          if (ANIMATE) this.updatePlayerHands();
         });
   }
 
@@ -245,6 +248,7 @@ export class Room extends React.Component {
         {this.renderNotifications()}
         {this.renderFindAFriendPanel()}
         {this.renderCards()}
+        {this.renderPlayerHands()}
         {this.renderDeclaredCards()}
         {this.renderBottomCards()}
         {this.renderCurrentTrick()}
@@ -470,6 +474,43 @@ export class Room extends React.Component {
     });
   }
 
+  renderPlayerHands() {
+    const {myPlayerId, selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
+    if (status === 'START_ROUND' || ANIMATE) {
+      return;
+    }
+    return playerIds.map((playerId) => {
+      const nonDeclaredCards = playerHands[playerId]
+          // If not playing tricks, declared cards should be shown in front,
+          // not in hand
+          .filter((cardId) => status === 'PLAY' ||
+              declaredCards.length === 0 ||
+              declaredCards[declaredCards.length - 1].cardIds.every((declaredCardId) => cardId !== declaredCardId));
+      return (
+          <PlayerArea
+              key={`playerArea${playerId}`}
+              myPlayerId={myPlayerId}
+              playerIds={playerIds}
+              playerId={playerId}
+              distance={0.6}
+          >
+            <Cards
+                cardIds={nonDeclaredCards}
+                selectedCardIds={selectedCardIds}
+                cardsById={cardsById}
+                faceUp={playerId === myPlayerId}
+                selectCards={playerId === myPlayerId ? cardId => this.setState({
+                  selectedCardIds: {
+                    ...selectedCardIds,
+                    [cardId]: !selectedCardIds[cardId],
+                  },
+                }) : undefined}
+            />
+          </PlayerArea>
+      );
+    });
+  }
+
   updatePlayerHands() {
     const {myPlayerId, selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
     if (status === 'START_ROUND') {
@@ -485,19 +526,33 @@ export class Room extends React.Component {
           declaredCards[declaredCards.length - 1].
               cardIds.every((declaredCardId) => cardId !== declaredCardId));
 
-      const selectCards = playerId === myPlayerId ? cardId => this.setState({
+      const selectCards = playerId === myPlayerId ? cardId => {
+                console.log("click on " + cardId);
+                const {selectedCardIds} = this.state;
+                console.log(selectedCardIds[cardId]);
+                this.setState({
                   selectedCardIds: {
                     ...selectedCardIds,
                     [cardId]: !selectedCardIds[cardId],
                   },
-                }) : undefined;
-      const getCardPositions = getPlayerPosition(playerIds, playerId, myPlayerId, 0.6);
-      const cardPositions = getCardPositions(nonDeclaredCards, selectedCardIds, cardsById, playerId === myPlayerId, selectCards);
+                }, () => {
+                  console.log(this.state.selectedCardIds[cardId]);
+                  console.log(this.state.cards[cardId]);
+                  this.updatePlayerHands();
+                });
+              } : undefined;
+      const getCardStates = getPlayerPosition(playerIds, playerId, myPlayerId, 0.6);
+      const cardStates = getCardStates(nonDeclaredCards, selectedCardIds, cardsById, playerId === myPlayerId, selectCards);
 
       this.setState({cards: {
           ...this.state.cards,
-          ...cardPositions,
-        }});
+          ...cardStates,
+        }}, () => {
+        if (playerId === myPlayerId) {
+          console.log(cardStates);
+          console.log(this.state.cards);
+        }
+      });
     });
   }
 
@@ -505,7 +560,7 @@ export class Room extends React.Component {
     const {myPlayerId, playerIds, status, cardsById, declaredCards} = this.state;
     if (status === 'START_ROUND' ||
       status === 'PLAY' ||
-      declaredCards.length === 0) {
+      declaredCards.length === 0 || ANIMATE) {
       return;
     }
     const latestDeclaredCards = declaredCards[declaredCards.length - 1];
@@ -523,6 +578,24 @@ export class Room extends React.Component {
         />
       </PlayerArea>
     </div>;
+  }
+
+  updateDeclaredCards() {
+    const {myPlayerId, playerIds, status, cardsById, declaredCards} = this.state;
+
+    if (status === 'START_ROUND' ||
+        status === 'PLAY' ||
+        declaredCards.length === 0) {
+      return;
+    }
+    const latestDeclaredCards = declaredCards[declaredCards.length - 1];
+    const getCardStates = getPlayerPosition(playerIds, latestDeclaredCards.playerId, myPlayerId, 0.3);
+    const cardStates = getCardStates(latestDeclaredCards.cardIds, [], cardsById, true, undefined);
+    console.log("updating declared cards: " + latestDeclaredCards.cardIds);
+    this.setState({cards: {
+        ...this.state.cards,
+        ...cardStates,
+      }});
   }
 
   renderBottomCards() {
