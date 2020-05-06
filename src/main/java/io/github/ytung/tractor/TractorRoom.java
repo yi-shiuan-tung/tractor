@@ -141,6 +141,7 @@ public class TractorRoom {
             game.getPastTricks(),
             game.getCurrentTrick(),
             game.getCurrentRoundScores(),
+            game.getCurrentRoundPenalties(),
             game.getCurrentTrump(),
             game.getKittySize(),
             humanControllers.keySet(),
@@ -390,6 +391,7 @@ public class TractorRoom {
             game.getPastTricks(),
             game.getCurrentTrick(),
             game.getCurrentRoundScores(),
+            game.getCurrentRoundPenalties(),
             game.getCurrentTrump()));
 
         if (DEV_MODE)

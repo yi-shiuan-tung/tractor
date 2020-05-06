@@ -109,6 +109,7 @@ public interface OutgoingMessage {
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
         private final Map<String, Integer> currentRoundScores;
+        private final Map<String, Integer> currentRoundPenalties;
 
         private final Card currentTrump;
         private final int kittySize;
@@ -166,6 +167,7 @@ public interface OutgoingMessage {
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
         private final Map<String, Integer> currentRoundScores;
+        private final Map<String, Integer> currentRoundPenalties;
         private final Card currentTrump;
     }
 
