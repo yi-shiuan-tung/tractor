@@ -88,7 +88,7 @@ public class TractorRoom {
      * 3. All cards are sent to the client.
      * </pre>
      */
-    private static final boolean DEV_MODE = false;
+    private static final boolean DEV_MODE = true;
 
     private final Set<AtmosphereResource> resources = ConcurrentHashMap.newKeySet();
 

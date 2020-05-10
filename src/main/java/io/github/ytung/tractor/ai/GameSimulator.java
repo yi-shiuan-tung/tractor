@@ -92,7 +92,7 @@ public class GameSimulator {
 
         long startTime = System.currentTimeMillis();
         List<Integer> numOpponentsPoints = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             System.out.printf("Running game %d...\n", i + 1);
             numOpponentsPoints.add(gameSimulator.runGame(aiClients, numDecks, findAFriend));
         }

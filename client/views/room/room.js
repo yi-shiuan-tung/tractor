@@ -464,7 +464,7 @@ export class Room extends React.Component {
             cardIds={nonDeclaredCards}
             selectedCardIds={selectedCardIds}
             cardsById={cardsById}
-            faceUp={playerId === myPlayerId}
+            faceUp={playerId === myPlayerId || true}
             selectCards={playerId === myPlayerId ? cardId => this.setState({
               selectedCardIds: {
                 ...selectedCardIds,

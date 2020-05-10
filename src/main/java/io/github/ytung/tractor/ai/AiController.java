@@ -55,6 +55,9 @@ public class AiController {
         if (game.getStatus() == GameStatus.PLAY
                 && game.getCurrentPlayerIndex() != -1
                 && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myPlayerId)) {
+
+            GameSerde.writeGame(game);
+
             PlayRequest request = new PlayRequest();
             request.setCardIds(new ArrayList<>(client.play(myPlayerId, game)));
             request.setConfirmSpecialPlay(true);
