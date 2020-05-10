@@ -140,6 +140,7 @@ export class RoundStartPanel extends React.Component {
                         }
                         return <li key={playerId}>{children}</li>;
                     })}
+                    <div className='add_ai_button' onClick={addAi}>{"+ Add AI player"}</div>
                 </ul>
                 <div className='game_properties'>
                     <div>
@@ -161,7 +162,6 @@ export class RoundStartPanel extends React.Component {
                         />
                         {"Find a friend mode"}
                     </div>
-                    {this.maybeRenderAddAiButton(isEditingPlayers, addAi)}
                 </div>
                 <div
                     className={iAmReadyForPlay ?
@@ -173,16 +173,5 @@ export class RoundStartPanel extends React.Component {
                 </div>
             </div>
         );
-    }
-
-    maybeRenderAddAiButton(isEditingPlayers, addAi) {
-        if (isEditingPlayers) {
-            return <div
-                className='button add_ai_button'
-                onClick={addAi}
-            >
-                {'Add AI'}
-            </div>;
-        }
     }
 }

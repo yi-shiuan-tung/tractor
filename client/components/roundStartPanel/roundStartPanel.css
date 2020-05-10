@@ -110,18 +110,19 @@
 }
 
 .round_start_panel .add_ai_button {
-    width: 80px;
+    width: 140px;
     cursor: pointer;
-    margin: auto;
-  background-color: rgba(173, 213, 230, 0.8);
-  padding: 4px;
+    margin: 18px auto;
+    background-color: rgba(232, 194, 145, 0.8);
+    border-radius: 10px;
+    padding: 2px;
 }
 
 .round_start_panel .add_ai_button:hover {
-  background-color: rgba(173, 213, 230, 0.9);
+    background-color: rgba(232, 194, 145, 0.9);
 }
 
 .round_start_panel .add_ai_button:active {
-  background-color: rgba(173, 213, 230, 1);
-  transform: scale(0.99);
+    background-color: rgba(232, 194, 145, 1);
+    transform: scale(0.99);
 }

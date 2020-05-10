@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 
 import io.github.ytung.tractor.ai.AiController;
-import io.github.ytung.tractor.ai.BayesianAiClient;
+import io.github.ytung.tractor.ai.BayesianAiClientV2;
 import io.github.ytung.tractor.api.Card;
 import io.github.ytung.tractor.api.FindAFriendDeclaration;
 import io.github.ytung.tractor.api.GameStatus;
@@ -229,7 +229,7 @@ public class TractorRoom {
             if (aiControllers.size() >= 5)
                 return;
             String aiPlayerId = UUID.randomUUID().toString();
-            aiControllers.put(aiPlayerId, new AiController(aiPlayerId, new BayesianAiClient()));
+            aiControllers.put(aiPlayerId, new AiController(aiPlayerId, new BayesianAiClientV2()));
             playerNames.put(aiPlayerId, Names.generateRandomName());
             game.addPlayer(aiPlayerId);
             broadcastUpdatePlayers(broadcaster);
