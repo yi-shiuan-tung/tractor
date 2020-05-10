@@ -3,6 +3,7 @@ package io.github.ytung.tractor.ai;
 import java.util.Collection;
 
 import io.github.ytung.tractor.Game;
+import io.github.ytung.tractor.api.FindAFriendDeclaration;
 
 public interface AiClient {
 
@@ -17,6 +18,12 @@ public interface AiClient {
      * for the kitty you wish to make.
      */
     Collection<Integer> makeKitty(String myPlayerId, Game game);
+
+    /**
+     * Given a game in the declare friend phase and you are about to declare a friend, return your
+     * declaration.
+     */
+    FindAFriendDeclaration setFindAFriendDeclaration(String myPlayerId, Game game);
 
     /**
      * Given a game in the play phase and you are about to play, return the cardIds that you wish to

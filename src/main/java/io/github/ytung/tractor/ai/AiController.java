@@ -8,6 +8,7 @@ import io.github.ytung.tractor.Game;
 import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.IncomingMessage;
 import io.github.ytung.tractor.api.IncomingMessage.DeclareRequest;
+import io.github.ytung.tractor.api.IncomingMessage.FindAFriendDeclarationRequest;
 import io.github.ytung.tractor.api.IncomingMessage.MakeKittyRequest;
 import io.github.ytung.tractor.api.IncomingMessage.PlayRequest;
 import io.github.ytung.tractor.api.OutgoingMessage;
@@ -40,6 +41,14 @@ public class AiController {
                 && game.getKitty().isEmpty()) {
             MakeKittyRequest request = new MakeKittyRequest();
             request.setCardIds(new ArrayList<>(client.makeKitty(myPlayerId, game)));
+            send.accept(request);
+        }
+
+        if (game.getStatus() == GameStatus.DECLARE_FRIEND
+                && game.getPlayerIds().get(game.getCurrentPlayerIndex()).equals(myPlayerId)
+                && game.getFindAFriendDeclaration() == null) {
+            FindAFriendDeclarationRequest request = new FindAFriendDeclarationRequest();
+            request.setDeclaration(client.setFindAFriendDeclaration(myPlayerId, game));
             send.accept(request);
         }
 

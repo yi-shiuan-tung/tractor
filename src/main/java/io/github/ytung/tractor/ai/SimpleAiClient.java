@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
@@ -17,6 +18,8 @@ import io.github.ytung.tractor.Cards.Grouping;
 import io.github.ytung.tractor.Component;
 import io.github.ytung.tractor.Game;
 import io.github.ytung.tractor.api.Card;
+import io.github.ytung.tractor.api.FindAFriendDeclaration;
+import io.github.ytung.tractor.api.FindAFriendDeclaration.Declaration;
 import io.github.ytung.tractor.api.Play;
 import io.github.ytung.tractor.api.Trick;
 
@@ -64,6 +67,38 @@ public class SimpleAiClient implements AiClient {
             }))
             .limit(kittySize)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public FindAFriendDeclaration setFindAFriendDeclaration(String myPlayerId, Game game) {
+        Map<Integer, Card> cardsById = game.getCardsById();
+        Card trump = game.getCurrentTrump();
+        List<Integer> myHand = game.getPlayerHands().get(myPlayerId);
+
+        int numFriends = game.getPlayerIds().size() / 2 - 1;
+        Set<Card> myCards = myHand.stream().map(cardsById::get).collect(Collectors.toSet());
+        List<Declaration> declarations = cardsById.values().stream()
+                .distinct()
+                .filter(card -> !myCards.contains(card))
+                .sorted(Comparator.comparing(card -> {
+                    int score = -Cards.rank(card, trump);
+                    if (Cards.grouping(card, trump) == Grouping.TRUMP)
+                        score += 100;
+                    return score;
+                }))
+                .map(card -> {
+                    Declaration declaration = new Declaration();
+                    declaration.setOrdinal(1);
+                    declaration.setValue(card.getValue());
+                    declaration.setSuit(card.getSuit());
+                    return declaration;
+                })
+                .limit(numFriends)
+                .collect(Collectors.toList());
+
+        FindAFriendDeclaration declaration = new FindAFriendDeclaration();
+        declaration.setDeclarations(declarations);
+        return declaration;
     }
 
     @Override

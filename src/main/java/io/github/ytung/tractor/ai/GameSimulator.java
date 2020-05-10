@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import io.github.ytung.tractor.Game;
 import io.github.ytung.tractor.PlayResult;
+import io.github.ytung.tractor.api.FindAFriendDeclaration;
 import io.github.ytung.tractor.api.GameStatus;
 import io.github.ytung.tractor.api.Play;
 
@@ -53,6 +54,11 @@ public class GameSimulator {
             game.takeKitty();
             Collection<Integer> kitty = aiClients.get(starterPlayerIndex).makeKitty(playerId, game);
             game.makeKitty(playerId, new ArrayList<>(kitty));
+
+            if (findAFriend) {
+                FindAFriendDeclaration declaration = aiClients.get(starterPlayerIndex).setFindAFriendDeclaration(playerId, game);
+                game.makeFindAFriendDeclaration(playerId, declaration);
+            }
         }
 
         while (true) {
