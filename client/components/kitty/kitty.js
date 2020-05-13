@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Cards } from '../cards';
+import { HoverButton } from '../hoverButton/hoverButton';
 import './kitty.css';
 
 /**
@@ -38,11 +39,11 @@ export class Kitty extends React.Component {
     }
 
     renderViewKittyButton() {
-        return <div
+        return <HoverButton
             className='view_kitty_button'
-            onMouseEnter={() => this.setState({ showKitty: true })}
-            onMouseLeave={() => this.setState({ showKitty: false })}
-        />
+            onHoverStart={() => this.setState({ showKitty: true })}
+            onHoverEnd={() => this.setState({ showKitty: false })}
+        />;
     }
 
     renderKittyCards(cardsById, kitty) {

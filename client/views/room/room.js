@@ -11,6 +11,7 @@ import {
   ConfirmationPanel,
   FindAFriendPanel,
   GameInfoPanel,
+  HoverButton,
   Kitty,
   PlayerArea,
   PlayerNametag,
@@ -645,11 +646,11 @@ export class Room extends React.Component {
     if (!pastTricks || pastTricks.length === 0) {
       return;
     }
-    return <div
+    return <HoverButton
       className='last_trick_button'
-      onMouseEnter={() => this.setState({showPreviousTrick: true})}
-      onMouseLeave={() => this.setState({showPreviousTrick: false})}
-    />;
+      onHoverStart={() => this.setState({showPreviousTrick: true})}
+      onHoverEnd={() => this.setState({showPreviousTrick: false})}
+    />
   }
 }
 

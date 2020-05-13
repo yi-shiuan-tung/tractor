@@ -3,6 +3,7 @@ export * from './cards';
 export * from './confirmationPanel/confirmationPanel';
 export * from './findAFriendPanel/findAFriendPanel';
 export * from './gameInfoPanel/gameInfoPanel';
+export * from './hoverButton/hoverButton';
 export * from './kitty/kitty';
 export * from './playerArea';
 export * from './playerNametag/playerNametag';
