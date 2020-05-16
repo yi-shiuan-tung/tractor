@@ -41,7 +41,6 @@ public class Game {
     private int roundNumber = 0;
     private int starterPlayerIndex = 0;
     private Map<String, Card.Value> playerRankScores = new HashMap<>();
-    private boolean doDeclarersWin;
     private Set<String> winningPlayerIds = new HashSet<>();
 
     // round state
@@ -230,11 +229,12 @@ public class Game {
 
         // draw from deck until we find a trump, or take the suit of the highest value card
         status = GameStatus.EXPOSE_BOTTOM_CARDS;
-        playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
         for (int cardId : deck) {
             exposedBottomCards.add(cardId);
-            if (getCurrentTrump().getSuit() != Card.Suit.JOKER)
+            if (getCurrentTrump().getSuit() != Card.Suit.JOKER) {
+                playerHands.forEach((otherPlayerId, otherCardIds) -> sortCards(otherCardIds));
                 return;
+            }
         }
     }
 
@@ -495,7 +495,9 @@ public class Game {
             int scoreIncrease = doDeclarersWin
                     ? (roundScore == 0 ? 3 : 2 - roundScore / (20 * numDecks))
                     : roundScore / (20 * numDecks) - 2;
-            roundEnd(doDeclarersWin, scoreIncrease);
+            finishRound(doDeclarersWin, scoreIncrease);
+
+            currentPlayerIndex = -1;
         }
     }
 
@@ -518,12 +520,11 @@ public class Game {
 
     public synchronized void forfeitRound(String playerId) {
         boolean doDeclarersWin = !isDeclaringTeam.get(playerId);
-        roundEnd(doDeclarersWin, doDeclarersWin ? 1 : 0);
+        finishRound(doDeclarersWin, doDeclarersWin ? 1 : 0);
     }
 
-    private void roundEnd(boolean doDeclarersWin, int scoreIncrease) {
+    private void finishRound(boolean doDeclarersWin, int scoreIncrease) {
         roundNumber++;
-        this.doDeclarersWin = doDeclarersWin;
         int prevStarterPlayerIndex = starterPlayerIndex;
         do {
             // starter goes to next person on the winning team

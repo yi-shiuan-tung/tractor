@@ -17,6 +17,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.ExposeBottomCards;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
+import io.github.ytung.tractor.api.OutgoingMessage.FinishRound;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
@@ -62,6 +63,7 @@ import lombok.Data;
     @JsonSubTypes.Type(value = FriendJoined.class, name = "FRIEND_JOINED"),
     @JsonSubTypes.Type(value = TakeBack.class, name = "TAKE_BACK"),
     @JsonSubTypes.Type(value = Forfeit.class, name = "FORFEIT"),
+    @JsonSubTypes.Type(value = FinishRound.class, name = "FINISH_ROUND"),
     @JsonSubTypes.Type(value = ReconnectMessage.class, name = "RECONNECT"),
     @JsonSubTypes.Type(value = DisconnectMessage.class, name = "DISCONNECT"),
     @JsonSubTypes.Type(value = InvalidAction.class, name = "INVALID_ACTION"),
@@ -251,13 +253,6 @@ public interface OutgoingMessage {
     @Data
     public static class FinishTrick implements OutgoingMessage {
 
-        private final int roundNumber;
-        private final int starterPlayerIndex;
-        private final Map<String, Card.Value> playerRankScores;
-        private final boolean doDeclarersWin;
-        private final Set<String> winningPlayerIds;
-
-        private final GameStatus status;
         private final int currentPlayerIndex;
         private final List<Trick> pastTricks;
         private final Trick currentTrick;
@@ -302,10 +297,14 @@ public interface OutgoingMessage {
     public static class Forfeit implements OutgoingMessage {
 
         private final String playerId;
-        private final String message;
+    }
+
+    @Data
+    public static class FinishRound implements OutgoingMessage {
 
         private final int roundNumber;
         private final int starterPlayerIndex;
+        private final Set<String> winningPlayerIds;
         private final Map<String, Card.Value> playerRankScores;
 
         private final GameStatus status;

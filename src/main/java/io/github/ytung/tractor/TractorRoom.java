@@ -56,6 +56,7 @@ import io.github.ytung.tractor.api.OutgoingMessage.DisconnectMessage;
 import io.github.ytung.tractor.api.OutgoingMessage.Draw;
 import io.github.ytung.tractor.api.OutgoingMessage.ExposeBottomCards;
 import io.github.ytung.tractor.api.OutgoingMessage.FindAFriendDeclarationMessage;
+import io.github.ytung.tractor.api.OutgoingMessage.FinishRound;
 import io.github.ytung.tractor.api.OutgoingMessage.FinishTrick;
 import io.github.ytung.tractor.api.OutgoingMessage.Forfeit;
 import io.github.ytung.tractor.api.OutgoingMessage.FriendJoined;
@@ -361,7 +362,9 @@ public class TractorRoom {
         }
 
         if (message instanceof ForfeitRequest) {
-            forfeit(playerId, "forfeited", broadcaster);
+            game.forfeitRound(playerId);
+            finishRound(broadcaster);
+            sendSync(broadcaster, new Forfeit(playerId));
         }
     }
 
@@ -463,19 +466,13 @@ public class TractorRoom {
                 Uninterruptibles.sleepUninterruptibly(1500, TimeUnit.MILLISECONDS);
                 game.finishTrick();
                 sendSync(broadcaster, new FinishTrick(
-                    game.getRoundNumber(),
-                    game.getStarterPlayerIndex(),
-                    game.getPlayerRankScores(),
-                    game.isDoDeclarersWin(),
-                    game.getWinningPlayerIds(),
-                    game.getStatus(),
                     game.getCurrentPlayerIndex(),
                     game.getPastTricks(),
                     game.getCurrentTrick(),
                     game.getCurrentRoundScores(),
                     game.getCurrentTrump()));
                 if (game.getStatus() != GameStatus.PLAY)
-                    prepareStartNewRound(broadcaster);
+                    finishRound(broadcaster);
             }
         };
 
@@ -483,20 +480,14 @@ public class TractorRoom {
         finishTrickThread.start();
     }
 
-    private void forfeit(String playerId, String message, Broadcaster broadcaster) {
-        game.forfeitRound(playerId);
-        sendSync(broadcaster, new Forfeit(
-            playerId,
-            message,
+    private void finishRound(Broadcaster broadcaster) {
+        // game end, send kitty card info to all players
+        sendSync(broadcaster, new FinishRound(
             game.getRoundNumber(),
             game.getStarterPlayerIndex(),
+            game.getWinningPlayerIds(),
             game.getPlayerRankScores(),
             game.getStatus()));
-        prepareStartNewRound(broadcaster);
-    }
-
-    private void prepareStartNewRound(Broadcaster broadcaster) {
-        // game end, send kitty card info to all players
         sendSync(broadcaster, new CardInfo(Maps.toMap(game.getKitty(), game.getCardsById()::get)));
 
         // add any current observers to the game

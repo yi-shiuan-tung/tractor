@@ -108,7 +108,7 @@ export class Room extends React.Component {
             this.setState(json.GAME_CONFIGURATION);
           } else if (json.START_ROUND) {
             this.setState(json.START_ROUND);
-            this.audio.playGameStart();
+            this.audio.playBackground();
           } else if (json.CARD_INFO) {
             this.setState({cardsById: {
               ...cardsById,
@@ -131,22 +131,20 @@ export class Room extends React.Component {
             this.setState(json.TAKE_KITTY);
           } else if (json.FRIEND_DECLARE) {
             this.setState(json.FRIEND_DECLARE);
+            this.audio.slowlyStopBackground();
           } else if (json.MAKE_KITTY) {
             this.setState(json.MAKE_KITTY);
+            if (json.MAKE_KITTY.status === 'PLAY') {
+              this.audio.slowlyStopBackground();
+            }
           } else if (json.PLAY) {
             this.setState(json.PLAY);
             if (status === 'PLAY' && playerIds[json.PLAY.currentPlayerIndex] === myPlayerId) {
               this.audio.playYourTurn();
             }
           } else if (json.FINISH_TRICK) {
-            const {doDeclarersWin, ...other} = json.FINISH_TRICK;
-            this.setState(other);
-            if (other.status === 'START_ROUND') {
-              this.setNotification(
-                 doDeclarersWin ? 'Declarers win!' : 'Opponents win!',
-              );
-              this.audio.playGameOver();
-            } else if (other.status === 'PLAY' && playerIds[other.currentPlayerIndex] === myPlayerId) {
+            this.setState(json.FINISH_TRICK);
+            if (playerIds[json.FINISH_TRICK.currentPlayerIndex] === myPlayerId) {
               this.audio.playYourTurn();
             }
           } else if (json.CONFIRM_SPECIAL_PLAY) {
@@ -166,8 +164,18 @@ export class Room extends React.Component {
             this.setState(other);
           } else if (json.FORFEIT) {
             const {playerId, message, ...other} = json.FORFEIT;
-            this.setNotification(`${playerNames[playerId]} ${message}.`);
+            this.setNotification(`${playerNames[playerId]} forfeited.`);
             this.setState(other);
+          } else if (json.FINISH_ROUND) {
+            const isWin = json.FINISH_ROUND.winningPlayerIds.includes(myPlayerId);
+            if (isWin) {
+              this.setNotification('You win!');
+              this.audio.playVictory();
+            } else {
+              this.setNotification('You lose.');
+              this.audio.playDefeat();
+            }
+            this.setState(json.FINISH_ROUND);
           } else if (json.RECONNECT) {
             const { playerId } = json.RECONNECT;
             this.setNotification(`${playerNames[playerId]} reconnected.`);
