@@ -280,7 +280,10 @@ export class Room extends React.Component {
         removePlayer={playerId => this.connection.send({ REMOVE_PLAYER: { playerId } })}
         setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
         addAi={() => this.connection.send({ ADD_AI: {} })}
-        setReadyForPlay={ready => this.connection.send({ READY_FOR_PLAY: { ready }})}
+        setReadyForPlay={ready => {
+          this.audio.prepare();
+          this.connection.send({ READY_FOR_PLAY: { ready }});
+        }}
       />;
     }
   }

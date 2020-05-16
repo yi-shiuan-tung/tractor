@@ -39,6 +39,13 @@ export const getAudio = function () {
     }
 
     return {
+        prepare: () => {
+            // On mobile, an explicit user action is required to play mp3s
+            audio.play();
+            audio.pause();
+            longAudio.play();
+            longAudio.pause();
+        },
         setVolume: volume => {
             startVolume = VOLUMES[volume];
             audio.volume = startVolume;
