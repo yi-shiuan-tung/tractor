@@ -49,6 +49,7 @@
     "react-dom": "^16.13.1",
     "react-github-corner": "^2.3.0",
     "react-router-dom": "^5.1.2",
+    "react-spring": "^8.0.27",
     "style-loader": "^1.1.3"
   }
 }

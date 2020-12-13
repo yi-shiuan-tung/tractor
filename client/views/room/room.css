@@ -8,6 +8,15 @@
     height: 800px;
 }
 
+.game_area .winner {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    background-image: url("../../assets/images/crown.png");
+    background-size: cover;
+    display: inline-block;
+}
+
 .game_area .notification {
     position: absolute;
     top: 390px;
@@ -33,6 +42,24 @@
 .game_area .notification.short {
     width: 100px;
     margin-left: -50px;
+}
+
+.game_area .view_kitty_button {
+    cursor: pointer;
+    position: absolute;
+    bottom: 25px;
+    right: 116px;
+    width: 84px;
+    height: 64px;
+    background-image: url("../../assets/images/kitty.png");
+    background-size: cover;
+}
+
+.game_area .view_kitty_button:hover {
+    bottom: 27px;
+    right: 118px;
+    width: 80px;
+    height: 60px;
 }
 
 .game_area .last_trick_button {

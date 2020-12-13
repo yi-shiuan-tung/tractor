@@ -1,27 +1,32 @@
 import PropTypes from 'prop-types';
 import * as React from 'react';
+import { animated, interpolate } from 'react-spring';
+import AnimatedItems from '../../lib/animatedItems';
 import { getAudio } from '../../lib/audio';
-import { preloadCardImages } from '../../lib/cardImages';
+import { SUITS } from '../../lib/cards';
+import { getCardImageSrc, getFaceDownCardImageSrc, preloadCardImages } from '../../lib/cardImages';
 import {setUpConnection} from '../../lib/connection';
-import './room.css';
-
 import {
   ActionButton,
-  Cards,
+  CenteredText,
   ConfirmationPanel,
   FindAFriendPanel,
   GameInfoPanel,
   HoverButton,
-  Kitty,
-  PlayerArea,
   PlayerNametag,
   RejoinPanel,
   RoundInfoPanel,
   RoundStartPanel,
   SettingsPanel,
-  Trick,
 } from '../../components';
-import { SUITS } from '../../lib/cards';
+import './room.css';
+
+const WIDTH = 1200;
+const HEIGHT = 800;
+const CARD_WIDTH = 71;
+const CARD_HEIGHT = 100;
+const CROWN_WIDTH = 48;
+const CROWN_HEIGHT = 48;
 
 export class Room extends React.Component {
   constructor(props) {
@@ -41,6 +46,7 @@ export class Room extends React.Component {
       confirmSpecialPlayCards: undefined, // CardId[]?
       soundVolume: 1, // 0, 1, 2, or 3
       isEditingPlayers: false, // boolean
+      showKitty: false, // boolean
 
       // game state (same as server)
       playerIds: [], // PlayerId[]
@@ -234,13 +240,10 @@ export class Room extends React.Component {
         {this.renderPlayerNames()}
         {this.renderNotifications()}
         {this.renderFindAFriendPanel()}
-        {this.renderPlayerHands()}
-        {this.renderDeclaredCards()}
-        {this.renderBottomCards()}
-        {this.renderCurrentTrick()}
+        {this.renderAnimations()}
         {this.renderSettings()}
         {this.renderActionButton()}
-        {this.renderKitty()}
+        {this.renderKittyButton()}
         {this.renderLastTrickButton()}
       </div>
     );
@@ -344,26 +347,39 @@ export class Room extends React.Component {
       return;
     }
     return playerIds.map(playerId => {
-      return <PlayerArea
-        key={`playerName${playerId}`}
-        myPlayerId={myPlayerId}
-        playerIds={playerIds}
-        playerId={playerId}
-        distance={0.91}
-        shiftX={playerId === myPlayerId ? 240 : 0}
-        isText={true}
-      >
-        <PlayerNametag
-          playerId={playerId}
-          playerNames={playerNames}
-          playerIds={playerIds}
-          findAFriend={findAFriend}
-          status={status}
-          currentPlayerIndex={currentPlayerIndex}
-          isDeclaringTeam={isDeclaringTeam}
-          currentRoundScores={currentRoundScores}
-        />
-      </PlayerArea>;
+      const { x, y, angle } = this.getPositioner({
+        playerId,
+        distance: 0.72,
+      })({ x: playerId === myPlayerId ? 240 : 0, y: CARD_HEIGHT / 2 + 30 });
+
+      // ensure text is as close to right-side-up as possible
+      let adjustedAngle = angle;
+      if (adjustedAngle < 0) {
+        adjustedAngle += 360;
+      }
+      if (adjustedAngle > 90 && adjustedAngle < 270) {
+        adjustedAngle -= 180;
+      }
+
+      return (
+        <CenteredText
+          key={playerId}
+          x={x}
+          y={y}
+          angle={adjustedAngle}
+        >
+          <PlayerNametag
+            playerId={playerId}
+            playerNames={playerNames}
+            playerIds={playerIds}
+            findAFriend={findAFriend}
+            status={status}
+            currentPlayerIndex={currentPlayerIndex}
+            isDeclaringTeam={isDeclaringTeam}
+            currentRoundScores={currentRoundScores}
+          />
+        </CenteredText>
+      );
     });
   }
 
@@ -437,12 +453,104 @@ export class Room extends React.Component {
     }
   }
 
-  renderPlayerHands() {
-    const {myPlayerId, selectedCardIds, status, playerIds, cardsById, playerHands, declaredCards} = this.state;
+  renderAnimations() {
+    const { cardsById } = this.state;
+    const cards = [
+      ...this.getMiddleCards(),
+      ...this.getPlayerHandCards(),
+      ...this.getDeclaredCards(),
+      ...this.getBottomCards(),
+      ...this.getCurrentTrickCards(),
+      ...this.getKittyCards(),
+    ];
+    const crown = this.getCrown();
+    return (
+      <div className="animations">
+        <AnimatedItems
+          items={cards}
+          from={_ => { return { opacity: 0 } }}
+          update={({ x, y, angle, faceUp, scale }) => ({
+            x: x - CARD_WIDTH / 2,
+            y: y - CARD_HEIGHT / 2,
+            angle,
+            faceUp: faceUp ? 1 : 0,
+            scale,
+            opacity: 1,
+          })}
+          animated={({ key, cardId, z, selectCards }, { x, y, angle, faceUp, scale, opacity }) => {
+            const onClick = selectCards ? () => selectCards(cardId) : undefined;
+            return (
+              <animated.img
+                key={key}
+                style={
+                  {
+                    position: 'absolute',
+                    top: y,
+                    left: x,
+                    transform: interpolate(
+                      [angle, faceUp, scale],
+                      (angle, faceUp, scale) => `scale(${scale}) rotateY(${faceUp * 180 - (faceUp > 0.5 ? 180 : 0)}deg) rotateZ(${angle}deg)`),
+                    zIndex: z,
+                    opacity,
+                  }
+                }
+                src={faceUp.interpolate(faceUp => faceUp > 0.5 ? getCardImageSrc(cardsById[cardId]) : getFaceDownCardImageSrc())}
+                onClick={onClick}
+              />
+            );
+          }}
+        />
+        <AnimatedItems
+          items={crown}
+          from={_ => { return { opacity: 0 } }}
+          update={({ x, y, angle }) => ({ x: x - CROWN_WIDTH / 2, y: y - CROWN_HEIGHT / 2, angle, opacity: 1 })}
+          animated={({ key }, { x, y, angle, opacity }) => {
+            return (
+              <animated.div
+                key={key}
+                className="winner"
+                style={
+                  {
+                    top: y,
+                    left: x,
+                    transform: angle.interpolate(angle => `rotate(${angle}deg)`),
+                    opacity,
+                  }
+                }
+              />
+            )
+          }}
+        />
+      </div>
+    );
+  }
+
+  getMiddleCards() {
+    const { myPlayerId, status, deck, pastTricks, currentTrick } = this.state;
     if (status === 'START_ROUND') {
-      return;
+      return [];
     }
-    return playerIds.map((playerId) => {
+    const shownTrick = this.getCurrentTrick();
+    const middleCardIds = [...deck];
+    for (const trick of [...pastTricks, currentTrick]) {
+      if (trick !== shownTrick) {
+        middleCardIds.push(...trick.plays.flatMap(play => play.cardIds));
+      }
+    }
+    return this.toCards({
+      positioner: this.getPositioner({ playerId: myPlayerId, distance: 0 }),
+      cardIds: middleCardIds,
+      faceUp: false,
+      interCardDistance: 0,
+    });
+  }
+
+  getPlayerHandCards() {
+    const {myPlayerId, selectedCardIds, status, playerIds, playerHands, declaredCards} = this.state;
+    if (status === 'START_ROUND') {
+      return [];
+    }
+    return playerIds.flatMap((playerId) => {
 
       const nonDeclaredCards = playerHands[playerId]
       // If not playing tricks, declared cards should be shown in front,
@@ -452,98 +560,143 @@ export class Room extends React.Component {
           declaredCards[declaredCards.length - 1].
               cardIds.every((declaredCardId) => cardId !== declaredCardId));
 
-      return (
-        <PlayerArea
-          key={`playerArea${playerId}`}
-          myPlayerId={myPlayerId}
-          playerIds={playerIds}
-          playerId={playerId}
-          distance={0.6}
-        >
-          <Cards
-            cardIds={nonDeclaredCards}
-            selectedCardIds={selectedCardIds}
-            cardsById={cardsById}
-            faceUp={playerId === myPlayerId}
-            selectCards={playerId === myPlayerId ? cardId => this.setState({
-              selectedCardIds: {
-                ...selectedCardIds,
-                [cardId]: !selectedCardIds[cardId],
-              },
-            }) : undefined}
-          />
-        </PlayerArea>
-      );
+      return this.toCards({
+        positioner: this.getPositioner({ playerId, distance: 0.72 }),
+        cardIds: nonDeclaredCards,
+        faceUp: playerId === myPlayerId,
+        interCardDistance: playerId === myPlayerId ? 15 : 9,
+        z: myPlayerId === playerId ? 1 : 0,
+        selectCards: playerId === myPlayerId ? cardId => this.setState({
+          selectedCardIds: {
+            ...selectedCardIds,
+            [cardId]: !selectedCardIds[cardId],
+          },
+        }) : undefined,
+      });
     });
   }
 
-  renderDeclaredCards() {
-    const {myPlayerId, playerIds, status, cardsById, declaredCards} = this.state;
+  getDeclaredCards() {
+    const { status, declaredCards } = this.state;
     if (status === 'START_ROUND' ||
       status === 'PLAY' ||
       declaredCards.length === 0) {
-      return;
+      return [];
     }
     const latestDeclaredCards = declaredCards[declaredCards.length - 1];
-    return <div>
-      <PlayerArea
-        myPlayerId={myPlayerId}
-        playerIds={playerIds}
-        playerId={latestDeclaredCards.playerId}
-        distance={0.3}
-      >
-        <Cards
-          cardIds={latestDeclaredCards.cardIds}
-          cardsById={cardsById}
-          faceUp={true}
-        />
-      </PlayerArea>
-    </div>;
+    return this.toCards({
+      positioner: this.getPositioner({ playerId: latestDeclaredCards.playerId, distance: 0.3 }),
+      cardIds: latestDeclaredCards.cardIds,
+      faceUp: true,
+      interCardDistance: 15,
+    });
   }
 
-  renderBottomCards() {
-    const { myPlayerId, playerIds, starterPlayerIndex, status, cardsById, exposedBottomCards } = this.state;
+  getBottomCards() {
+    const { playerIds, starterPlayerIndex, status, exposedBottomCards } = this.state;
     if (status !== 'EXPOSE_BOTTOM_CARDS') {
-      return;
+      return [];
     }
-    return <div>
-      <PlayerArea
-        myPlayerId={myPlayerId}
-        playerIds={playerIds}
-        playerId={playerIds[starterPlayerIndex]}
-        distance={0.3}
-      >
-        <Cards
-          cardIds={exposedBottomCards}
-          cardsById={cardsById}
-          faceUp={true}
-        />
-      </PlayerArea>
-    </div>;
+    return this.toCards({
+      positioner: this.getPositioner({ playerId: playerIds[starterPlayerIndex], distance: 0.3 }),
+      cardIds: exposedBottomCards,
+      faceUp: true,
+      interCardDistance: 15,
+    });
   }
 
-  renderCurrentTrick() {
-    const {myPlayerId, showPreviousTrick, playerIds, status, cardsById, pastTricks, currentTrick} = this.state;
+  getCurrentTrickCards() {
+    const currentTrick = this.getCurrentTrick();
     if (!currentTrick) {
-      return;
+      return [];
     }
-    if (showPreviousTrick && pastTricks.length > 0) {
-      return <Trick
-        trick={pastTricks[pastTricks.length - 1]}
-        myPlayerId={myPlayerId}
-        playerIds={playerIds}
-        cardsById={cardsById}
-      />
+    return currentTrick.plays.flatMap(({ playerId, cardIds }) => this.toCards({
+      positioner: this.getPositioner({ playerId, distance: 0.4}),
+      cardIds,
+      faceUp: true,
+      interCardDistance: 15,
+    }));
+  }
+
+  getKittyCards() {
+    const { myPlayerId, showKitty, playerIds, starterPlayerIndex, status, kitty } = this.state;
+    if (status !== 'START_ROUND' && playerIds[starterPlayerIndex] !== myPlayerId) {
+      return [];
     }
-    if (status === 'START_ROUND') {
-      return;
+    if (!kitty || kitty.length === 0) {
+      return [];
     }
-    return <Trick
-      trick={currentTrick}
-      myPlayerId={myPlayerId}
-      playerIds={playerIds}
-      cardsById={cardsById}
-    />
+    return this.toCards({
+      positioner: ({ x, y }) => ({
+        x: WIDTH - 155 + x,
+        y: HEIGHT - (showKitty ? 150 : 55) + y,
+        angle: 0,
+      }),
+      cardIds: kitty,
+      faceUp: true,
+      interCardDistance: showKitty ? 15 : 0,
+      scale: showKitty ? 1 : 0,
+    });
+  }
+
+  getCrown() {
+    const currentTrick = this.getCurrentTrick();
+    if (!currentTrick || currentTrick.winningPlayerId === null) {
+      return [];
+    }
+    const {x, y, angle } = this.getPositioner({
+      playerId: currentTrick.winningPlayerId,
+      distance: 0.4,
+    })({x: 0, y: -(CARD_HEIGHT + CROWN_HEIGHT) / 2});
+    return [{ key: "crown", x, y, angle }];
+  }
+
+  getCurrentTrick() {
+    const {showPreviousTrick, status, pastTricks, currentTrick} = this.state;
+    if (showPreviousTrick) {
+      return pastTricks[pastTricks.length - 1];
+    } else if (status !== 'START_ROUND') {
+      return currentTrick;
+    } else {
+      return undefined;
+    }
+  }
+
+  getPositioner({ playerId, distance }) {
+    const { myPlayerId, playerIds} = this.state;
+    const playerIndex = playerIds.indexOf(playerId);
+    const myIndex = playerIds.indexOf(myPlayerId);
+    const centerPoint = {
+      x: WIDTH * (.5 + Math.sin((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2 * 0.9),
+      y: HEIGHT * (.5 + Math.cos((playerIndex - myIndex) * 2 * Math.PI / playerIds.length) * distance / 2),
+    };
+    const angle = (myIndex - playerIndex) * 360. / playerIds.length;
+    return ({x, y}) => ({
+        x: centerPoint.x + Math.cos(Math.PI / 180 * angle) * x - Math.sin(Math.PI / 180 * angle) * y,
+        y: centerPoint.y + Math.sin(Math.PI / 180 * angle) * x + Math.cos(Math.PI / 180 * angle) * y,
+        angle,
+    });
+  }
+
+  toCards({positioner, cardIds, faceUp, interCardDistance, z, scale, selectCards}) {
+    const { selectedCardIds } = this.state;
+    return cardIds.map((cardId, index) => {
+      const { x, y, angle } = positioner({
+        x: -interCardDistance * (cardIds.length - 1) / 2 + interCardDistance * index,
+        y: selectedCardIds && selectedCardIds[cardId] ? -20 : 0,
+      });
+      return {
+        key: `card-${cardId}`,
+        cardId,
+        x,
+        y,
+        z: z !== undefined ? z : 0,
+        scale: scale !== undefined ? scale : 1,
+        angle,
+        faceUp,
+        selectCards,
+      }
+    });
   }
 
   renderSettings() {
@@ -639,16 +792,19 @@ export class Room extends React.Component {
     }
   }
 
-  renderKitty() {
-    const { myPlayerId, playerIds, starterPlayerIndex, status, cardsById, kitty } = this.state;
+  renderKittyButton() {
+    const { myPlayerId, playerIds, starterPlayerIndex, status, kitty } = this.state;
 
-    return <Kitty
-      myPlayerId={myPlayerId}
-      playerIds={playerIds}
-      starterPlayerIndex={starterPlayerIndex}
-      status={status}
-      cardsById={cardsById}
-      kitty={kitty}
+    if (status !== 'START_ROUND' && playerIds[starterPlayerIndex] !== myPlayerId) {
+      return null;
+    }
+    if (!kitty || kitty.length === 0) {
+      return null;
+    }
+    return <HoverButton
+      className='view_kitty_button'
+      onHoverStart={() => this.setState({ showKitty: true })}
+      onHoverEnd={() => this.setState({ showKitty: false })}
     />;
   }
 
