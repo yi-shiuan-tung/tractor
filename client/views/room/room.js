@@ -39,7 +39,7 @@ export class Room extends React.Component {
       notifications: {},
       showPreviousTrick: false,
       confirmSpecialPlayCards: undefined, // CardId[]?
-      soundVolume: 3, // 0, 1, 2, or 3
+      soundVolume: 1, // 0, 1, 2, or 3
       isEditingPlayers: false, // boolean
 
       // game state (same as server)
