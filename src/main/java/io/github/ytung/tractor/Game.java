@@ -551,7 +551,7 @@ public class Game {
     }
 
     public Card getCurrentTrump() {
-        if (playerIds.isEmpty())
+        if (starterPlayerIndex >= playerIds.size())
             return null;
 
         Card.Value trumpValue = playerRankScores.get(playerIds.get(starterPlayerIndex));

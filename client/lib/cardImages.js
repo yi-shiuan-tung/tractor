@@ -58,5 +58,8 @@ export function getFaceDownCardImageSrc() {
 }
 
 export function getCardImageSrc(card) {
+  if (card === undefined) {
+    return getFaceDownCardImageSrc();
+  }
   return getImageSrc(getImageName(card));
 }
