@@ -25,7 +25,7 @@ export const getAudio = function () {
     const audio = new Audio();
     const longAudio = new Audio();
 
-    var startVolume = 1;
+    var startVolume = 0.1;
 
     function play(audio, file, loop) {
         audio.pause();
