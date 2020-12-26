@@ -57,6 +57,9 @@ export class RoundStartPanel extends React.Component {
 
         const iAmReadyForPlay = playerReadyForPlay[myPlayerId];
         const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
+        const playersNotReadyForPlay = Object.entries(playerReadyForPlay)
+            .filter(([_playerId, ready]) => !ready)
+            .map(([playerId, _ready]) => playerNames[playerId]);
 
         return (
             <div className='round_start_panel'>
@@ -168,6 +171,7 @@ export class RoundStartPanel extends React.Component {
                         'button primary clicked start_game_button' :
                         'button primary start_game_button'}
                     onClick={() => setReadyForPlay(!iAmReadyForPlay)}
+                    title={`Waiting on ${playersNotReadyForPlay.join(', ')}`}
                 >
                     {`${iAmReadyForPlay ? 'Ready' : 'Start round'} (${numPlayersReadyForPlay}/${humanControllers.length})`}
                 </div>

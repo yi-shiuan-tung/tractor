@@ -736,6 +736,7 @@ export class Room extends React.Component {
   renderActionButton() {
     const {
       humanControllers,
+      playerNames,
       myPlayerId,
       selectedCardIds,
       playerIds,
@@ -756,12 +757,16 @@ export class Room extends React.Component {
         .map(([cardId, _selected]) => cardId);
     const iAmReadyForPlay = playerReadyForPlay[myPlayerId];
     const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
+    const playersNotReadyForPlay = Object.entries(playerReadyForPlay)
+      .filter(([_playerId, ready]) => !ready)
+      .map(([playerId, _ready]) => playerNames[playerId]);
 
     if (status === 'DRAW_KITTY' && (selectedCardIdsList.length === 0 || iAmReadyForPlay)) {
       return <ActionButton
         text={`${iAmReadyForPlay ? 'Ready' : 'Pass'} (${numPlayersReadyForPlay}/${humanControllers.length})`}
         clicked={iAmReadyForPlay}
         onClick={() => this.connection.send({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } })}
+        title={`Waiting on ${playersNotReadyForPlay.join(', ')}`}
       />;
     }
 

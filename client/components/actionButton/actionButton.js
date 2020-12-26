@@ -12,11 +12,13 @@ export class ActionButton extends React.Component {
             text,
             clicked,
             onClick,
+            title,
         } = this.props;
 
         return <div
             className={classNames('action_button', 'button', onClick ? 'primary' : 'disabled', { 'clicked': clicked })}
             onClick={onClick}
+            title={title}
         >
             {text}
         </div>;
