@@ -100,11 +100,12 @@ export class Room extends React.Component {
       const unmappedPlayerIds = playerIds
         .filter(playerId => aiControllers.indexOf(playerId) === -1 && humanControllers.indexOf(playerId) === -1);
       if (localName && unmappedPlayerIds.length > 0) {
+        this.setState({ myPlayerId: "pending" });
         this.connection.send({
           REJOIN: { playerId: unmappedPlayerIds.filter(playerId => playerNames[playerId] === localName)[0] }
         });
       }
-    } else if (myPlayerId !== prevState.myPlayerId || playerNames !== prevState.playerNames) {
+    } else if (myPlayerId !== prevState.myPlayerId || playerNames[myPlayerId] != prevState.playerNames[myPlayerId]) {
       if (localName && playerNames[myPlayerId] !== localName) {
         this.connection.send({ SET_NAME: { name: localName } });
       }
