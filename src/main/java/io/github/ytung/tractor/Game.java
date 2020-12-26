@@ -716,7 +716,7 @@ public class Game {
                 Grouping grouping = getGrouping(play.getCardIds());
                 if (hasCoveringShape(profile, bestProfile)) {
                     if ((grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP)
-                            || (grouping == bestGrouping && rank(profile) > rank(bestProfile))) {
+                            || (grouping == bestGrouping && beats(profile, bestProfile))) {
                         winningPlayerId = play.getPlayerId();
                         bestProfile = profile;
                         bestGrouping = grouping;
@@ -764,7 +764,16 @@ public class Game {
         return myShapes.isEmpty();
     }
 
-    private static int rank(List<Component> profile) {
-        return profile.stream().mapToInt(component -> component.getCardIds().size() * 1000 + component.getMaxRank()).max().orElse(0);
+    private static boolean beats(List<Component> myProfile, List<Component> otherProfile) {
+        Component biggestComponent = otherProfile.stream()
+                .max(Comparator.<Component, Integer>comparing(component -> component.cardIds.size())
+                        .thenComparing(component -> component.maxRank))
+                .get();
+        return myProfile.stream()
+                .filter(component -> component.shape.width >= biggestComponent.shape.width)
+                .filter(component -> component.shape.height >= biggestComponent.shape.height)
+                .filter(component -> component.maxRank > biggestComponent.maxRank)
+                .findAny()
+                .isPresent();
     }
 }
