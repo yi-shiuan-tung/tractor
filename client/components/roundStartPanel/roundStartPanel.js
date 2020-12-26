@@ -28,20 +28,32 @@ export class RoundStartPanel extends React.Component {
             playerReadyForPlay,
             myPlayerId,
             isEditingPlayers,
+            localName,
             playerIds,
             numDecks,
             findAFriend,
             playerRankScores,
             winningPlayerIds,
             setPlayerOrder, // PlayerId[] => void
-            setName, // string => void
             setPlayerScore, // (PlayerId, boolean) => void
             removePlayer, // playerId => void
             setGameConfiguration, // { numDecks, findAFriend } => void
             addAi,
             setReadyForPlay, // boolean => void
         } = this.props;
-        const { inputMyName, isMyNameEditable } = this.state;
+        const { isMyNameEditable } = this.state;
+
+        if (playerIds.length === 0) {
+            return null;
+        }
+        if (!localName) {
+            return (
+                <div className='round_start_panel_small'>
+                    <span>Enter your name: </span>
+                    {this.renderNameInput()}
+                </div>
+            );
+        }
 
         const iAmReadyForPlay = playerReadyForPlay[myPlayerId];
         const numPlayersReadyForPlay = Object.values(playerReadyForPlay).filter(ready => ready).length;
@@ -77,19 +89,7 @@ export class RoundStartPanel extends React.Component {
                             }
                         }
                         if (playerId === myPlayerId && isMyNameEditable) {
-                            const setNameFunc = () => {
-                                this.setState({ isMyNameEditable: false });
-                                setName(inputMyName.slice(0, 20));
-                            }
-                            children.push(<input
-                                ref={e => e && e.focus()}
-                                key="edit_name_input"
-                                type='text'
-                                value={inputMyName}
-                                onChange={e => this.setState({ inputMyName: e.target.value })}
-                                onKeyDown={e => e.which === 13 /* enter key */ && setNameFunc()}
-                                onBlur={setNameFunc}
-                            />);
+                            children.push(this.renderNameInput());
                         } else {
                             children.push(playerNames[playerId]);
                         }
@@ -173,5 +173,23 @@ export class RoundStartPanel extends React.Component {
                 </div>
             </div>
         );
+    }
+
+    renderNameInput() {
+        const { setName } = this.props;
+        const { inputMyName } = this.state;
+        const setNameFunc = () => {
+            this.setState({ isMyNameEditable: false });
+            setName(inputMyName.slice(0, 20));
+        }
+        return <input
+            ref={e => e && e.focus()}
+            key="edit_name_input"
+            type='text'
+            value={inputMyName}
+            onChange={e => this.setState({ inputMyName: e.target.value })}
+            onKeyDown={e => e.which === 13 /* enter key */ && setNameFunc()}
+            onBlur={setNameFunc}
+        />;
     }
 }

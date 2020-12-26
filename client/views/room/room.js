@@ -14,7 +14,6 @@ import {
   GameInfoPanel,
   HoverButton,
   PlayerNametag,
-  RejoinPanel,
   RoundInfoPanel,
   RoundStartPanel,
   SettingsPanel,
@@ -47,6 +46,7 @@ export class Room extends React.Component {
       soundVolume: 1, // 0, 1, 2, or 3
       isEditingPlayers: false, // boolean
       showKitty: false, // boolean
+      localName: undefined, // string
 
       // game state (same as server)
       playerIds: [], // PlayerId[]
@@ -79,12 +79,35 @@ export class Room extends React.Component {
     this.audio = getAudio();
     preloadCardImages();
     this.joinRoomWebsocket();
+    this.setState({ localName: window.localStorage.getItem('name') });
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     if (this.props.roomCode !== prevProps.roomCode) {
       this.connection.disconnect();
       this.joinRoomWebsocket();
+    }
+
+    const {
+      aiControllers,
+      humanControllers,
+      playerNames,
+      myPlayerId,
+      localName,
+      playerIds,
+    } = this.state;
+    if (!myPlayerId) {
+      const unmappedPlayerIds = playerIds
+        .filter(playerId => aiControllers.indexOf(playerId) === -1 && humanControllers.indexOf(playerId) === -1);
+      if (localName && unmappedPlayerIds.length > 0) {
+        this.connection.send({
+          REJOIN: { playerId: unmappedPlayerIds.filter(playerId => playerNames[playerId] === localName)[0] }
+        });
+      }
+    } else if (myPlayerId !== prevState.myPlayerId || playerNames !== prevState.playerNames) {
+      if (localName && playerNames[myPlayerId] !== localName) {
+        this.connection.send({ SET_NAME: { name: localName } });
+      }
     }
   }
 
@@ -257,6 +280,7 @@ export class Room extends React.Component {
       playerReadyForPlay,
       myPlayerId,
       isEditingPlayers,
+      localName,
       playerIds,
       numDecks,
       findAFriend,
@@ -272,13 +296,14 @@ export class Room extends React.Component {
         playerReadyForPlay={playerReadyForPlay}
         myPlayerId={myPlayerId}
         isEditingPlayers={isEditingPlayers}
+        localName={localName}
         playerIds={playerIds}
         numDecks={numDecks}
         findAFriend={findAFriend}
         playerRankScores={playerRankScores}
         winningPlayerIds={winningPlayerIds}
         setPlayerOrder={playerIds => this.connection.send({ PLAYER_ORDER: { playerIds }})}
-        setName={name => this.connection.send({ SET_NAME: { name }})}
+        setName={this.setName}
         setPlayerScore={(playerId, increment) => this.connection.send({ PLAYER_SCORE: { playerId, increment }})}
         removePlayer={playerId => this.connection.send({ REMOVE_PLAYER: { playerId } })}
         setGameConfiguration={gameConfiguration => this.connection.send({ GAME_CONFIGURATION: gameConfiguration })}
@@ -385,8 +410,6 @@ export class Room extends React.Component {
 
   renderNotifications() {
     const {
-      aiControllers,
-      humanControllers,
       playerNames,
       playerReadyForPlay,
       myPlayerId,
@@ -397,15 +420,6 @@ export class Room extends React.Component {
       status,
       currentPlayerIndex,
     } = this.state;
-    if (!myPlayerId) {
-      return <RejoinPanel
-        aiControllers={aiControllers}
-        humanControllers={humanControllers}
-        playerNames={playerNames}
-        playerIds={playerIds}
-        rejoin={playerId => this.connection.send({ REJOIN: { playerId }})}
-      />;
-    }
     if (confirmSpecialPlayCards !== undefined) {
       return <ConfirmationPanel
         message={'That is a multiple-component play. If any component can be beaten, you will pay a 10 point penalty.'}
@@ -818,6 +832,12 @@ export class Room extends React.Component {
       onHoverStart={() => this.setState({showPreviousTrick: true})}
       onHoverEnd={() => this.setState({showPreviousTrick: false})}
     />
+  }
+
+  setName = name => {
+    this.setState({ localName: name });
+    this.connection.send({ SET_NAME: { name } });
+    window.localStorage.setItem('name', name);
   }
 }
 

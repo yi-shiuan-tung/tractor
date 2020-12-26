@@ -5,7 +5,6 @@ export * from './findAFriendPanel/findAFriendPanel';
 export * from './gameInfoPanel/gameInfoPanel';
 export * from './hoverButton/hoverButton';
 export * from './playerNametag/playerNametag';
-export * from './rejoinPanel/rejoinPanel';
 export * from './roundInfoPanel/roundInfoPanel';
 export * from './roundStartPanel/roundStartPanel';
 export * from './settingsPanel/settingsPanel';
