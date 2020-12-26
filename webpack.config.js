@@ -4,7 +4,7 @@ const TARGET = process.env.npm_lifecycle_event;
 
 const common = {
   entry: './client/index.js',
-  mode: 'development',
+  mode: 'production',
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'src/main/resources/assets'),
@@ -59,6 +59,7 @@ if (TARGET === 'start' || !TARGET) {
       historyApiFallback: true,
     },
     devtool: 'source-map',
+    mode: 'development',
   });
 }
 
