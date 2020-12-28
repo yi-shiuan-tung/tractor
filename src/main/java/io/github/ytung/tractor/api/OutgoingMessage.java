@@ -214,6 +214,7 @@ public interface OutgoingMessage {
         private final int starterPlayerIndex;
 
         private final Map<String, Boolean> isDeclaringTeam;
+        private final Queue<Integer> deck;
         private final Map<String, List<Integer>> playerHands;
         private final List<Play> declaredCards;
         private final Card currentTrump;

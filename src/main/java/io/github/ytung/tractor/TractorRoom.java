@@ -278,6 +278,7 @@ public class TractorRoom {
                     playerId,
                     game.getStarterPlayerIndex(),
                     game.getIsDeclaringTeam(),
+                    game.getDeck(),
                     game.getPlayerHands(),
                     game.getDeclaredCards(),
                     game.getCurrentTrump(),
