@@ -21,7 +21,7 @@ export class SettingsPanel extends React.Component {
             soundVolume,
             playerIds,
             status,
-            currentTrick,
+            latestNonemptyTrick,
             forfeit, // () => void
             leaveRoom, // () => void
             setSoundVolume, // soundVolume => void
@@ -38,7 +38,7 @@ export class SettingsPanel extends React.Component {
                     title={"Sound volume"}
                 />
                 {this.maybeRenderEditPlayersButton(status, toggleEditPlayers)}
-                {this.maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack)}
+                {this.maybeRenderTakeBackButton(latestNonemptyTrick, myPlayerId, takeBack)}
             </div>
         );
     }
@@ -94,16 +94,16 @@ export class SettingsPanel extends React.Component {
         />;
     }
 
-    maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack) {
-        if (status === 'START_ROUND' || !currentTrick) {
+    maybeRenderTakeBackButton(latestNonemptyTrick, myPlayerId, takeBack) {
+        if (status === 'START_ROUND' || !latestNonemptyTrick) {
             return;
         }
-        const { plays } = currentTrick;
+        const { plays } = latestNonemptyTrick;
         if (plays.length > 0 && plays[plays.length - 1].playerId === myPlayerId) {
             return <div
                 className='button undo'
                 onClick={takeBack}
-                title={"Undo"}
+                title={"Take back"}
             />;
         }
     }

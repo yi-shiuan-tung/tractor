@@ -290,7 +290,9 @@ public interface OutgoingMessage {
         private final Map<String, Boolean> isDeclaringTeam;
         private final Map<String, List<Integer>> playerHands;
         private final FindAFriendDeclaration findAFriendDeclaration;
+        private final List<Trick> pastTricks;
         private final Trick currentTrick;
+        private final Map<String, Integer> currentRoundScores;
     }
 
     @Data

@@ -718,13 +718,16 @@ export class Room extends React.Component {
   }
 
   renderSettings() {
-    const { myPlayerId, soundVolume, isEditingPlayers, playerIds, status, currentTrick } = this.state;
+    const { myPlayerId, soundVolume, isEditingPlayers, playerIds, status, pastTricks, currentTrick } = this.state;
+    const latestNonemptyTrick = currentTrick && currentTrick.plays.length > 0 || !pastTricks
+      ? currentTrick
+      : pastTricks[pastTricks.length - 1];
     return <SettingsPanel
       myPlayerId={myPlayerId}
       soundVolume={soundVolume}
       playerIds={playerIds}
       status={status}
-      currentTrick={currentTrick}
+      latestNonemptyTrick={latestNonemptyTrick}
       forfeit={() => this.connection.send({ FORFEIT: {} })}
       leaveRoom={() => this.connection.send({ REMOVE_PLAYER: { playerId: myPlayerId } })}
       setSoundVolume={soundVolume => {

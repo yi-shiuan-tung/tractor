@@ -358,7 +358,9 @@ public class TractorRoom {
                 game.getIsDeclaringTeam(),
                 game.getPlayerHands(),
                 game.getFindAFriendDeclaration(),
-                game.getCurrentTrick()));
+                game.getPastTricks(),
+                game.getCurrentTrick(),
+                game.getCurrentRoundScores()));
         }
 
         if (message instanceof ForfeitRequest) {

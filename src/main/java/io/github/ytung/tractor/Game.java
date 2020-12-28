@@ -504,14 +504,25 @@ public class Game {
 
     public synchronized void takeBack(String playerId) {
         List<Play> plays = currentTrick.getPlays();
-        if (plays.isEmpty())
-            throw new IllegalStateException();
+        if (plays.isEmpty()) {
+            if (pastTricks.isEmpty())
+                throw new IllegalStateException();
+            plays = pastTricks.get(pastTricks.size() - 1).getPlays();
+        }
 
         Play lastPlay = plays.get(plays.size() - 1);
         if (!lastPlay.getPlayerId().equals(playerId))
             throw new IllegalStateException();
 
-        currentTrick.getPlays().remove(plays.size() - 1);
+        if (currentTrick.getPlays().isEmpty()) {
+            // undo finishing previous trick
+            currentTrick = pastTricks.remove(pastTricks.size() - 1);
+            String winningPlayerId = currentTrick.getWinningPlayerId();
+            for (Play play : plays)
+                currentRoundScores.put(winningPlayerId, currentRoundScores.get(winningPlayerId) - totalCardScore(play.getCardIds()));
+        }
+
+        plays.remove(plays.size() - 1);
         currentTrick.setWinningPlayerId(winningPlayerId(currentTrick));
         playerHands.get(playerId).addAll(lastPlay.getCardIds());
         sortCards(playerHands.get(playerId));
@@ -712,22 +723,22 @@ public class Game {
     }
 
     public String winningPlayerId(Trick trick) {
-        String winningPlayerId = trick.getStartPlayerId();
         List<Play> plays = trick.getPlays();
-        if (!plays.isEmpty()) {
-            List<Component> bestProfile = getProfile(plays.get(0).getCardIds());
-            Grouping bestGrouping = getGrouping(plays.get(0).getCardIds());
-            for (int i = 1; i < plays.size(); i++) {
-                Play play = plays.get(i);
-                List<Component> profile = getProfile(play.getCardIds());
-                Grouping grouping = getGrouping(play.getCardIds());
-                if (hasCoveringShape(profile, bestProfile)) {
-                    if ((grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP)
-                            || (grouping == bestGrouping && beats(profile, bestProfile))) {
-                        winningPlayerId = play.getPlayerId();
-                        bestProfile = profile;
-                        bestGrouping = grouping;
-                    }
+        if (plays.isEmpty())
+            return null;
+        String winningPlayerId = trick.getStartPlayerId();
+        List<Component> bestProfile = getProfile(plays.get(0).getCardIds());
+        Grouping bestGrouping = getGrouping(plays.get(0).getCardIds());
+        for (int i = 1; i < plays.size(); i++) {
+            Play play = plays.get(i);
+            List<Component> profile = getProfile(play.getCardIds());
+            Grouping grouping = getGrouping(play.getCardIds());
+            if (hasCoveringShape(profile, bestProfile)) {
+                if ((grouping == Grouping.TRUMP && bestGrouping != Grouping.TRUMP)
+                        || (grouping == bestGrouping && beats(profile, bestProfile))) {
+                    winningPlayerId = play.getPlayerId();
+                    bestProfile = profile;
+                    bestGrouping = grouping;
                 }
             }
         }
