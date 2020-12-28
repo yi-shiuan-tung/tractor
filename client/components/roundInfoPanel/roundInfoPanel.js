@@ -20,7 +20,7 @@ export class RoundInfoPanel extends React.Component {
             currentTrump,
         } = this.props;
 
-        if (!isDeclaringTeam) {
+        if (!isDeclaringTeam || !currentTrump) {
             return null;
         }
         const trumpSuit = currentTrump.suit === 'JOKER' ? 'NO TRUMP' : SUITS[currentTrump.suit];

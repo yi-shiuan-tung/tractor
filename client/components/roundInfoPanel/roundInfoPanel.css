@@ -1,16 +1,16 @@
 .round_info_panel {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 16px;
+    top: var(--spacing-med);
+    left: var(--spacing-med);
+    padding: var(--spacing-med);
     color: darkblue;
     border: 1px solid black;
-    border-radius: 16px;
+    border-radius: 8px;
     background-color: tan;
 }
 
 .round_info_panel .section {
-    margin-top: 10px;
+    margin-top: 3px;
 }
 
 .round_info_panel .satisfied {

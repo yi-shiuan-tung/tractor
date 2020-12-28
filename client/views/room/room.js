@@ -20,8 +20,8 @@ import {
 } from '../../components';
 import './room.css';
 
-const WIDTH = 1200;
-const HEIGHT = 800;
+const WIDTH = 1100;
+const HEIGHT = 700;
 const CARD_WIDTH = 71;
 const CARD_HEIGHT = 100;
 const CROWN_WIDTH = 48;
@@ -375,8 +375,8 @@ export class Room extends React.Component {
     return playerIds.map(playerId => {
       const { x, y, angle } = this.getPositioner({
         playerId,
-        distance: 0.72,
-      })({ x: playerId === myPlayerId ? 240 : 0, y: CARD_HEIGHT / 2 + 30 });
+        distance: 0.7,
+      })({ x: playerId === myPlayerId ? 240 : 0, y: CARD_HEIGHT / 2 + 20 });
 
       // ensure text is as close to right-side-up as possible
       let adjustedAngle = angle;
@@ -576,7 +576,7 @@ export class Room extends React.Component {
               cardIds.every((declaredCardId) => cardId !== declaredCardId));
 
       return this.toCards({
-        positioner: this.getPositioner({ playerId, distance: 0.72 }),
+        positioner: this.getPositioner({ playerId, distance: 0.7 }),
         cardIds: nonDeclaredCards,
         faceUp: playerId === myPlayerId,
         interCardDistance: playerId === myPlayerId ? 15 : 9,
@@ -626,7 +626,7 @@ export class Room extends React.Component {
       return [];
     }
     return currentTrick.plays.flatMap(({ playerId, cardIds }) => this.toCards({
-      positioner: this.getPositioner({ playerId, distance: 0.4}),
+      positioner: this.getPositioner({ playerId, distance: 0.38}),
       cardIds,
       faceUp: true,
       interCardDistance: 15,
@@ -643,8 +643,8 @@ export class Room extends React.Component {
     }
     return this.toCards({
       positioner: ({ x, y }) => ({
-        x: WIDTH - 155 + x,
-        y: HEIGHT - (showKitty ? 150 : 55) + y,
+        x: WIDTH - 142 + x,
+        y: HEIGHT - (showKitty ? 140 : 40) + y,
         angle: 0,
       }),
       cardIds: kitty,
@@ -661,7 +661,7 @@ export class Room extends React.Component {
     }
     const {x, y, angle } = this.getPositioner({
       playerId: currentTrick.winningPlayerId,
-      distance: 0.4,
+      distance: 0.38,
     })({x: 0, y: -(CARD_HEIGHT + CROWN_HEIGHT) / 2});
     return [{ key: "crown", x, y, angle }];
   }

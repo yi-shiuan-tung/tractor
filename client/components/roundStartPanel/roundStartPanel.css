@@ -1,10 +1,11 @@
 .round_start_panel_small {
     position: absolute;
-    padding: 20px 0 20px 0;
-    top: 350px;
+    padding: var(--spacing-med) 0 var(--spacing-med) 0;
+    top: calc(50% - 2 * var(--spacing-med));
     left: 50%;
-    width: 400px;
-    margin-left: -200px;
+    width: 360px;
+    height: calc(2 * var(--spacing-med));
+    margin-left: -180px;
     text-align: center;
     color: darkblue;
     border: 1px solid black;
@@ -14,11 +15,11 @@
 
 .round_start_panel {
     position: absolute;
-    padding-top: 44px;
-    top: 150px;
+    padding-top: calc(3 * var(--spacing-med));
+    top: 100px;
     left: 50%;
-    width: 600px;
-    margin-left: -300px;
+    width: 540px;
+    margin-left: -270px;
     text-align: center;
     color: darkblue;
     border: 1px solid black;
@@ -28,14 +29,14 @@
 
 .round_start_panel li {
     font-size: 18px;
-    margin-bottom: 14px;
+    margin-bottom: var(--spacing-med);
 }
 
 .round_start_panel .title {
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 44px;
-    margin-bottom: 40px;
+    font-size: 40px;
+    margin-bottom: calc(2 * var(--spacing-med));
 }
 
 .round_start_panel .arrow {
@@ -105,7 +106,7 @@
 }
 
 .round_start_panel .game_properties {
-    margin: 40px;
+    margin: 36px;
 }
 
 .round_start_panel .game_properties div {
@@ -120,7 +121,7 @@
 .round_start_panel .start_game_button {
     width: 150px;
     margin: auto;
-    margin-bottom: 44px;
+    margin-bottom: calc(3 * var(--spacing-med));
 }
 
 .round_start_panel .add_ai_button {

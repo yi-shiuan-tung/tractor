@@ -15,31 +15,31 @@
 }
 
 .settings_panel .forfeit {
-    bottom: 20px;
-    left: 20px;
+    bottom: var(--spacing-med);
+    left: var(--spacing-med);
     background-image: url("../../assets/images/forfeit.png");
 }
 
 .settings_panel .leave_room {
-    bottom: 20px;
-    left: 20px;
+    bottom: var(--spacing-med);
+    left: var(--spacing-med);
     background-image: url("../../assets/images/leave_room.png");
 }
 
 .settings_panel .sound {
-    bottom: 20px;
-    left: 60px;
+    bottom: var(--spacing-med);
+    left: calc(var(--spacing-med) + 40px);
 }
 
 .settings_panel .edit_players {
-    bottom: 20px;
-    left: 100px;
+    bottom: var(--spacing-med);
+    left: calc(var(--spacing-med) + 2 * 40px);
     background-image: url("../../assets/images/edit_players.png");
 }
 
 .settings_panel .undo {
-    bottom: 20px;
-    left: 100px;
+    bottom: var(--spacing-med);
+    left: calc(var(--spacing-med) + 2 * 40px);
     background-image: url("../../assets/images/undo.png");
 }
 
