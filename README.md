@@ -2,7 +2,7 @@
 
 Multiplayer online tractor game. Try it at https://orange-tractor.herokuapp.com/.
 
-![Screenshot](screenshot.png)
+![Video](tractor.gif)
 
 ### Features:
 
@@ -13,7 +13,7 @@ Multiplayer online tractor game. Try it at https://orange-tractor.herokuapp.com/
 - Supports take-backs
 - Sound notifications on your turn
 - Shows the currently winning player in each trick
-- View the most recent trick
+- View the previous trick
 - Automatic card drawing during the draw phase
 - AI players
 
