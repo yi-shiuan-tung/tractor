@@ -35,6 +35,7 @@ export class SettingsPanel extends React.Component {
                 <div
                     className={`button sound sound${soundVolume}`}
                     onClick={() => setSoundVolume((soundVolume + 1) % 4)}
+                    title={"Sound volume"}
                 />
                 {this.maybeRenderEditPlayersButton(status, toggleEditPlayers)}
                 {this.maybeRenderTakeBackButton(currentTrick, myPlayerId, takeBack)}
@@ -71,11 +72,13 @@ export class SettingsPanel extends React.Component {
             return <div
                 className='button leave_room'
                 onClick={() => this.setState({ isConfirmingLeave: !isConfirmingLeave })}
+                title={"Leave"}
             />;
         } else {
             return <div
                 className='button forfeit'
                 onClick={() => this.setState({ isConfirmingForfeit: !isConfirmingForfeit })}
+                title={"Forfeit"}
             />;
         }
     }
@@ -87,6 +90,7 @@ export class SettingsPanel extends React.Component {
         return <div
             className='button edit_players'
             onClick={toggleEditPlayers}
+            title={"Edit players"}
         />;
     }
 
@@ -99,6 +103,7 @@ export class SettingsPanel extends React.Component {
             return <div
                 className='button undo'
                 onClick={takeBack}
+                title={"Undo"}
             />;
         }
     }

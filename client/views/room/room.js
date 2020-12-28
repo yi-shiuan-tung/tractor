@@ -248,7 +248,10 @@ export class Room extends React.Component {
     return (
       <div>
         <div>
-          <h3>Room Code: {roomCode}</h3>
+          <h3>
+            <a href="/">🚜</a>
+            {` Room Code: ${roomCode}`}
+          </h3>
         </div>
         {this.renderGameArea()}
       </div>
