@@ -169,7 +169,7 @@ export class RoundStartPanel extends React.Component {
                 <div
                     className={iAmReadyForPlay ?
                         'button primary clicked start_game_button' :
-                        'button primary start_game_button'}
+                        'button primary start_game_button pulse'}
                     onClick={() => setReadyForPlay(!iAmReadyForPlay)}
                     title={`Waiting on ${playersNotReadyForPlay.join(', ')}`}
                 >

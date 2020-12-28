@@ -767,6 +767,7 @@ export class Room extends React.Component {
         clicked={iAmReadyForPlay}
         onClick={() => this.connection.send({ READY_FOR_PLAY: { ready: !iAmReadyForPlay } })}
         title={`Waiting on ${playersNotReadyForPlay.join(', ')}`}
+        pulse={!iAmReadyForPlay}
       />;
     }
 
