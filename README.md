@@ -1,6 +1,6 @@
 # Tractor (拖拉机)
 
-Multiplayer online tractor game. Try it at https://orange-tractor.herokuapp.com/.
+Multiplayer online tractor game. Try it at https://util.in:8096.
 
 ![Video](tractor.gif)
 
