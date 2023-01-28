@@ -516,7 +516,11 @@ public class TractorRoom {
 
     private void sendSync(String playerId, Broadcaster broadcaster, OutgoingMessage message) {
         if (humanControllers.containsKey(playerId))
-            humanControllers.get(playerId).write(JacksonEncoder.INSTANCE.encode(message));
+            try {
+                humanControllers.get(playerId).write(JacksonEncoder.INSTANCE.encode(message));
+            } catch (RuntimeException e) {
+                // client disconnected, ignore
+            }
         else if (aiControllers.containsKey(playerId))
             aiControllers.get(playerId).processMessage(game, message, inputMessage -> handleGameMessage(playerId, broadcaster, inputMessage));
     }
